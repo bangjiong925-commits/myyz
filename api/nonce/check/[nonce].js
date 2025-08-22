@@ -1,5 +1,5 @@
 // Vercel Serverless Function for Nonce Check API
-const { createClient } = require('@vercel/kv');
+import { createClient } from '@vercel/kv';
 
 // 初始化KV存储
 const kv = createClient({
@@ -14,7 +14,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, User-Agent',
 };
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   // 处理CORS预检请求
   if (req.method === 'OPTIONS') {
     return res.status(200).json({}).setHeaders(corsHeaders);
