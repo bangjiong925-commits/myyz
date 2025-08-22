@@ -2656,7 +2656,7 @@ async function O(t){try{const e=await fetch(`https://myyz.vercel.app/api/nonce/c
 // 在线检查密钥是否已被使用
 async function checkKeyOnlineUsage(nonce) {
     try {
-        const response = await fetch(`https://myyz.vercel.app/api/key-records/check/${encodeURIComponent(nonce)}`, {
+        const response = await fetch(`https://myyz.vercel.app/api/nonce/check/${encodeURIComponent(nonce)}`, {
             method: 'GET',
             headers: {
                 'User-Agent': 'TWPK-KeyValidator/1.0'
@@ -2679,7 +2679,7 @@ async function checkKeyOnlineUsage(nonce) {
 // 标记密钥为已使用（在线）
 async function markKeyAsUsedOnline(nonce) {
     try {
-        const response = await fetch(`https://myyz.vercel.app/api/key-records/mark-used`, {
+        const response = await fetch(`https://myyz.vercel.app/api/nonce/mark`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
