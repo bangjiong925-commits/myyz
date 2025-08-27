@@ -13,34 +13,167 @@ jobs:
     timeout-minutes: 5
     
     steps:
-    - name: High Frequency Data Update (Every 5 seconds)
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install dependencies
       run: |
-        echo "Starting high frequency data update at $(date)"
+        npm install puppeteer
         
-        # 在1分钟内每5秒抓取一次数据（共12次）
-        for i in {1..12}; do
-          echo "Update attempt $i/12 at $(date)"
-          
-          # 调用Vercel部署的更新API
-          curl -X GET "https://${{ secrets.VERCEL_DOMAIN }}/api/update-taiwan-pk10?token=${{ secrets.UPDATE_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -H "User-Agent: GitHub-Actions-Bot" \
-            --fail-with-body \
-            --show-error \
-            --silent \
-            --max-time 4 || echo "Update $i failed"
-          
-          # 等待5秒（除了最后一次）
-          if [ $i -lt 12 ]; then
-            sleep 5
-          fi
-        done
+    - name: Fetch Taiwan PK10 Data
+      run: |
+        echo "Starting data fetch at $(date)"
         
-        echo "High frequency update cycle completed at $(date)"
-    
+        # 创建数据抓取脚本
+        cat > fetch_data.js << 'EOF'
+        const puppeteer = require('puppeteer');
+        const fs = require('fs');
+        
+        async function fetchTaiwanPK10Data() {
+          let browser = null;
+          
+          try {
+            // 检查当前是否在台湾PK10开奖时间段内
+            const now = new Date();
+            const taiwanTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Taipei"}));
+            const currentHour = taiwanTime.getHours();
+            
+            if (currentHour < 9 || currentHour >= 24) {
+              console.log(`当前台湾时间${currentHour}:${taiwanTime.getMinutes().toString().padStart(2, '0')}不在开奖时间段内（09:00-23:59）`);
+              return null;
+            }
+            
+            browser = await puppeteer.launch({
+              headless: true,
+              args: ['--no-sandbox', '--disable-setuid-sandbox']
+            });
+            
+            const page = await browser.newPage();
+            await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+            
+            console.log('正在访问台湾PK10网站...');
+            await page.goto('https://www.twpk10.com/', { 
+              waitUntil: 'networkidle2',
+              timeout: 30000 
+            });
+            
+            // 等待数据加载
+            await page.waitForTimeout(3000);
+            
+            // 提取最新开奖数据
+            const latestData = await page.evaluate(() => {
+              // 查找最新期数和开奖号码
+              const periodElement = document.querySelector('.period, .issue, [class*="period"], [class*="issue"]');
+              const numbersElements = document.querySelectorAll('.number, .ball, [class*="number"], [class*="ball"]');
+              
+              if (!periodElement || numbersElements.length === 0) {
+                return null;
+              }
+              
+              const period = periodElement.textContent.trim();
+              const numbers = Array.from(numbersElements).slice(0, 10).map(el => parseInt(el.textContent.trim()));
+              
+              return {
+                period,
+                numbers,
+                time: new Date().toLocaleTimeString('zh-CN', { timeZone: 'Asia/Taipei', hour12: false }),
+                timestamp: new Date().toISOString()
+              };
+            });
+            
+            if (latestData && latestData.numbers.length === 10) {
+              console.log('成功获取数据:', latestData);
+              return latestData;
+            } else {
+              console.log('未能获取有效数据');
+              return null;
+            }
+            
+          } catch (error) {
+            console.error('抓取数据时出错:', error.message);
+            return null;
+          } finally {
+            if (browser) {
+              await browser.close();
+            }
+          }
+        }
+        
+        // 执行数据抓取
+        fetchTaiwanPK10Data().then(data => {
+          if (data) {
+            // 更新最新数据文件
+            const latestData = {
+              time: data.time,
+              period: data.period,
+              numbers: data.numbers,
+              numbersString: data.numbers.join(' '),
+              timestamp: data.timestamp,
+              source: 'taiwan_pk10',
+              type: 'pk10'
+            };
+            
+            fs.writeFileSync('taiwan_pk10_latest.json', JSON.stringify(latestData, null, 2));
+            
+            // 读取历史数据并添加新记录
+            let historicalData = [];
+            try {
+              const existingData = fs.readFileSync('taiwan_pk10_data.json', 'utf8');
+              historicalData = JSON.parse(existingData);
+            } catch (e) {
+              console.log('创建新的历史数据文件');
+            }
+            
+            // 检查是否已存在相同期数的数据
+            const existingIndex = historicalData.findIndex(item => item.period === data.period);
+            if (existingIndex === -1) {
+              historicalData.unshift(latestData);
+              // 保留最近500期数据
+              if (historicalData.length > 500) {
+                historicalData = historicalData.slice(0, 500);
+              }
+              
+              fs.writeFileSync('taiwan_pk10_data.json', JSON.stringify(historicalData, null, 2));
+              console.log('数据已更新到文件');
+            } else {
+              console.log('期数', data.period, '的数据已存在，跳过更新');
+            }
+          } else {
+            console.log('未获取到有效数据，跳过更新');
+          }
+        }).catch(error => {
+          console.error('脚本执行出错:', error);
+          process.exit(1);
+        });
+        EOF
+        
+        # 执行数据抓取
+        node fetch_data.js
+        
+    - name: Commit and push changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # 检查是否有文件变更
+        if git diff --quiet; then
+          echo "没有数据更新，跳过提交"
+        else
+          git add taiwan_pk10_*.json
+          git commit -m "自动更新台湾PK10数据 - $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+          git push
+          echo "数据已提交到仓库"
+        fi
+        
     - name: Log Update Status
       if: always()
       run: |
         echo "Update job finished with status: ${{ job.status }}"
         echo "Timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-        echo "Next update cycle will start in approximately 5 seconds"
