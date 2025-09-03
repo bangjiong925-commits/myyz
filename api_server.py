@@ -192,9 +192,14 @@ if __name__ == '__main__':
     import argparse
     
     parser = argparse.ArgumentParser(description='API服务器')
-    parser.add_argument('--port', type=int, default=3001, help='服务器端口 (默认: 3001)')
+    parser.add_argument('--port', type=int, help='服务器端口')
     
     args = parser.parse_args()
+    
+    # 从命令行参数或环境变量获取端口号
+    port = args.port or int(os.environ.get('PORT', 3001))
+    
+    print(f"启动API服务器，端口: {port}")
     
     # 检查必要文件是否存在
     required_files = ['python_scraper.py', 'TWPK.html']
@@ -204,4 +209,4 @@ if __name__ == '__main__':
         print(f"错误: 缺少必要文件: {', '.join(missing_files)}")
         sys.exit(1)
     
-    run_server(args.port)
+    run_server(port)
