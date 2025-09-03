@@ -11,4 +11,3 @@ restartPolicyMaxRetries = 10
 
 [environments.production.variables]
 PYTHON_VERSION = "3.11"
-PORT = "${{RAILWAY_PUBLIC_PORT}}"
