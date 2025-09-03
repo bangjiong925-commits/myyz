@@ -1,0 +1,42 @@
+2025-09-03 16:42:05.058 | INFO     | __main__:run_scraper:931 - 开始运行台湾PK10数据抓取器
+2025-09-03 16:42:06.603 | INFO     | __main__:setup_driver:86 - Chrome浏览器驱动设置完成
+2025-09-03 16:42:06.604 | INFO     | __main__:navigate_to_page:95 - 正在访问: https://xn--kpro5poukl1g.com/#/
+2025-09-03 16:42:23.130 | INFO     | __main__:navigate_to_page:102 - 页面加载完成
+2025-09-03 16:42:23.190 | INFO     | __main__:click_pk10_option:148 - 找到台湾PK10选项: 台湾PK10
+2025-09-03 16:42:25.261 | INFO     | __main__:click_pk10_option:152 - 成功点击台湾PK10选项
+2025-09-03 16:42:25.262 | INFO     | __main__:navigate_to_page:106 - 成功切换到台湾PK10数据
+2025-09-03 16:42:25.444 | INFO     | __main__:select_date:197 - 找到日期选择器: input[placeholder*='日期']
+2025-09-03 16:42:25.478 | DEBUG    | __main__:select_date:264 - 日期输入方法1失败: Message: invalid element state
+  (Session info: chrome=139.0.7258.155)
+Stacktrace:
+0   chromedriver                        0x0000000109acd668 chromedriver + 5928552
+1   chromedriver                        0x0000000109ac4c0a chromedriver + 5893130
+2   chromedriver                        0x000000010958ec43 chromedriver + 429123
+3   chromedriver                        0x00000001095d750e chromedriver + 726286
+4   chromedriver                        0x0000000109607062 chromedriver + 921698
+5   chromedriver                        0x00000001095d4b48 chromedriver + 715592
+6   chromedriver                        0x000000010960721e chromedriver + 922142
+7   chromedriver                        0x000000010962e1d4 chromedriver + 1081812
+8   chromedriver                        0x0000000109606e33 chromedriver + 921139
+9   chromedriver                        0x00000001095d337b chromedriver + 709499
+10  chromedriver                        0x00000001095d4061 chromedriver + 712801
+11  chromedriver                        0x0000000109a8b0e0 chromedriver + 5656800
+12  chromedriver                        0x0000000109a8efa4 chromedriver + 5672868
+13  chromedriver                        0x0000000109a66052 chromedriver + 5505106
+14  chromedriver                        0x0000000109a8fa4f chromedriver + 5675599
+15  chromedriver                        0x0000000109a55004 chromedriver + 5435396
+16  chromedriver                        0x0000000109ab1d88 chromedriver + 5815688
+17  chromedriver                        0x0000000109ab1f50 chromedriver + 5816144
+18  chromedriver                        0x0000000109ac47e1 chromedriver + 5892065
+19  libsystem_pthread.dylib             0x00007ff814eba1d3 _pthread_start + 125
+20  libsystem_pthread.dylib             0x00007ff814eb5bd3 thread_start + 15
+
+2025-09-03 16:42:27.506 | INFO     | __main__:select_date:223 - 已选择日期: 2025-09-03 (使用选择器: input[placeholder*='日期'], 方法2)
+2025-09-03 16:42:32.715 | INFO     | __main__:select_date:257 - 未找到查询按钮，已按回车键尝试触发更新
+2025-09-03 16:42:32.716 | INFO     | __main__:scrape_all_pages:826 - 正在抓取第 1 页数据
+2025-09-03 16:42:32.726 | INFO     | __main__:extract_lottery_data:484 - 第1页找到 3 个表格
+2025-09-03 16:42:32.766 | INFO     | __main__:extract_lottery_data:498 - 第1页选择表格 2，包含 50 行
+2025-09-03 16:42:32.776 | INFO     | __main__:extract_lottery_data:510 - 第1页找到 50 行数据
+2025-09-03 16:42:32.791 | INFO     | __main__:extract_lottery_data:524 - 第1页第一行包含有效数据，从第一行开始读取
+2025-09-03 16:42:35.086 | INFO     | __main__:extract_lottery_data:572 - 第1页成功提取 50 条数据
+2025-09-03 16:42:35.087 | INFO     | __main__:scrape_all_pages:845 - 第 1 页获取到 50 条新数据

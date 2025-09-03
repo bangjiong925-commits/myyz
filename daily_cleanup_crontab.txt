@@ -1,0 +1,16 @@
+# 每日数据库清理任务 - 保留最近7天的数据
+# 每天凌晨2点执行清理任务
+# 分 时 日 月 周 命令
+0 2 * * * cd /Users/a1234/Documents/GitHub/myyz && /usr/bin/python3 daily_cleanup.py >> logs/daily_cleanup.log 2>&1
+
+# 安装说明:
+# 1. 编辑crontab: crontab -e
+# 2. 添加上面的任务行
+# 3. 保存并退出
+# 4. 查看已安装的任务: crontab -l
+
+# 注意事项:
+# - 确保Python3路径正确 (/usr/bin/python3)
+# - 确保脚本路径正确
+# - 日志文件会保存在 logs/daily_cleanup.log
+# - 如需修改执行时间，请调整 "0 2" 部分（分钟 小时）

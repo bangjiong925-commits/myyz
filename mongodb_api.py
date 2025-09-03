@@ -64,6 +64,11 @@ class MongoDBAPIHandler(BaseHTTPRequestHandler):
                 result = self.health_check()
                 response = json.dumps(result, ensure_ascii=False)
                 self.wfile.write(response.encode('utf-8'))
+            elif parsed_path.path == '/api/cleanup-history':
+                # 清理历史数据
+                result = self.cleanup_history_data()
+                response = json.dumps(result, ensure_ascii=False)
+                self.wfile.write(response.encode('utf-8'))
             else:
                 # 404错误
                 self.send_error(404, "API端点未找到")
@@ -103,23 +108,48 @@ class MongoDBAPIHandler(BaseHTTPRequestHandler):
             }
         
         try:
-            # 获取今天的格式化数据
+            # 首先尝试从web_formatted_data集合获取最新的完整数据
             web_collection = self.db['web_formatted_data']
+            latest_web_data = web_collection.find().sort([('created_at', -1)]).limit(1)
+            
+            for doc in latest_web_data:
+                if 'data' in doc and doc['data']:
+                    return {
+                        'success': True,
+                        'data': doc['data'],
+                        'total_records': doc.get('total_records', len(doc['data'])),
+                        'date': date.today().isoformat(),
+                        'timestamp': datetime.now().isoformat(),
+                        'message': f'成功获取今日数据 {len(doc["data"])} 条'
+                    }
+            
+            # 如果web_formatted_data没有数据，则从lottery_data集合获取
+            collection = self.db['lottery_data']
             today_str = date.today().isoformat()
             
-            doc = web_collection.find_one(
-                {'date': today_str},
-                sort=[('created_at', -1)]
+            # 查询今天的数据（不限制条数）
+            cursor = collection.find(
+                {
+                    'is_valid': True,
+                    'draw_date': {'$regex': f'^{today_str}'}
+                },
+                sort=[('scraped_at', -1)]
             )
             
-            if doc and 'data' in doc:
+            data = []
+            for doc in cursor:
+                # 转换为前端需要的格式
+                formatted_data = f"{doc['period']} {','.join(map(str, doc['draw_numbers']))}"
+                data.append(formatted_data)
+            
+            if data:
                 return {
                     'success': True,
-                    'data': doc['data'],
-                    'total_records': len(doc['data']),
+                    'data': data,
+                    'total_records': len(data),
                     'date': today_str,
                     'timestamp': datetime.now().isoformat(),
-                    'message': f'成功获取今日数据 {len(doc["data"])} 条'
+                    'message': f'成功获取今日数据 {len(data)} 条'
                 }
             else:
                 return {
@@ -189,6 +219,59 @@ class MongoDBAPIHandler(BaseHTTPRequestHandler):
             if self.mongo_client:
                 self.mongo_client.close()
     
+    def cleanup_history_data(self):
+        """清理历史数据，只保留今天(2025-09-03)的数据"""
+        if not self.connect_mongodb():
+            return {
+                'success': False,
+                'error': 'MongoDB连接失败',
+                'timestamp': datetime.now().isoformat()
+            }
+        
+        try:
+            today_str = '2025-09-03'  # 固定为9月3号
+            
+            # 清理lottery_data集合中的历史数据
+            lottery_collection = self.db['lottery_data']
+            
+            # 删除不是今天的数据
+            delete_result_lottery = lottery_collection.delete_many({
+                'draw_date': {'$not': {'$regex': f'^{today_str}'}}
+            })
+            
+            # 清理web_formatted_data集合中的历史数据
+            web_collection = self.db['web_formatted_data']
+            
+            # 删除不是今天创建的数据
+            delete_result_web = web_collection.delete_many({
+                'created_at': {'$not': {'$regex': f'^{today_str}'}}
+            })
+            
+            # 统计剩余数据
+            remaining_lottery = lottery_collection.count_documents({})
+            remaining_web = web_collection.count_documents({})
+            
+            return {
+                'success': True,
+                'deleted_lottery_records': delete_result_lottery.deleted_count,
+                'deleted_web_records': delete_result_web.deleted_count,
+                'remaining_lottery_records': remaining_lottery,
+                'remaining_web_records': remaining_web,
+                'target_date': today_str,
+                'timestamp': datetime.now().isoformat(),
+                'message': f'历史数据清理完成，删除了 {delete_result_lottery.deleted_count + delete_result_web.deleted_count} 条记录，保留了 {remaining_lottery + remaining_web} 条今日数据'
+            }
+            
+        except Exception as e:
+            return {
+                'success': False,
+                'error': f'清理数据失败: {str(e)}',
+                'timestamp': datetime.now().isoformat()
+            }
+        finally:
+            if self.mongo_client:
+                self.mongo_client.close()
+    
     def health_check(self):
         """健康检查"""
         mongodb_status = self.connect_mongodb()
@@ -228,6 +311,7 @@ def run_mongodb_server(port=3002, mongodb_uri="mongodb://localhost:27017", db_na
     print(f"  - GET http://localhost:{port}/api/today-data (获取今日数据)")
     print(f"  - GET http://localhost:{port}/api/latest-data (获取最新数据)")
     print(f"  - GET http://localhost:{port}/api/health (健康检查)")
+    print(f"  - GET http://localhost:{port}/api/cleanup-history (清理历史数据，只保留今日数据)")
     print("按 Ctrl+C 停止服务器")
     
     try:

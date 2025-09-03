@@ -1,0 +1,60 @@
+2025-09-03 18:33:35.811 | INFO     | python_scraper:scrape_latest_single_record:1025 - 开始抓取最新一期台湾PK10数据
+2025-09-03 18:33:37.204 | INFO     | python_scraper:setup_driver:86 - Chrome浏览器驱动设置完成
+2025-09-03 18:33:37.211 | INFO     | python_scraper:navigate_to_page:95 - 正在访问: https://xn--kpro5poukl1g.com/#/
+2025-09-03 18:33:53.805 | INFO     | python_scraper:navigate_to_page:102 - 页面加载完成
+2025-09-03 18:33:53.857 | INFO     | python_scraper:click_pk10_option:148 - 找到台湾PK10选项: 台湾PK10
+2025-09-03 18:33:55.932 | INFO     | python_scraper:click_pk10_option:152 - 成功点击台湾PK10选项
+2025-09-03 18:33:55.937 | INFO     | python_scraper:navigate_to_page:106 - 成功切换到台湾PK10数据
+2025-09-03 18:33:58.953 | INFO     | python_scraper:extract_lottery_data:484 - 第1页找到 3 个表格
+2025-09-03 18:33:59.001 | INFO     | python_scraper:extract_lottery_data:498 - 第1页选择表格 2，包含 50 行
+2025-09-03 18:33:59.016 | INFO     | python_scraper:extract_lottery_data:510 - 第1页找到 50 行数据
+2025-09-03 18:33:59.035 | INFO     | python_scraper:extract_lottery_data:524 - 第1页第一行包含有效数据，从第一行开始读取
+2025-09-03 18:33:59.078 | INFO     | python_scraper:extract_lottery_data:534 - 第1页已达到最大记录数限制: 1
+2025-09-03 18:33:59.081 | INFO     | python_scraper:extract_lottery_data:572 - 第1页成功提取 1 条数据
+2025-09-03 18:33:59.083 | INFO     | python_scraper:scrape_latest_single_record:1053 - 成功抓取最新数据: 期号=114049873
+2025-09-03 18:33:59.091 | INFO     | python_scraper:connect_mongodb:1102 - 成功连接到MongoDB数据库: taiwan_pk10
+2025-09-03 18:33:59.098 | INFO     | python_scraper:save_to_mongodb:1151 - 成功保存 1 条数据到MongoDB
+2025-09-03 18:33:59.104 | INFO     | python_scraper:save_to_mongodb:1163 - 格式化数据已保存，共 1 条记录
+2025-09-03 18:33:59.108 | INFO     | python_scraper:scrape_latest_single_record:1069 - 最新数据已保存到MongoDB数据库
+2025-09-03 18:33:59.208 | INFO     | python_scraper:cleanup:1087 - 浏览器驱动已关闭
+2025-09-03 18:33:59.220 | INFO     | python_scraper:cleanup:1087 - 浏览器驱动已关闭
+2025-09-03 18:34:59.209 | INFO     | python_scraper:scrape_latest_single_record:1025 - 开始抓取最新一期台湾PK10数据
+2025-09-03 18:35:00.551 | INFO     | python_scraper:setup_driver:86 - Chrome浏览器驱动设置完成
+2025-09-03 18:35:00.556 | INFO     | python_scraper:navigate_to_page:95 - 正在访问: https://xn--kpro5poukl1g.com/#/
+2025-09-03 18:35:11.233 | INFO     | python_scraper:navigate_to_page:102 - 页面加载完成
+2025-09-03 18:35:11.293 | INFO     | python_scraper:click_pk10_option:148 - 找到台湾PK10选项: 台湾PK10
+2025-09-03 18:35:13.365 | INFO     | python_scraper:click_pk10_option:152 - 成功点击台湾PK10选项
+2025-09-03 18:35:13.370 | INFO     | python_scraper:navigate_to_page:106 - 成功切换到台湾PK10数据
+2025-09-03 18:35:16.389 | INFO     | python_scraper:extract_lottery_data:484 - 第1页找到 3 个表格
+2025-09-03 18:35:16.437 | INFO     | python_scraper:extract_lottery_data:498 - 第1页选择表格 2，包含 50 行
+2025-09-03 18:35:16.460 | INFO     | python_scraper:extract_lottery_data:510 - 第1页找到 50 行数据
+2025-09-03 18:35:16.545 | INFO     | python_scraper:extract_lottery_data:524 - 第1页第一行包含有效数据，从第一行开始读取
+2025-09-03 18:35:16.617 | INFO     | python_scraper:extract_lottery_data:534 - 第1页已达到最大记录数限制: 1
+2025-09-03 18:35:16.619 | INFO     | python_scraper:extract_lottery_data:572 - 第1页成功提取 1 条数据
+2025-09-03 18:35:16.624 | INFO     | python_scraper:scrape_latest_single_record:1053 - 成功抓取最新数据: 期号=114049873
+2025-09-03 18:35:16.633 | INFO     | python_scraper:connect_mongodb:1102 - 成功连接到MongoDB数据库: taiwan_pk10
+2025-09-03 18:35:16.641 | INFO     | python_scraper:save_to_mongodb:1151 - 成功保存 1 条数据到MongoDB
+2025-09-03 18:35:16.646 | INFO     | python_scraper:save_to_mongodb:1163 - 格式化数据已保存，共 1 条记录
+2025-09-03 18:35:16.650 | INFO     | python_scraper:scrape_latest_single_record:1069 - 最新数据已保存到MongoDB数据库
+2025-09-03 18:35:16.766 | INFO     | python_scraper:cleanup:1087 - 浏览器驱动已关闭
+2025-09-03 18:35:16.792 | INFO     | python_scraper:cleanup:1087 - 浏览器驱动已关闭
+2025-09-03 18:36:16.795 | INFO     | python_scraper:scrape_latest_single_record:1025 - 开始抓取最新一期台湾PK10数据
+2025-09-03 18:36:18.300 | INFO     | python_scraper:setup_driver:86 - Chrome浏览器驱动设置完成
+2025-09-03 18:36:18.308 | INFO     | python_scraper:navigate_to_page:95 - 正在访问: https://xn--kpro5poukl1g.com/#/
+2025-09-03 18:36:27.930 | INFO     | python_scraper:navigate_to_page:102 - 页面加载完成
+2025-09-03 18:36:27.986 | INFO     | python_scraper:click_pk10_option:148 - 找到台湾PK10选项: 台湾PK10
+2025-09-03 18:36:30.064 | INFO     | python_scraper:click_pk10_option:152 - 成功点击台湾PK10选项
+2025-09-03 18:36:30.069 | INFO     | python_scraper:navigate_to_page:106 - 成功切换到台湾PK10数据
+2025-09-03 18:36:33.086 | INFO     | python_scraper:extract_lottery_data:484 - 第1页找到 3 个表格
+2025-09-03 18:36:33.127 | INFO     | python_scraper:extract_lottery_data:498 - 第1页选择表格 2，包含 50 行
+2025-09-03 18:36:33.146 | INFO     | python_scraper:extract_lottery_data:510 - 第1页找到 50 行数据
+2025-09-03 18:36:33.172 | INFO     | python_scraper:extract_lottery_data:524 - 第1页第一行包含有效数据，从第一行开始读取
+2025-09-03 18:36:33.220 | INFO     | python_scraper:extract_lottery_data:534 - 第1页已达到最大记录数限制: 1
+2025-09-03 18:36:33.222 | INFO     | python_scraper:extract_lottery_data:572 - 第1页成功提取 1 条数据
+2025-09-03 18:36:33.225 | INFO     | python_scraper:scrape_latest_single_record:1053 - 成功抓取最新数据: 期号=114049873
+2025-09-03 18:36:33.235 | INFO     | python_scraper:connect_mongodb:1102 - 成功连接到MongoDB数据库: taiwan_pk10
+2025-09-03 18:36:33.243 | INFO     | python_scraper:save_to_mongodb:1151 - 成功保存 1 条数据到MongoDB
+2025-09-03 18:36:33.249 | INFO     | python_scraper:save_to_mongodb:1163 - 格式化数据已保存，共 1 条记录
+2025-09-03 18:36:33.254 | INFO     | python_scraper:scrape_latest_single_record:1069 - 最新数据已保存到MongoDB数据库
+2025-09-03 18:36:33.375 | INFO     | python_scraper:cleanup:1087 - 浏览器驱动已关闭
+2025-09-03 18:36:33.384 | INFO     | python_scraper:cleanup:1087 - 浏览器驱动已关闭

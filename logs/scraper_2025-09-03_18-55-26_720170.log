@@ -1,0 +1,278 @@
+2025-09-03 18:55:26.733 | INFO     | python_scraper:run_scraper:931 - 开始运行台湾PK10数据抓取器
+2025-09-03 18:55:28.202 | INFO     | python_scraper:setup_driver:86 - Chrome浏览器驱动设置完成
+2025-09-03 18:55:28.203 | INFO     | python_scraper:navigate_to_page:95 - 正在访问: https://xn--kpro5poukl1g.com/#/
+2025-09-03 18:55:35.926 | INFO     | python_scraper:navigate_to_page:102 - 页面加载完成
+2025-09-03 18:55:35.997 | INFO     | python_scraper:click_pk10_option:148 - 找到台湾PK10选项: 台湾PK10
+2025-09-03 18:55:38.063 | INFO     | python_scraper:click_pk10_option:152 - 成功点击台湾PK10选项
+2025-09-03 18:55:38.064 | INFO     | python_scraper:navigate_to_page:106 - 成功切换到台湾PK10数据
+2025-09-03 18:55:38.184 | INFO     | python_scraper:select_date:197 - 找到日期选择器: input[placeholder*='日期']
+2025-09-03 18:55:38.211 | DEBUG    | python_scraper:select_date:264 - 日期输入方法1失败: Message: invalid element state
+  (Session info: chrome=139.0.7258.155)
+Stacktrace:
+0   chromedriver                        0x0000000108d85668 chromedriver + 5928552
+1   chromedriver                        0x0000000108d7cc0a chromedriver + 5893130
+2   chromedriver                        0x0000000108846c43 chromedriver + 429123
+3   chromedriver                        0x000000010888f50e chromedriver + 726286
+4   chromedriver                        0x00000001088bf062 chromedriver + 921698
+5   chromedriver                        0x000000010888cb48 chromedriver + 715592
+6   chromedriver                        0x00000001088bf21e chromedriver + 922142
+7   chromedriver                        0x00000001088e61d4 chromedriver + 1081812
+8   chromedriver                        0x00000001088bee33 chromedriver + 921139
+9   chromedriver                        0x000000010888b37b chromedriver + 709499
+10  chromedriver                        0x000000010888c061 chromedriver + 712801
+11  chromedriver                        0x0000000108d430e0 chromedriver + 5656800
+12  chromedriver                        0x0000000108d46fa4 chromedriver + 5672868
+13  chromedriver                        0x0000000108d1e052 chromedriver + 5505106
+14  chromedriver                        0x0000000108d47a4f chromedriver + 5675599
+15  chromedriver                        0x0000000108d0d004 chromedriver + 5435396
+16  chromedriver                        0x0000000108d69d88 chromedriver + 5815688
+17  chromedriver                        0x0000000108d69f50 chromedriver + 5816144
+18  chromedriver                        0x0000000108d7c7e1 chromedriver + 5892065
+19  libsystem_pthread.dylib             0x00007ff814eba1d3 _pthread_start + 125
+20  libsystem_pthread.dylib             0x00007ff814eb5bd3 thread_start + 15
+
+2025-09-03 18:55:40.236 | INFO     | python_scraper:select_date:223 - 已选择日期: 2025-09-03 (使用选择器: input[placeholder*='日期'], 方法2)
+2025-09-03 18:55:45.423 | INFO     | python_scraper:select_date:257 - 未找到查询按钮，已按回车键尝试触发更新
+2025-09-03 18:55:45.425 | INFO     | python_scraper:scrape_all_pages:826 - 正在抓取第 1 页数据
+2025-09-03 18:55:45.446 | INFO     | python_scraper:extract_lottery_data:484 - 第1页找到 3 个表格
+2025-09-03 18:55:45.498 | INFO     | python_scraper:extract_lottery_data:498 - 第1页选择表格 2，包含 50 行
+2025-09-03 18:55:45.510 | INFO     | python_scraper:extract_lottery_data:510 - 第1页找到 50 行数据
+2025-09-03 18:55:45.526 | INFO     | python_scraper:extract_lottery_data:524 - 第1页第一行包含有效数据，从第一行开始读取
+2025-09-03 18:55:47.593 | INFO     | python_scraper:extract_lottery_data:572 - 第1页成功提取 50 条数据
+2025-09-03 18:55:47.594 | INFO     | python_scraper:scrape_all_pages:845 - 第 1 页获取到 50 条新数据
+2025-09-03 18:55:52.516 | INFO     | python_scraper:navigate_to_next_page:797 - 已成功翻页: <button type="button" class="btn-next is-last" aria-label="下一页" aria-disabled="false"><i class="el-i
+2025-09-03 18:55:54.521 | INFO     | python_scraper:scrape_all_pages:826 - 正在抓取第 2 页数据
+2025-09-03 18:55:54.532 | INFO     | python_scraper:extract_lottery_data:484 - 第2页找到 3 个表格
+2025-09-03 18:55:54.580 | INFO     | python_scraper:extract_lottery_data:498 - 第2页选择表格 2，包含 50 行
+2025-09-03 18:55:54.592 | INFO     | python_scraper:extract_lottery_data:510 - 第2页找到 50 行数据
+2025-09-03 18:55:54.611 | INFO     | python_scraper:extract_lottery_data:524 - 第2页第一行包含有效数据，从第一行开始读取
+2025-09-03 18:55:56.427 | INFO     | python_scraper:extract_lottery_data:572 - 第2页成功提取 50 条数据
+2025-09-03 18:55:56.428 | INFO     | python_scraper:scrape_all_pages:845 - 第 2 页获取到 50 条新数据
+2025-09-03 18:56:01.198 | INFO     | python_scraper:navigate_to_next_page:797 - 已成功翻页: <button type="button" class="btn-next is-last" aria-label="下一页" aria-disabled="true" disabled=""><i 
+2025-09-03 18:56:03.203 | INFO     | python_scraper:scrape_all_pages:826 - 正在抓取第 3 页数据
+2025-09-03 18:56:03.212 | INFO     | python_scraper:extract_lottery_data:484 - 第3页找到 3 个表格
+2025-09-03 18:56:03.252 | INFO     | python_scraper:extract_lottery_data:498 - 第3页选择表格 2，包含 42 行
+2025-09-03 18:56:03.264 | INFO     | python_scraper:extract_lottery_data:510 - 第3页找到 42 行数据
+2025-09-03 18:56:03.286 | INFO     | python_scraper:extract_lottery_data:524 - 第3页第一行包含有效数据，从第一行开始读取
+2025-09-03 18:56:05.186 | INFO     | python_scraper:extract_lottery_data:572 - 第3页成功提取 42 条数据
+2025-09-03 18:56:05.187 | INFO     | python_scraper:scrape_all_pages:845 - 第 3 页获取到 42 条新数据
+2025-09-03 18:56:05.861 | INFO     | python_scraper:navigate_to_next_page:810 - 没有找到可用的下一页按钮，已到达最后一页
+2025-09-03 18:56:05.862 | INFO     | python_scraper:scrape_all_pages:873 - 第 3 页后没有更多页面，抓取完成
+2025-09-03 18:56:05.863 | INFO     | python_scraper:scrape_all_pages:879 - 总共抓取了 3 页，获得 142 条唯一数据
+2025-09-03 18:56:05.863 | INFO     | python_scraper:run_scraper:956 - 数据验证完成，有效数据: 142/142 条
+2025-09-03 18:56:05.874 | INFO     | python_scraper:save_to_json:919 - 数据已保存到: data/taiwan_pk10_data_20250903_185605.json
+2025-09-03 18:56:05.874 | INFO     | python_scraper:save_to_json:920 - 最新数据已保存到: data/latest_taiwan_pk10_data.json
+2025-09-03 18:56:05.881 | INFO     | python_scraper:connect_mongodb:1102 - 成功连接到MongoDB数据库: taiwan_pk10
+2025-09-03 18:56:05.893 | INFO     | python_scraper:save_to_mongodb:1151 - 成功保存 142 条数据到MongoDB
+2025-09-03 18:56:05.896 | INFO     | python_scraper:save_to_mongodb:1163 - 格式化数据已保存，共 142 条记录
+2025-09-03 18:56:05.897 | INFO     | python_scraper:run_scraper:967 - 数据已成功保存到MongoDB数据库
+2025-09-03 18:56:05.899 | INFO     | python_scraper:run_scraper:972 - 格式化数据样本（前5条）:
+2025-09-03 18:56:05.900 | INFO     | python_scraper:run_scraper:974 -   1: 114049877 1,10,4,5,2,8,9,6,3,7
+2025-09-03 18:56:05.900 | INFO     | python_scraper:run_scraper:974 -   2: 114049876 4,3,1,10,5,2,9,8,6,7
+2025-09-03 18:56:05.901 | INFO     | python_scraper:run_scraper:974 -   3: 114049875 6,8,3,2,5,7,1,4,9,10
+2025-09-03 18:56:05.901 | INFO     | python_scraper:run_scraper:974 -   4: 114049874 9,7,2,10,1,5,3,4,8,6
+2025-09-03 18:56:05.902 | INFO     | python_scraper:run_scraper:974 -   5: 114049873 3,1,10,2,7,8,6,9,5,4
+2025-09-03 18:56:05.904 | INFO     | python_scraper:run_scraper:975 - 总计 142 条格式化数据可用于网页导入
+2025-09-03 18:56:05.904 | INFO     | python_scraper:run_scraper:981 - 抓取完成，共获得 142 条有效数据
+2025-09-03 18:56:06.013 | INFO     | python_scraper:cleanup:1087 - 浏览器驱动已关闭
+2025-09-03 18:56:06.022 | INFO     | python_scraper:cleanup:1087 - 浏览器驱动已关闭
+2025-09-03 18:57:06.045 | INFO     | python_scraper:run_scraper:931 - 开始运行台湾PK10数据抓取器
+2025-09-03 18:57:07.520 | INFO     | python_scraper:setup_driver:86 - Chrome浏览器驱动设置完成
+2025-09-03 18:57:07.522 | INFO     | python_scraper:navigate_to_page:95 - 正在访问: https://xn--kpro5poukl1g.com/#/
+2025-09-03 18:57:14.480 | INFO     | python_scraper:navigate_to_page:102 - 页面加载完成
+2025-09-03 18:57:14.534 | INFO     | python_scraper:click_pk10_option:148 - 找到台湾PK10选项: 台湾PK10
+2025-09-03 18:57:16.590 | INFO     | python_scraper:click_pk10_option:152 - 成功点击台湾PK10选项
+2025-09-03 18:57:16.592 | INFO     | python_scraper:navigate_to_page:106 - 成功切换到台湾PK10数据
+2025-09-03 18:57:16.704 | INFO     | python_scraper:select_date:197 - 找到日期选择器: input[placeholder*='日期']
+2025-09-03 18:57:16.731 | DEBUG    | python_scraper:select_date:264 - 日期输入方法1失败: Message: invalid element state
+  (Session info: chrome=139.0.7258.155)
+Stacktrace:
+0   chromedriver                        0x0000000110340668 chromedriver + 5928552
+1   chromedriver                        0x0000000110337c0a chromedriver + 5893130
+2   chromedriver                        0x000000010fe01c43 chromedriver + 429123
+3   chromedriver                        0x000000010fe4a50e chromedriver + 726286
+4   chromedriver                        0x000000010fe7a062 chromedriver + 921698
+5   chromedriver                        0x000000010fe47b48 chromedriver + 715592
+6   chromedriver                        0x000000010fe7a21e chromedriver + 922142
+7   chromedriver                        0x000000010fea11d4 chromedriver + 1081812
+8   chromedriver                        0x000000010fe79e33 chromedriver + 921139
+9   chromedriver                        0x000000010fe4637b chromedriver + 709499
+10  chromedriver                        0x000000010fe47061 chromedriver + 712801
+11  chromedriver                        0x00000001102fe0e0 chromedriver + 5656800
+12  chromedriver                        0x0000000110301fa4 chromedriver + 5672868
+13  chromedriver                        0x00000001102d9052 chromedriver + 5505106
+14  chromedriver                        0x0000000110302a4f chromedriver + 5675599
+15  chromedriver                        0x00000001102c8004 chromedriver + 5435396
+16  chromedriver                        0x0000000110324d88 chromedriver + 5815688
+17  chromedriver                        0x0000000110324f50 chromedriver + 5816144
+18  chromedriver                        0x00000001103377e1 chromedriver + 5892065
+19  libsystem_pthread.dylib             0x00007ff814eba1d3 _pthread_start + 125
+20  libsystem_pthread.dylib             0x00007ff814eb5bd3 thread_start + 15
+
+2025-09-03 18:57:18.751 | INFO     | python_scraper:select_date:223 - 已选择日期: 2025-09-03 (使用选择器: input[placeholder*='日期'], 方法2)
+2025-09-03 18:57:23.963 | INFO     | python_scraper:select_date:257 - 未找到查询按钮，已按回车键尝试触发更新
+2025-09-03 18:57:23.964 | INFO     | python_scraper:scrape_all_pages:826 - 正在抓取第 1 页数据
+2025-09-03 18:57:23.978 | INFO     | python_scraper:extract_lottery_data:484 - 第1页找到 3 个表格
+2025-09-03 18:57:24.027 | INFO     | python_scraper:extract_lottery_data:498 - 第1页选择表格 2，包含 50 行
+2025-09-03 18:57:24.039 | INFO     | python_scraper:extract_lottery_data:510 - 第1页找到 50 行数据
+2025-09-03 18:57:24.066 | INFO     | python_scraper:extract_lottery_data:524 - 第1页第一行包含有效数据，从第一行开始读取
+2025-09-03 18:57:26.275 | INFO     | python_scraper:extract_lottery_data:572 - 第1页成功提取 50 条数据
+2025-09-03 18:57:26.276 | INFO     | python_scraper:scrape_all_pages:845 - 第 1 页获取到 50 条新数据
+2025-09-03 18:57:31.167 | INFO     | python_scraper:navigate_to_next_page:797 - 已成功翻页: <button type="button" class="btn-next is-last" aria-label="下一页" aria-disabled="false"><i class="el-i
+2025-09-03 18:57:33.175 | INFO     | python_scraper:scrape_all_pages:826 - 正在抓取第 2 页数据
+2025-09-03 18:57:33.185 | INFO     | python_scraper:extract_lottery_data:484 - 第2页找到 3 个表格
+2025-09-03 18:57:33.214 | INFO     | python_scraper:extract_lottery_data:498 - 第2页选择表格 2，包含 50 行
+2025-09-03 18:57:33.223 | INFO     | python_scraper:extract_lottery_data:510 - 第2页找到 50 行数据
+2025-09-03 18:57:33.237 | INFO     | python_scraper:extract_lottery_data:524 - 第2页第一行包含有效数据，从第一行开始读取
+2025-09-03 18:57:35.133 | INFO     | python_scraper:extract_lottery_data:572 - 第2页成功提取 50 条数据
+2025-09-03 18:57:35.133 | INFO     | python_scraper:scrape_all_pages:845 - 第 2 页获取到 50 条新数据
+2025-09-03 18:57:39.923 | INFO     | python_scraper:navigate_to_next_page:797 - 已成功翻页: <button type="button" class="btn-next is-last" aria-label="下一页" aria-disabled="true" disabled=""><i 
+2025-09-03 18:57:41.929 | INFO     | python_scraper:scrape_all_pages:826 - 正在抓取第 3 页数据
+2025-09-03 18:57:41.940 | INFO     | python_scraper:extract_lottery_data:484 - 第3页找到 3 个表格
+2025-09-03 18:57:41.978 | INFO     | python_scraper:extract_lottery_data:498 - 第3页选择表格 2，包含 43 行
+2025-09-03 18:57:41.987 | INFO     | python_scraper:extract_lottery_data:510 - 第3页找到 43 行数据
+2025-09-03 18:57:42.000 | INFO     | python_scraper:extract_lottery_data:524 - 第3页第一行包含有效数据，从第一行开始读取
+2025-09-03 18:57:43.413 | INFO     | python_scraper:extract_lottery_data:572 - 第3页成功提取 43 条数据
+2025-09-03 18:57:43.414 | INFO     | python_scraper:scrape_all_pages:845 - 第 3 页获取到 43 条新数据
+2025-09-03 18:57:43.918 | INFO     | python_scraper:navigate_to_next_page:810 - 没有找到可用的下一页按钮，已到达最后一页
+2025-09-03 18:57:43.919 | INFO     | python_scraper:scrape_all_pages:873 - 第 3 页后没有更多页面，抓取完成
+2025-09-03 18:57:43.919 | INFO     | python_scraper:scrape_all_pages:879 - 总共抓取了 3 页，获得 143 条唯一数据
+2025-09-03 18:57:43.920 | INFO     | python_scraper:run_scraper:956 - 数据验证完成，有效数据: 143/143 条
+2025-09-03 18:57:43.928 | INFO     | python_scraper:save_to_json:919 - 数据已保存到: data/taiwan_pk10_data_20250903_185743.json
+2025-09-03 18:57:43.929 | INFO     | python_scraper:save_to_json:920 - 最新数据已保存到: data/latest_taiwan_pk10_data.json
+2025-09-03 18:57:43.935 | INFO     | python_scraper:connect_mongodb:1102 - 成功连接到MongoDB数据库: taiwan_pk10
+2025-09-03 18:57:43.945 | INFO     | python_scraper:save_to_mongodb:1151 - 成功保存 143 条数据到MongoDB
+2025-09-03 18:57:43.947 | INFO     | python_scraper:save_to_mongodb:1163 - 格式化数据已保存，共 143 条记录
+2025-09-03 18:57:43.948 | INFO     | python_scraper:run_scraper:967 - 数据已成功保存到MongoDB数据库
+2025-09-03 18:57:43.949 | INFO     | python_scraper:run_scraper:972 - 格式化数据样本（前5条）:
+2025-09-03 18:57:43.950 | INFO     | python_scraper:run_scraper:974 -   1: 114049878 10,7,4,2,8,5,3,6,9,1
+2025-09-03 18:57:43.950 | INFO     | python_scraper:run_scraper:974 -   2: 114049877 1,10,4,5,2,8,9,6,3,7
+2025-09-03 18:57:43.951 | INFO     | python_scraper:run_scraper:974 -   3: 114049876 4,3,1,10,5,2,9,8,6,7
+2025-09-03 18:57:43.952 | INFO     | python_scraper:run_scraper:974 -   4: 114049875 6,8,3,2,5,7,1,4,9,10
+2025-09-03 18:57:43.952 | INFO     | python_scraper:run_scraper:974 -   5: 114049874 9,7,2,10,1,5,3,4,8,6
+2025-09-03 18:57:43.953 | INFO     | python_scraper:run_scraper:975 - 总计 143 条格式化数据可用于网页导入
+2025-09-03 18:57:43.953 | INFO     | python_scraper:run_scraper:981 - 抓取完成，共获得 143 条有效数据
+2025-09-03 18:57:44.101 | INFO     | python_scraper:cleanup:1087 - 浏览器驱动已关闭
+2025-09-03 18:57:44.116 | INFO     | python_scraper:cleanup:1087 - 浏览器驱动已关闭
+2025-09-03 18:58:44.136 | INFO     | python_scraper:run_scraper:931 - 开始运行台湾PK10数据抓取器
+2025-09-03 18:58:45.806 | INFO     | python_scraper:setup_driver:86 - Chrome浏览器驱动设置完成
+2025-09-03 18:58:45.809 | INFO     | python_scraper:navigate_to_page:95 - 正在访问: https://xn--kpro5poukl1g.com/#/
+2025-09-03 18:58:53.732 | INFO     | python_scraper:navigate_to_page:102 - 页面加载完成
+2025-09-03 18:58:53.783 | INFO     | python_scraper:click_pk10_option:148 - 找到台湾PK10选项: 台湾PK10
+2025-09-03 18:58:55.845 | INFO     | python_scraper:click_pk10_option:152 - 成功点击台湾PK10选项
+2025-09-03 18:58:55.847 | INFO     | python_scraper:navigate_to_page:106 - 成功切换到台湾PK10数据
+2025-09-03 18:58:56.028 | INFO     | python_scraper:select_date:197 - 找到日期选择器: input[placeholder*='日期']
+2025-09-03 18:58:56.098 | DEBUG    | python_scraper:select_date:264 - 日期输入方法1失败: Message: invalid element state
+  (Session info: chrome=139.0.7258.155)
+Stacktrace:
+0   chromedriver                        0x000000010a4d5668 chromedriver + 5928552
+1   chromedriver                        0x000000010a4ccc0a chromedriver + 5893130
+2   chromedriver                        0x0000000109f96c43 chromedriver + 429123
+3   chromedriver                        0x0000000109fdf50e chromedriver + 726286
+4   chromedriver                        0x000000010a00f062 chromedriver + 921698
+5   chromedriver                        0x0000000109fdcb48 chromedriver + 715592
+6   chromedriver                        0x000000010a00f21e chromedriver + 922142
+7   chromedriver                        0x000000010a0361d4 chromedriver + 1081812
+8   chromedriver                        0x000000010a00ee33 chromedriver + 921139
+9   chromedriver                        0x0000000109fdb37b chromedriver + 709499
+10  chromedriver                        0x0000000109fdc061 chromedriver + 712801
+11  chromedriver                        0x000000010a4930e0 chromedriver + 5656800
+12  chromedriver                        0x000000010a496fa4 chromedriver + 5672868
+13  chromedriver                        0x000000010a46e052 chromedriver + 5505106
+14  chromedriver                        0x000000010a497a4f chromedriver + 5675599
+15  chromedriver                        0x000000010a45d004 chromedriver + 5435396
+16  chromedriver                        0x000000010a4b9d88 chromedriver + 5815688
+17  chromedriver                        0x000000010a4b9f50 chromedriver + 5816144
+18  chromedriver                        0x000000010a4cc7e1 chromedriver + 5892065
+19  libsystem_pthread.dylib             0x00007ff814eba1d3 _pthread_start + 125
+20  libsystem_pthread.dylib             0x00007ff814eb5bd3 thread_start + 15
+
+2025-09-03 18:58:58.128 | INFO     | python_scraper:select_date:223 - 已选择日期: 2025-09-03 (使用选择器: input[placeholder*='日期'], 方法2)
+2025-09-03 18:59:03.352 | INFO     | python_scraper:select_date:257 - 未找到查询按钮，已按回车键尝试触发更新
+2025-09-03 18:59:03.354 | INFO     | python_scraper:scrape_all_pages:826 - 正在抓取第 1 页数据
+2025-09-03 18:59:03.417 | INFO     | python_scraper:extract_lottery_data:484 - 第1页找到 3 个表格
+2025-09-03 18:59:03.471 | INFO     | python_scraper:extract_lottery_data:498 - 第1页选择表格 2，包含 50 行
+2025-09-03 18:59:03.491 | INFO     | python_scraper:extract_lottery_data:510 - 第1页找到 50 行数据
+2025-09-03 18:59:03.511 | INFO     | python_scraper:extract_lottery_data:524 - 第1页第一行包含有效数据，从第一行开始读取
+2025-09-03 18:59:05.237 | INFO     | python_scraper:extract_lottery_data:572 - 第1页成功提取 50 条数据
+2025-09-03 18:59:05.238 | INFO     | python_scraper:scrape_all_pages:845 - 第 1 页获取到 50 条新数据
+2025-09-03 18:59:10.284 | INFO     | python_scraper:navigate_to_next_page:797 - 已成功翻页: <button type="button" class="btn-next is-last" aria-label="下一页" aria-disabled="false"><i class="el-i
+2025-09-03 18:59:12.289 | INFO     | python_scraper:scrape_all_pages:826 - 正在抓取第 2 页数据
+2025-09-03 18:59:12.296 | INFO     | python_scraper:extract_lottery_data:484 - 第2页找到 3 个表格
+2025-09-03 18:59:12.325 | INFO     | python_scraper:extract_lottery_data:498 - 第2页选择表格 2，包含 50 行
+2025-09-03 18:59:12.335 | INFO     | python_scraper:extract_lottery_data:510 - 第2页找到 50 行数据
+2025-09-03 18:59:12.351 | INFO     | python_scraper:extract_lottery_data:524 - 第2页第一行包含有效数据，从第一行开始读取
+2025-09-03 18:59:14.581 | INFO     | python_scraper:extract_lottery_data:572 - 第2页成功提取 50 条数据
+2025-09-03 18:59:14.582 | INFO     | python_scraper:scrape_all_pages:845 - 第 2 页获取到 50 条新数据
+2025-09-03 18:59:19.657 | INFO     | python_scraper:navigate_to_next_page:797 - 已成功翻页: <button type="button" class="btn-next is-last" aria-label="下一页" aria-disabled="true" disabled=""><i 
+2025-09-03 18:59:21.658 | INFO     | python_scraper:scrape_all_pages:826 - 正在抓取第 3 页数据
+2025-09-03 18:59:21.667 | INFO     | python_scraper:extract_lottery_data:484 - 第3页找到 3 个表格
+2025-09-03 18:59:21.694 | INFO     | python_scraper:extract_lottery_data:498 - 第3页选择表格 2，包含 43 行
+2025-09-03 18:59:21.702 | INFO     | python_scraper:extract_lottery_data:510 - 第3页找到 43 行数据
+2025-09-03 18:59:21.717 | INFO     | python_scraper:extract_lottery_data:524 - 第3页第一行包含有效数据，从第一行开始读取
+2025-09-03 18:59:23.943 | INFO     | python_scraper:extract_lottery_data:572 - 第3页成功提取 43 条数据
+2025-09-03 18:59:23.944 | INFO     | python_scraper:scrape_all_pages:845 - 第 3 页获取到 43 条新数据
+2025-09-03 18:59:24.551 | INFO     | python_scraper:navigate_to_next_page:810 - 没有找到可用的下一页按钮，已到达最后一页
+2025-09-03 18:59:24.552 | INFO     | python_scraper:scrape_all_pages:873 - 第 3 页后没有更多页面，抓取完成
+2025-09-03 18:59:24.553 | INFO     | python_scraper:scrape_all_pages:879 - 总共抓取了 3 页，获得 143 条唯一数据
+2025-09-03 18:59:24.553 | INFO     | python_scraper:run_scraper:956 - 数据验证完成，有效数据: 143/143 条
+2025-09-03 18:59:24.560 | INFO     | python_scraper:save_to_json:919 - 数据已保存到: data/taiwan_pk10_data_20250903_185924.json
+2025-09-03 18:59:24.561 | INFO     | python_scraper:save_to_json:920 - 最新数据已保存到: data/latest_taiwan_pk10_data.json
+2025-09-03 18:59:24.566 | INFO     | python_scraper:connect_mongodb:1102 - 成功连接到MongoDB数据库: taiwan_pk10
+2025-09-03 18:59:24.574 | INFO     | python_scraper:save_to_mongodb:1151 - 成功保存 143 条数据到MongoDB
+2025-09-03 18:59:24.576 | INFO     | python_scraper:save_to_mongodb:1163 - 格式化数据已保存，共 143 条记录
+2025-09-03 18:59:24.577 | INFO     | python_scraper:run_scraper:967 - 数据已成功保存到MongoDB数据库
+2025-09-03 18:59:24.579 | INFO     | python_scraper:run_scraper:972 - 格式化数据样本（前5条）:
+2025-09-03 18:59:24.579 | INFO     | python_scraper:run_scraper:974 -   1: 114049878 10,7,4,2,8,5,3,6,9,1
+2025-09-03 18:59:24.580 | INFO     | python_scraper:run_scraper:974 -   2: 114049877 1,10,4,5,2,8,9,6,3,7
+2025-09-03 18:59:24.581 | INFO     | python_scraper:run_scraper:974 -   3: 114049876 4,3,1,10,5,2,9,8,6,7
+2025-09-03 18:59:24.582 | INFO     | python_scraper:run_scraper:974 -   4: 114049875 6,8,3,2,5,7,1,4,9,10
+2025-09-03 18:59:24.582 | INFO     | python_scraper:run_scraper:974 -   5: 114049874 9,7,2,10,1,5,3,4,8,6
+2025-09-03 18:59:24.583 | INFO     | python_scraper:run_scraper:975 - 总计 143 条格式化数据可用于网页导入
+2025-09-03 18:59:24.583 | INFO     | python_scraper:run_scraper:981 - 抓取完成，共获得 143 条有效数据
+2025-09-03 18:59:24.703 | INFO     | python_scraper:cleanup:1087 - 浏览器驱动已关闭
+2025-09-03 18:59:24.716 | INFO     | python_scraper:cleanup:1087 - 浏览器驱动已关闭
+2025-09-03 19:00:24.736 | INFO     | python_scraper:run_scraper:931 - 开始运行台湾PK10数据抓取器
+2025-09-03 19:00:26.169 | INFO     | python_scraper:setup_driver:86 - Chrome浏览器驱动设置完成
+2025-09-03 19:00:26.170 | INFO     | python_scraper:navigate_to_page:95 - 正在访问: https://xn--kpro5poukl1g.com/#/
+2025-09-03 19:00:35.752 | INFO     | python_scraper:navigate_to_page:102 - 页面加载完成
+2025-09-03 19:00:35.885 | INFO     | python_scraper:click_pk10_option:148 - 找到台湾PK10选项: 台湾PK10
+2025-09-03 19:00:38.035 | INFO     | python_scraper:click_pk10_option:152 - 成功点击台湾PK10选项
+2025-09-03 19:00:38.039 | INFO     | python_scraper:navigate_to_page:106 - 成功切换到台湾PK10数据
+2025-09-03 19:00:38.228 | INFO     | python_scraper:select_date:197 - 找到日期选择器: input[placeholder*='日期']
+2025-09-03 19:00:38.257 | DEBUG    | python_scraper:select_date:264 - 日期输入方法1失败: Message: invalid element state
+  (Session info: chrome=139.0.7258.155)
+Stacktrace:
+0   chromedriver                        0x000000010bf23668 chromedriver + 5928552
+1   chromedriver                        0x000000010bf1ac0a chromedriver + 5893130
+2   chromedriver                        0x000000010b9e4c43 chromedriver + 429123
+3   chromedriver                        0x000000010ba2d50e chromedriver + 726286
+4   chromedriver                        0x000000010ba5d062 chromedriver + 921698
+5   chromedriver                        0x000000010ba2ab48 chromedriver + 715592
+6   chromedriver                        0x000000010ba5d21e chromedriver + 922142
+7   chromedriver                        0x000000010ba841d4 chromedriver + 1081812
+8   chromedriver                        0x000000010ba5ce33 chromedriver + 921139
+9   chromedriver                        0x000000010ba2937b chromedriver + 709499
+10  chromedriver                        0x000000010ba2a061 chromedriver + 712801
+11  chromedriver                        0x000000010bee10e0 chromedriver + 5656800
+12  chromedriver                        0x000000010bee4fa4 chromedriver + 5672868
+13  chromedriver                        0x000000010bebc052 chromedriver + 5505106
+14  chromedriver                        0x000000010bee5a4f chromedriver + 5675599
+15  chromedriver                        0x000000010beab004 chromedriver + 5435396
+16  chromedriver                        0x000000010bf07d88 chromedriver + 5815688
+17  chromedriver                        0x000000010bf07f50 chromedriver + 5816144
+18  chromedriver                        0x000000010bf1a7e1 chromedriver + 5892065
+19  libsystem_pthread.dylib             0x00007ff814eba1d3 _pthread_start + 125
+20  libsystem_pthread.dylib             0x00007ff814eb5bd3 thread_start + 15
+
+2025-09-03 19:00:40.278 | INFO     | python_scraper:select_date:223 - 已选择日期: 2025-09-03 (使用选择器: input[placeholder*='日期'], 方法2)
+2025-09-03 19:00:45.517 | INFO     | python_scraper:select_date:257 - 未找到查询按钮，已按回车键尝试触发更新
+2025-09-03 19:00:45.518 | INFO     | python_scraper:scrape_all_pages:826 - 正在抓取第 1 页数据
+2025-09-03 19:00:45.532 | INFO     | python_scraper:extract_lottery_data:484 - 第1页找到 3 个表格
+2025-09-03 19:00:45.576 | INFO     | python_scraper:extract_lottery_data:498 - 第1页选择表格 2，包含 50 行
+2025-09-03 19:00:45.594 | INFO     | python_scraper:extract_lottery_data:510 - 第1页找到 50 行数据
+2025-09-03 19:00:45.610 | INFO     | python_scraper:extract_lottery_data:524 - 第1页第一行包含有效数据，从第一行开始读取
+2025-09-03 19:00:47.974 | INFO     | python_scraper:extract_lottery_data:572 - 第1页成功提取 50 条数据
+2025-09-03 19:00:47.976 | INFO     | python_scraper:scrape_all_pages:845 - 第 1 页获取到 50 条新数据
+2025-09-03 19:00:49.486 | INFO     | python_scraper:cleanup:1087 - 浏览器驱动已关闭
+2025-09-03 19:00:49.528 | INFO     | python_scraper:cleanup:1087 - 浏览器驱动已关闭

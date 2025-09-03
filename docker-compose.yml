@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+  # MongoDB数据库服务
+  mongodb:
+    image: mongo:4.4
+    container_name: taiwan-pk10-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ADMIN_PASSWORD:-admin123456}
+      MONGO_INITDB_DATABASE: taiwan_pk10
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    ports:
+      - "27017:27017"
+    networks:
+      - pk10-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo localhost:27017/test --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # 爬虫服务
+  scraper:
+    build: .
+    container_name: taiwan-pk10-scraper
+    restart: unless-stopped
+    environment:
+      MONGODB_URI: mongodb://pk10_user:${MONGO_APP_PASSWORD:-pk10pass123}@mongodb:27017/taiwan_pk10
+      MONGODB_DB_NAME: taiwan_pk10
+      SCRAPER_INTERVAL: 300
+      MAX_RETRIES: 3
+      TIMEOUT: 30
+      LOG_LEVEL: INFO
+      LOG_RETENTION_DAYS: 7
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - pk10-network
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import os; exit(0 if os.path.exists('/app/data/latest_taiwan_pk10_data.json') else 1)"]
+      interval: 5m
+      timeout: 30s
+      retries: 3
+      start_period: 2m
+
+  # API服务（可选）
+  api:
+    build: .
+    container_name: taiwan-pk10-api
+    restart: unless-stopped
+    command: ["python3", "api_server.py", "--port", "3000"]
+    environment:
+      MONGODB_URI: mongodb://pk10_user:${MONGO_APP_PASSWORD:-pk10pass123}@mongodb:27017/taiwan_pk10
+      MONGODB_DB_NAME: taiwan_pk10
+    ports:
+      - "3000:3000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - pk10-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 1m
+
+  # 监控服务（可选）
+  monitor:
+    image: mongo-express:latest
+    container_name: taiwan-pk10-monitor
+    restart: unless-stopped
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_ADMIN_PASSWORD:-admin123456}
+      ME_CONFIG_MONGODB_URL: mongodb://admin:${MONGO_ADMIN_PASSWORD:-admin123456}@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONITOR_PASSWORD:-monitor123}
+    ports:
+      - "8081:8081"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - pk10-network
+    profiles:
+      - monitoring
+
+volumes:
+  mongodb_data:
+    driver: local
+
+networks:
+  pk10-network:
+    driver: bridge
