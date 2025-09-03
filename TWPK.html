@@ -2293,9 +2293,7 @@ document.addEventListener('DOMContentLoaded', function() {
           
           // 更新页面显示
           document.getElementById("periodCount").textContent = r.length;
-          if (v) {
-            v.textContent = `已从数据库加载 ${r.length} 条今日数据记录`;
-          }
+          // 不再显示数据库加载提示信息
           
           if (typeof L === 'function') {
             L(); // 渲染表格
@@ -3233,7 +3231,7 @@ function isInActiveTime() {
     return currentTime >= startTime || currentTime <= endTime;
 }
 
-// 从MongoDB API获取最新数据
+// 从MongoDB数据库获取数据
 async function runPythonScraper() {
     try {
         // 首先尝试从MongoDB API获取今日数据
@@ -3258,50 +3256,15 @@ async function runPythonScraper() {
             if (latestResponse.ok) {
                 const latestResult = await latestResponse.json();
                 if (latestResult.success && latestResult.data) {
-                    return { success: true, data: latestResult.data, message: '从MongoDB获取最新数据' };
+                    return { success: true, data: latestResult.data, message: '从MongoDB数据库获取最新数据' };
                 }
             }
         }
         
-        return { success: false, error: '无法获取数据' };
+        return { success: false, error: '数据库中暂无数据，请稍后重试' };
     } catch (error) {
-        console.error('MongoDB API获取数据失败:', error);
-        
-        // 备用方案1: 尝试触发爬虫抓取新数据
-        try {
-            const scrapeResponse = await fetch('http://localhost:3001/api/scrape', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    action: 'scrape_data',
-                    max_pages: 5
-                })
-            });
-            
-            if (scrapeResponse.ok) {
-                const scrapeResult = await scrapeResponse.json();
-                if (scrapeResult.success && scrapeResult.data) {
-                    return { success: true, data: scrapeResult.data, message: '通过爬虫API获取数据' };
-                }
-            }
-        } catch (scrapeError) {
-            console.error('爬虫API调用失败:', scrapeError);
-        }
-        
-        // 备用方案2: 尝试直接读取最新的JSON文件
-        try {
-            const fileResponse = await fetch('http://localhost:3001/latest_taiwan_pk10_data.json');
-            if (fileResponse.ok) {
-                const data = await fileResponse.json();
-                return { success: true, data: data, message: '从本地JSON文件读取数据' };
-            }
-        } catch (fileError) {
-            console.error('读取本地文件失败:', fileError);
-        }
-        
-        return { success: false, error: error.message };
+        console.error('MongoDB数据库连接失败:', error);
+        return { success: false, error: '数据库连接失败: ' + error.message };
     }
 }
 
