@@ -1,0 +1,28 @@
+[Unit]
+Description=Taiwan PK10 Auto Scraper Service
+After=network.target mongodb.service
+Wants=mongodb.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/taiwan-pk10-scraper
+Environment=PYTHONPATH=/opt/taiwan-pk10-scraper
+ExecStart=/usr/bin/python3 /opt/taiwan-pk10-scraper/auto_scraper.py --mode schedule
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=taiwan-pk10-scraper
+
+# 环境变量
+Environment=MONGODB_URI=mongodb://localhost:27017
+Environment=DB_NAME=taiwan_pk10
+
+# 资源限制
+LimitNOFILE=65536
+MemoryMax=512M
+
+[Install]
+WantedBy=multi-user.target

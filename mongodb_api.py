@@ -1,0 +1,266 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+MongoDB API服务器 - 直接从MongoDB数据库获取数据
+"""
+
+import os
+import sys
+import json
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from urllib.parse import urlparse, parse_qs
+from datetime import datetime, date
+import threading
+import time
+
+try:
+    from pymongo import MongoClient
+    MONGODB_AVAILABLE = True
+except ImportError:
+    MONGODB_AVAILABLE = False
+    print("警告: pymongo未安装，MongoDB功能将不可用")
+    print("请运行: pip install pymongo")
+
+class MongoDBAPIHandler(BaseHTTPRequestHandler):
+    def __init__(self, *args, mongodb_uri="mongodb://localhost:27017", db_name="taiwan_pk10", **kwargs):
+        self.mongodb_uri = mongodb_uri
+        self.db_name = db_name
+        self.mongo_client = None
+        self.db = None
+        super().__init__(*args, **kwargs)
+    
+    def do_OPTIONS(self):
+        """处理CORS预检请求"""
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
+    
+    def do_GET(self):
+        """处理GET请求"""
+        try:
+            # 设置CORS头
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            # 解析请求路径
+            parsed_path = urlparse(self.path)
+            
+            if parsed_path.path == '/api/today-data':
+                # 获取今天的数据
+                result = self.get_today_data()
+                response = json.dumps(result, ensure_ascii=False)
+                self.wfile.write(response.encode('utf-8'))
+            elif parsed_path.path == '/api/latest-data':
+                # 获取最新数据
+                result = self.get_latest_data()
+                response = json.dumps(result, ensure_ascii=False)
+                self.wfile.write(response.encode('utf-8'))
+            elif parsed_path.path == '/api/health':
+                # 健康检查
+                result = self.health_check()
+                response = json.dumps(result, ensure_ascii=False)
+                self.wfile.write(response.encode('utf-8'))
+            else:
+                # 404错误
+                self.send_error(404, "API端点未找到")
+                
+        except Exception as e:
+            # 500错误
+            error_response = {
+                'success': False,
+                'error': f'服务器内部错误: {str(e)}',
+                'timestamp': datetime.now().isoformat()
+            }
+            response = json.dumps(error_response, ensure_ascii=False)
+            self.wfile.write(response.encode('utf-8'))
+    
+    def connect_mongodb(self):
+        """连接MongoDB数据库"""
+        if not MONGODB_AVAILABLE:
+            return False
+        
+        try:
+            self.mongo_client = MongoClient(self.mongodb_uri)
+            self.db = self.mongo_client[self.db_name]
+            # 测试连接
+            self.mongo_client.admin.command('ping')
+            return True
+        except Exception as e:
+            print(f"连接MongoDB失败: {e}")
+            return False
+    
+    def get_today_data(self):
+        """获取今天的数据"""
+        if not self.connect_mongodb():
+            return {
+                'success': False,
+                'error': 'MongoDB连接失败',
+                'timestamp': datetime.now().isoformat()
+            }
+        
+        try:
+            # 获取今天的格式化数据
+            web_collection = self.db['web_formatted_data']
+            today_str = date.today().isoformat()
+            
+            doc = web_collection.find_one(
+                {'date': today_str},
+                sort=[('created_at', -1)]
+            )
+            
+            if doc and 'data' in doc:
+                return {
+                    'success': True,
+                    'data': doc['data'],
+                    'total_records': len(doc['data']),
+                    'date': today_str,
+                    'timestamp': datetime.now().isoformat(),
+                    'message': f'成功获取今日数据 {len(doc["data"])} 条'
+                }
+            else:
+                return {
+                    'success': False,
+                    'error': '今日暂无数据',
+                    'date': today_str,
+                    'timestamp': datetime.now().isoformat()
+                }
+                
+        except Exception as e:
+            return {
+                'success': False,
+                'error': f'获取数据失败: {str(e)}',
+                'timestamp': datetime.now().isoformat()
+            }
+        finally:
+            if self.mongo_client:
+                self.mongo_client.close()
+    
+    def get_latest_data(self):
+        """获取最新数据"""
+        if not self.connect_mongodb():
+            return {
+                'success': False,
+                'error': 'MongoDB连接失败',
+                'timestamp': datetime.now().isoformat()
+            }
+        
+        try:
+            # 获取最新的原始数据
+            collection = self.db['lottery_data']
+            
+            # 获取最新100条数据
+            cursor = collection.find(
+                {'is_valid': True},
+                sort=[('scraped_at', -1)]
+            ).limit(100)
+            
+            data = []
+            for doc in cursor:
+                # 转换为前端需要的格式
+                formatted_data = f"{doc['period']} {','.join(map(str, doc['draw_numbers']))}"
+                data.append(formatted_data)
+            
+            if data:
+                return {
+                    'success': True,
+                    'data': data,
+                    'total_records': len(data),
+                    'timestamp': datetime.now().isoformat(),
+                    'message': f'成功获取最新数据 {len(data)} 条'
+                }
+            else:
+                return {
+                    'success': False,
+                    'error': '暂无数据',
+                    'timestamp': datetime.now().isoformat()
+                }
+                
+        except Exception as e:
+            return {
+                'success': False,
+                'error': f'获取数据失败: {str(e)}',
+                'timestamp': datetime.now().isoformat()
+            }
+        finally:
+            if self.mongo_client:
+                self.mongo_client.close()
+    
+    def health_check(self):
+        """健康检查"""
+        mongodb_status = self.connect_mongodb()
+        if self.mongo_client:
+            self.mongo_client.close()
+        
+        return {
+            'success': True,
+            'mongodb_available': MONGODB_AVAILABLE,
+            'mongodb_connected': mongodb_status,
+            'timestamp': datetime.now().isoformat(),
+            'message': 'API服务正常运行'
+        }
+    
+    def log_message(self, format, *args):
+        """自定义日志格式"""
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        print(f"[{timestamp}] {format % args}")
+
+def create_handler_class(mongodb_uri, db_name):
+    """创建带有MongoDB配置的处理器类"""
+    class ConfiguredHandler(MongoDBAPIHandler):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, mongodb_uri=mongodb_uri, db_name=db_name, **kwargs)
+    return ConfiguredHandler
+
+def run_mongodb_server(port=3002, mongodb_uri="mongodb://localhost:27017", db_name="taiwan_pk10"):
+    """运行MongoDB API服务器"""
+    handler_class = create_handler_class(mongodb_uri, db_name)
+    server = HTTPServer(('', port), handler_class)
+    
+    print(f"MongoDB API服务器启动在端口 {port}")
+    print(f"MongoDB URI: {mongodb_uri}")
+    print(f"数据库名: {db_name}")
+    print(f"访问地址: http://localhost:{port}")
+    print("可用端点:")
+    print(f"  - GET http://localhost:{port}/api/today-data (获取今日数据)")
+    print(f"  - GET http://localhost:{port}/api/latest-data (获取最新数据)")
+    print(f"  - GET http://localhost:{port}/api/health (健康检查)")
+    print("按 Ctrl+C 停止服务器")
+    
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\n正在停止服务器...")
+        server.shutdown()
+        print("服务器已停止")
+
+if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description='MongoDB API服务器')
+    parser.add_argument('--port', type=int, help='服务器端口')
+    parser.add_argument('--mongodb-uri', help='MongoDB连接URI')
+    parser.add_argument('--db-name', default='taiwan_pk10', help='数据库名称')
+
+    args = parser.parse_args()
+    
+    # 从环境变量或命令行参数获取配置
+    port = args.port or int(os.environ.get('PORT', 3002))
+    mongodb_uri = args.mongodb_uri or os.environ.get('MONGODB_URI', 'mongodb://localhost:27017')
+    db_name = args.db_name or os.environ.get('MONGODB_DB_NAME', 'taiwan_pk10')
+    
+    print(f"启动配置:")
+    print(f"  端口: {port}")
+    print(f"  数据库: {db_name}")
+    print(f"  MongoDB URI: {mongodb_uri[:20]}..." if len(mongodb_uri) > 20 else f"  MongoDB URI: {mongodb_uri}")
+    
+    # 检查MongoDB是否可用
+    if not MONGODB_AVAILABLE:
+        print("错误: pymongo未安装，无法启动MongoDB API服务器")
+        print("请运行: pip install pymongo")
+        sys.exit(1)
+
+    run_mongodb_server(port, mongodb_uri, db_name)

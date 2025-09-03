@@ -2235,6 +2235,106 @@ tailwind.config = {
 
 // 页面切换功能
 document.addEventListener('DOMContentLoaded', function() {
+  // 页面加载时自动从本地数据文件加载数据
+  async function fetchLatestData() {
+    try {
+      console.log('正在从本地文件加载最新数据...');
+      const response = await fetch('./taiwan_pk10_data.json');
+      if (response.ok) {
+        const data = await response.json();
+        console.log('成功加载本地数据，共', data.length, '条记录');
+        
+        // 将数据转换为页面需要的格式并加载到全局变量中
+        if (data && data.length > 0) {
+          // 清空现有数据
+          r = [];
+          
+          // 转换数据格式
+          data.forEach(item => {
+            if (item.period && item.drawNumbers && Array.isArray(item.drawNumbers)) {
+              r.push({
+                period: item.period,
+                numbers: item.drawNumbers,
+                time: item.drawTime || '',
+                date: item.drawDate || '',
+                source: 'local-file'
+              });
+            }
+          });
+          
+          console.log('数据转换完成，共加载', r.length, '条有效记录');
+          
+          // 更新页面显示
+          if (typeof L === 'function') {
+            L(); // 刷新表格显示
+          }
+          
+          // 更新状态显示
+          if (v) {
+            v.textContent = `已从本地文件加载 ${r.length} 条数据记录`;
+          }
+          
+          // 更新期数计数
+          const periodCountElement = document.getElementById('periodCount');
+          if (periodCountElement) {
+            periodCountElement.textContent = r.length.toString();
+          }
+        }
+      } else {
+        console.warn('本地数据文件加载失败:', response.status);
+        // 如果本地文件加载失败，尝试调用API
+        await fetchFromAPI();
+      }
+    } catch (error) {
+      console.error('加载本地数据时出错:', error);
+      // 如果本地文件加载失败，尝试调用API
+      await fetchFromAPI();
+    }
+  }
+  
+  // 备用API调用函数
+  async function fetchFromAPI() {
+    try {
+      console.log('尝试从API获取数据...');
+      const response = await fetch('/api/taiwan-pk10-live');
+      if (response.ok) {
+        const data = await response.json();
+        console.log('从API获取到数据:', data);
+        // 处理API返回的单条数据
+        if (data.period && data.numbers) {
+          r.unshift({
+            period: data.period,
+            numbers: data.numbers,
+            time: data.time || '',
+            date: new Date().toISOString().split('T')[0],
+            source: 'api'
+          });
+          
+          if (typeof L === 'function') {
+            L(); // 刷新表格显示
+          }
+          
+          if (v) {
+            v.textContent = `已从API获取最新数据: ${data.period}`;
+          }
+        }
+      } else {
+        console.warn('API调用失败:', response.status);
+        if (v) {
+          v.textContent = 'API调用失败，请检查网络连接';
+        }
+      }
+    } catch (error) {
+      console.error('API调用出错:', error);
+      if (v) {
+        v.textContent = 'API调用出错，请检查网络连接';
+      }
+    }
+  }
+  
+  // 立即执行一次数据获取
+  fetchLatestData();
+  
   const dataAnalysisBtn = document.getElementById('dataAnalysisBtn');
   const fiveStarBtn = document.getElementById('fiveStarBtn');
   const goldenRatioBtn = document.getElementById('goldenRatioBtn');
@@ -3105,7 +3205,308 @@ const n=Y();localStorage.setItem(`validKey_${n}`,t),localStorage.setItem(`keyExp
 _0xSetAuth(t);
 b=!0;
 D(e.data.expiry)}else alert("密钥验证失败: "+e.reason)}catch(t){console.error("密钥验证过程出错:",t),alert("验证过程中发生错误: "+t.message)}finally{this.disabled=!1,this.textContent="验证密钥"}}else alert("请输入密钥")}),window.addEventListener("load",async function(){try{const t=Y(),e=localStorage.getItem(`validKey_${t}`),n=localStorage.getItem(`keyExpiry_${t}`),o=Math.floor((new Date).getTime()/1e3);if(e&&n){const r=parseInt(n);if(o<r){// 密钥未过期，但需要在线验证是否已被使用
-try{const keyData=JSON.parse(atob(e.split('.')[1]));const isUsed=await checkKeyOnlineUsage(keyData.nonce);if(isUsed){localStorage.removeItem(`validKey_${t}`),localStorage.removeItem(`keyExpiry_${t}`),b=!1,alert("密钥已被使用，请重新验证密钥"),g.classList.remove("hidden"),g.style.display="flex"}else{_0xSetAuth(e);b=!0,D(r),g.classList.add("hidden"),g.style.display="none"}}catch(err){console.error("在线验证失败，使用本地验证:",err);_0xSetAuth(e);b=!0,D(r),g.classList.add("hidden"),g.style.display="none"}}else{localStorage.removeItem(`validKey_${t}`),localStorage.removeItem(`keyExpiry_${t}`),b=!1,alert("您的访问密钥已过期，请重新验证密钥"),g.classList.remove("hidden"),g.style.display="flex"}}else b=!1,g.classList.remove("hidden"),g.style.display="flex"}catch(t){console.error("页面加载时密钥检查出错:",t),b=!1,g.classList.remove("hidden"),g.style.display="flex"}}),document.getElementById("calcBtn").addEventListener("click",F),document.getElementById("numbersInput").addEventListener("keydown",t=>{"Enter"!==t.key||t.shiftKey||(t.preventDefault(),F())}),document.getElementById("autoFetchBtn").addEventListener("click",()=>{a?(clearInterval(a),a=null,document.getElementById("autoFetchBtn").innerHTML='<i class="fa fa-refresh mr-2"></i>自动获取数据',v.textContent="已停止自动获取"):(J(),a=setInterval(J,5e3),document.getElementById("autoFetchBtn").innerHTML='<i class="fa fa-stop mr-2"></i>停止自动获取',v.textContent="已开始自动获取数据，每5秒更新一次")}),document.getElementById("sortToggle").addEventListener("click",()=>{m=!m,L()}),document.getElementById("currentBtn").addEventListener("click",()=>{const tableContainer=document.getElementById("tableContainer");const wasHidden=tableContainer&&tableContainer.scrollLeft>10;y=!0,document.getElementById("currentBtn").classList.add("btn-active","bg-blue-600","text-white"),document.getElementById("currentBtn").classList.remove("bg-gray-200","text-gray-700"),document.getElementById("historyBtn").classList.remove("btn-active","bg-blue-600","text-white"),document.getElementById("historyBtn").classList.add("bg-gray-200","text-gray-700"),L();if(wasHidden){setTimeout(()=>{const periodCols=document.querySelectorAll(".fixed-width-period");const dataCols=document.querySelectorAll(".fixed-width-data");periodCols.forEach(col=>col.style.opacity="0");dataCols.forEach(col=>col.style.left="0px")},50)}}),document.getElementById("historyBtn").addEventListener("click",()=>{const tableContainer=document.getElementById("tableContainer");const wasHidden=tableContainer&&tableContainer.scrollLeft>10;y=!1,document.getElementById("historyBtn").classList.add("btn-active","bg-blue-600","text-white"),document.getElementById("historyBtn").classList.remove("bg-gray-200","text-gray-700"),document.getElementById("currentBtn").classList.remove("btn-active","bg-blue-600","text-white"),document.getElementById("currentBtn").classList.add("bg-gray-200","text-gray-700"),L();if(wasHidden){setTimeout(()=>{const periodCols=document.querySelectorAll(".fixed-width-period");const dataCols=document.querySelectorAll(".fixed-width-data");periodCols.forEach(col=>col.style.opacity="0");dataCols.forEach(col=>col.style.left="0px")},50)}}),document.getElementById("missBtn").addEventListener("click",()=>{const tableContainer=document.getElementById("tableContainer");const wasHidden=tableContainer&&tableContainer.scrollLeft>10;m=!1,document.getElementById("missBtn").classList.add("btn-active","bg-blue-600","text-white"),document.getElementById("missBtn").classList.remove("bg-gray-200","text-gray-700"),document.getElementById("hitBtn").classList.remove("btn-active","bg-blue-600","text-white"),document.getElementById("hitBtn").classList.add("bg-gray-200","text-gray-700"),L();if(wasHidden){setTimeout(()=>{const periodCols=document.querySelectorAll(".fixed-width-period");const dataCols=document.querySelectorAll(".fixed-width-data");periodCols.forEach(col=>col.style.opacity="0");dataCols.forEach(col=>col.style.left="0px")},50)}}),document.getElementById("hitBtn").addEventListener("click",()=>{const tableContainer=document.getElementById("tableContainer");const wasHidden=tableContainer&&tableContainer.scrollLeft>10;m=!0,document.getElementById("hitBtn").classList.add("btn-active","bg-blue-600","text-white"),document.getElementById("hitBtn").classList.remove("bg-gray-200","text-gray-700"),document.getElementById("missBtn").classList.remove("btn-active","bg-blue-600","text-white"),document.getElementById("missBtn").classList.add("bg-gray-200","text-gray-700"),L();if(wasHidden){setTimeout(()=>{const periodCols=document.querySelectorAll(".fixed-width-period");const dataCols=document.querySelectorAll(".fixed-width-data");periodCols.forEach(col=>col.style.opacity="0");dataCols.forEach(col=>col.style.left="0px")},50)}}),document.getElementById("statBtn").addEventListener("click",L),document.getElementById("clearBtn").addEventListener("click",()=>{confirm("确定要清空所有数据吗？此操作不可恢复。")&&(r=[],i=1,d.clear(),document.getElementById("periodCount").textContent="0",document.getElementById("summary").textContent="",L(),v.textContent="数据已清空")}),document.addEventListener("DOMContentLoaded",()=>{document.getElementById("uploadDataBtn").addEventListener("click",async()=>{try{[s]=await window.showOpenFilePicker(),d.clear(),u=null,r=[],i=1,await V(),l&&clearInterval(l),l=setInterval(W,3e3),v.textContent=`已加载文件: ${s.name}`}catch(t){v.textContent=`文件选择错误: ${t.message}`}})});const X=document.querySelectorAll(".period-btn");function Y(){try{const t=document.documentElement.outerHTML.substring(0,1e3)+window.location.href.split("/").slice(-2).join("/");let e=0;for(let n=0;n<t.length;n++)e=(e<<5)-e+t.charCodeAt(n),e&=e;return"file_"+Math.abs(e).toString(36)}catch(t){return console.error("Failed to generate file identifier:",t),"fallback_"+Date.now()}}X.forEach(t=>{t.addEventListener("click",()=>{X.forEach(t=>t.classList.remove("btn-active")),t.classList.add("btn-active"),f=parseInt(t.dataset.period),document.getElementById("customPeriod").value=f,currentPage=1,L()})}),document.getElementById("customPeriodBtn").addEventListener("click",()=>{const t=parseInt(document.getElementById("customPeriod").value);!isNaN(t)&&t>=1&&t<=1e4?(f=t,X.forEach(t=>t.classList.remove("btn-active")),currentPage=1,L()):alert("请输入1-10000之间的数字")}),window.addEventListener("resize",j),L();
+try{const keyData=JSON.parse(atob(e.split('.')[1]));const isUsed=await checkKeyOnlineUsage(keyData.nonce);if(isUsed){localStorage.removeItem(`validKey_${t}`),localStorage.removeItem(`keyExpiry_${t}`),b=!1,alert("密钥已被使用，请重新验证密钥"),g.classList.remove("hidden"),g.style.display="flex"}else{_0xSetAuth(e);b=!0,D(r),g.classList.add("hidden"),g.style.display="none"}}catch(err){console.error("在线验证失败，使用本地验证:",err);_0xSetAuth(e);b=!0,D(r),g.classList.add("hidden"),g.style.display="none"}}else{localStorage.removeItem(`validKey_${t}`),localStorage.removeItem(`keyExpiry_${t}`),b=!1,alert("您的访问密钥已过期，请重新验证密钥"),g.classList.remove("hidden"),g.style.display="flex"}}else b=!1,g.classList.remove("hidden"),g.style.display="flex"}catch(t){console.error("页面加载时密钥检查出错:",t),b=!1,g.classList.remove("hidden"),g.style.display="flex"}}),document.getElementById("calcBtn").addEventListener("click",F),document.getElementById("numbersInput").addEventListener("keydown",t=>{"Enter"!==t.key||t.shiftKey||(t.preventDefault(),F())});
+
+// 自动抓取相关变量
+let autoScrapeInterval = null;
+let countdownInterval = null;
+let lastPeriodNumber = null;
+let isInActiveTimeRange = false;
+
+// 检查是否在活跃时间段内 (23:55-07:05)
+function isInActiveTime() {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const currentTime = hours * 60 + minutes;
+    
+    // 23:55 = 1435分钟, 07:05 = 425分钟
+    const startTime = 23 * 60 + 55; // 1435
+    const endTime = 7 * 60 + 5;     // 425
+    
+    // 跨越午夜的时间段
+    return currentTime >= startTime || currentTime <= endTime;
+}
+
+// 从MongoDB API获取最新数据
+async function runPythonScraper() {
+    try {
+        // 首先尝试从MongoDB API获取今日数据
+        const response = await fetch('http://localhost:3002/api/today-data', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success && result.data && result.data.length > 0) {
+            return { success: true, data: result.data, message: '从MongoDB数据库获取数据' };
+        } else {
+            // 如果今日数据为空，尝试获取最新数据
+            const latestResponse = await fetch('http://localhost:3002/api/latest-data');
+            if (latestResponse.ok) {
+                const latestResult = await latestResponse.json();
+                if (latestResult.success && latestResult.data) {
+                    return { success: true, data: latestResult.data, message: '从MongoDB获取最新数据' };
+                }
+            }
+        }
+        
+        return { success: false, error: '无法获取数据' };
+    } catch (error) {
+        console.error('MongoDB API获取数据失败:', error);
+        
+        // 备用方案1: 尝试触发爬虫抓取新数据
+        try {
+            const scrapeResponse = await fetch('http://localhost:3001/api/scrape', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: 'scrape_data',
+                    max_pages: 5
+                })
+            });
+            
+            if (scrapeResponse.ok) {
+                const scrapeResult = await scrapeResponse.json();
+                if (scrapeResult.success && scrapeResult.data) {
+                    return { success: true, data: scrapeResult.data, message: '通过爬虫API获取数据' };
+                }
+            }
+        } catch (scrapeError) {
+            console.error('爬虫API调用失败:', scrapeError);
+        }
+        
+        // 备用方案2: 尝试直接读取最新的JSON文件
+        try {
+            const fileResponse = await fetch('http://localhost:3001/latest_taiwan_pk10_data.json');
+            if (fileResponse.ok) {
+                const data = await fileResponse.json();
+                return { success: true, data: data, message: '从本地JSON文件读取数据' };
+            }
+        } catch (fileError) {
+            console.error('读取本地文件失败:', fileError);
+        }
+        
+        return { success: false, error: error.message };
+    }
+}
+
+// 自动抓取和计算数据
+async function autoScrapeAndCalculate() {
+    if (!isInActiveTime()) {
+        console.log('不在活跃时间段内，停止自动抓取');
+        stopAutoScrape();
+        return;
+    }
+    
+    v.textContent = '正在抓取最新数据...';
+    
+    try {
+        const result = await runPythonScraper();
+        
+        if (result.success && result.data && result.data.length > 0) {
+            // 检查是否有新数据
+            const latestData = result.data[0]; // 假设数据按时间倒序排列
+            const currentPeriodNumber = latestData.期号 || latestData.period_number;
+            
+            if (lastPeriodNumber && currentPeriodNumber === lastPeriodNumber) {
+                v.textContent = '暂无新数据，140秒后重试...';
+                startCountdown(140);
+                return;
+            }
+            
+            // 检查期号连续性
+            if (lastPeriodNumber) {
+                const expectedNext = parseInt(lastPeriodNumber) + 1;
+                if (parseInt(currentPeriodNumber) !== expectedNext) {
+                    console.warn(`期号不连续: 上期${lastPeriodNumber}, 本期${currentPeriodNumber}`);
+                }
+            }
+            
+            lastPeriodNumber = currentPeriodNumber;
+            
+            // 更新数据并重新计算
+            r = result.data;
+            i = 1;
+            d.clear();
+            
+            // 自动计算并显示
+            L(); // 重新渲染表格
+            
+            // 获取最新开奖时间并设置下次抓取倒计时
+            const latestTime = latestData.时间 || latestData.time;
+            
+            v.textContent = `数据更新成功！最新期号: ${currentPeriodNumber}, 时间: ${latestTime}, 140秒后下次抓取`;
+            
+            // 设置140秒倒计时
+            startCountdown(140);
+            
+        } else {
+            v.textContent = '抓取失败: ' + (result.error || '未知错误') + ', 60秒后重试...';
+            startCountdown(60);
+        }
+        
+    } catch (error) {
+        console.error('自动抓取出错:', error);
+        v.textContent = '自动抓取出错: ' + error.message + ', 60秒后重试...';
+        startCountdown(60);
+    }
+}
+
+// 根据开奖时间安排下次抓取
+function scheduleNextScrape(lastDrawTime) {
+    // 清除现有的倒计时
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
+    
+    // 解析开奖时间 (格式: HH:MM)
+    const [hours, minutes] = lastDrawTime.split(':').map(Number);
+    const lastDrawDate = new Date();
+    lastDrawDate.setHours(hours, minutes, 0, 0);
+    
+    // 计算下次抓取时间 (开奖时间 + 140秒)
+    const nextScrapeTime = new Date(lastDrawDate.getTime() + 140 * 1000);
+    const now = new Date();
+    
+    let remainingSeconds = Math.max(0, Math.floor((nextScrapeTime - now) / 1000));
+    
+    // 如果计算出的时间已经过去，立即执行下次抓取
+    if (remainingSeconds <= 0) {
+        setTimeout(() => autoScrapeAndCalculate(), 1000);
+        return;
+    }
+    
+    // 显示倒计时
+    countdownInterval = setInterval(() => {
+        if (remainingSeconds <= 0) {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+            autoScrapeAndCalculate();
+            return;
+        }
+        
+        const minutes = Math.floor(remainingSeconds / 60);
+        const seconds = remainingSeconds % 60;
+        v.textContent = `下次抓取倒计时: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        remainingSeconds--;
+    }, 1000);
+}
+
+// 启动自动抓取
+function startAutoScrape() {
+    if (!isInActiveTime()) {
+        alert('当前不在活跃时间段内 (23:55-07:05)，无法启动自动抓取');
+        return;
+    }
+    
+    isInActiveTimeRange = true;
+    
+    // 立即执行一次抓取
+    autoScrapeAndCalculate();
+    
+    // 设置定期检查时间段
+    autoScrapeInterval = setInterval(() => {
+        if (!isInActiveTime()) {
+            console.log('超出活跃时间段，停止自动抓取');
+            stopAutoScrape();
+        }
+    }, 60000); // 每分钟检查一次时间段
+    
+    document.getElementById("autoFetchBtn").innerHTML='<i class="fa fa-stop mr-2"></i>停止自动抓取';
+}
+
+// 停止自动抓取
+function stopAutoScrape() {
+    isInActiveTimeRange = false;
+    
+    if (autoScrapeInterval) {
+        clearInterval(autoScrapeInterval);
+        autoScrapeInterval = null;
+    }
+    
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
+    
+    document.getElementById("autoFetchBtn").innerHTML='<i class="fa fa-refresh mr-2"></i>自动获取数据';
+    v.textContent = '已停止自动抓取';
+}
+
+// 页面加载时自动开始抓取
+window.addEventListener('load', function() {
+    // 延迟3秒后检查是否需要自动开始
+    setTimeout(() => {
+        if (isInActiveTime()) {
+            console.log('检测到活跃时间段，自动开始数据抓取');
+            startAutoScrape();
+        } else {
+            console.log('当前不在活跃时间段内');
+        }
+    }, 3000);
+});
+
+document.getElementById("autoFetchBtn").addEventListener("click",()=>{if(isInActiveTimeRange){stopAutoScrape()}else{startAutoScrape()}}),document.getElementById("sortToggle").addEventListener("click",()=>{m=!m,L()}),document.getElementById("currentBtn").addEventListener("click",()=>{const tableContainer=document.getElementById("tableContainer");const wasHidden=tableContainer&&tableContainer.scrollLeft>10;y=!0,document.getElementById("currentBtn").classList.add("btn-active","bg-blue-600","text-white"),document.getElementById("currentBtn").classList.remove("bg-gray-200","text-gray-700"),document.getElementById("historyBtn").classList.remove("btn-active","bg-blue-600","text-white"),document.getElementById("historyBtn").classList.add("bg-gray-200","text-gray-700"),L();if(wasHidden){setTimeout(()=>{const periodCols=document.querySelectorAll(".fixed-width-period");const dataCols=document.querySelectorAll(".fixed-width-data");periodCols.forEach(col=>col.style.opacity="0");dataCols.forEach(col=>col.style.left="0px")},50)}}),document.getElementById("historyBtn").addEventListener("click",()=>{const tableContainer=document.getElementById("tableContainer");const wasHidden=tableContainer&&tableContainer.scrollLeft>10;y=!1,document.getElementById("historyBtn").classList.add("btn-active","bg-blue-600","text-white"),document.getElementById("historyBtn").classList.remove("bg-gray-200","text-gray-700"),document.getElementById("currentBtn").classList.remove("btn-active","bg-blue-600","text-white"),document.getElementById("currentBtn").classList.add("bg-gray-200","text-gray-700"),L();if(wasHidden){setTimeout(()=>{const periodCols=document.querySelectorAll(".fixed-width-period");const dataCols=document.querySelectorAll(".fixed-width-data");periodCols.forEach(col=>col.style.opacity="0");dataCols.forEach(col=>col.style.left="0px")},50)}}),document.getElementById("missBtn").addEventListener("click",()=>{const tableContainer=document.getElementById("tableContainer");const wasHidden=tableContainer&&tableContainer.scrollLeft>10;m=!1,document.getElementById("missBtn").classList.add("btn-active","bg-blue-600","text-white"),document.getElementById("missBtn").classList.remove("bg-gray-200","text-gray-700"),document.getElementById("hitBtn").classList.remove("btn-active","bg-blue-600","text-white"),document.getElementById("hitBtn").classList.add("bg-gray-200","text-gray-700"),L();if(wasHidden){setTimeout(()=>{const periodCols=document.querySelectorAll(".fixed-width-period");const dataCols=document.querySelectorAll(".fixed-width-data");periodCols.forEach(col=>col.style.opacity="0");dataCols.forEach(col=>col.style.left="0px")},50)}}),document.getElementById("hitBtn").addEventListener("click",()=>{const tableContainer=document.getElementById("tableContainer");const wasHidden=tableContainer&&tableContainer.scrollLeft>10;m=!0,document.getElementById("hitBtn").classList.add("btn-active","bg-blue-600","text-white"),document.getElementById("hitBtn").classList.remove("bg-gray-200","text-gray-700"),document.getElementById("missBtn").classList.remove("btn-active","bg-blue-600","text-white"),document.getElementById("missBtn").classList.add("bg-gray-200","text-gray-700"),L();if(wasHidden){setTimeout(()=>{const periodCols=document.querySelectorAll(".fixed-width-period");const dataCols=document.querySelectorAll(".fixed-width-data");periodCols.forEach(col=>col.style.opacity="0");dataCols.forEach(col=>col.style.left="0px")},50)}}),document.getElementById("statBtn").addEventListener("click",L),document.getElementById("clearBtn").addEventListener("click",()=>{confirm("确定要清空所有数据吗？此操作不可恢复。")&&(r=[],i=1,d.clear(),document.getElementById("periodCount").textContent="0",document.getElementById("summary").textContent="",L(),v.textContent="数据已清空")}),document.addEventListener("DOMContentLoaded",()=>{document.getElementById("uploadDataBtn").addEventListener("click",async()=>{try{[s]=await window.showOpenFilePicker(),d.clear(),u=null,r=[],i=1,await V(),l&&clearInterval(l),l=setInterval(W,3e3),v.textContent=`已加载文件: ${s.name}`}catch(t){v.textContent=`文件选择错误: ${t.message}`}})});const X=document.querySelectorAll(".period-btn");function Y(){try{const t=document.documentElement.outerHTML.substring(0,1e3)+window.location.href.split("/").slice(-2).join("/");let e=0;for(let n=0;n<t.length;n++)e=(e<<5)-e+t.charCodeAt(n),e&=e;return"file_"+Math.abs(e).toString(36)}catch(t){return console.error("Failed to generate file identifier:",t),"fallback_"+Date.now()}}X.forEach(t=>{t.addEventListener("click",()=>{X.forEach(t=>t.classList.remove("btn-active")),t.classList.add("btn-active"),f=parseInt(t.dataset.period),document.getElementById("customPeriod").value=f,currentPage=1,L()})}),document.getElementById("customPeriodBtn").addEventListener("click",()=>{const t=parseInt(document.getElementById("customPeriod").value);!isNaN(t)&&t>=1&&t<=1e4?(f=t,X.forEach(t=>t.classList.remove("btn-active")),currentPage=1,L()):alert("请输入1-10000之间的数字")}),window.addEventListener("resize",j);
+
+// 页面加载时自动抓取数据
+document.addEventListener('DOMContentLoaded', async function() {
+    try {
+        v.textContent = "正在加载数据...";
+        const result = await runPythonScraper();
+        if (result && result.length > 0) {
+            // 清空现有数据
+            r = [];
+            d.clear();
+            
+            // 处理抓取到的数据
+            result.forEach(item => {
+                const period = item.期号 || item.period_number;
+                const timeStr = item.时间 || item.time;
+                const numbers = item.numbers;
+                
+                if (period && numbers && numbers.length === 10) {
+                    if (!d.has(period)) {
+                        d.add(period);
+                        r.unshift({
+                            period: period,
+                            data: numbers,
+                            input: numbers.join(",")
+                        });
+                    }
+                }
+            });
+            
+            // 按期号排序
+            r.sort((a, b) => {
+                const periodA = a.period.toString();
+                const periodB = b.period.toString();
+                return periodB.localeCompare(periodA);
+            });
+            
+            document.getElementById("periodCount").textContent = r.length;
+            v.textContent = `已加载 ${r.length} 条数据记录`;
+            L(); // 渲染表格
+        } else {
+            v.textContent = "暂无数据";
+            L(); // 渲染空表格
+        }
+    } catch (error) {
+        console.error('初始数据加载失败:', error);
+        v.textContent = "数据加载失败: " + error.message;
+        L(); // 渲染空表格
+    }
+});
 
 // 黄金切割页面事件处理
 document.addEventListener('DOMContentLoaded', function() {

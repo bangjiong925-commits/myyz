@@ -1,10 +1,10 @@
 name: Update Taiwan PK10 Data (High Frequency)
 
 on:
-  schedule:
-    # 台湾PK10开奖时间：每天09:00-23:59 (UTC+8)
-    # 转换为UTC时间：01:00-15:59，每1分钟运行一次
-    - cron: '* 1-15 * * *'
+  # schedule:
+  #   # 台湾PK10开奖时间：每天09:00-23:59 (UTC+8)
+  #   # 转换为UTC时间：01:00-15:59，每1分钟运行一次
+  #   - cron: '* 1-15 * * *'
   workflow_dispatch: # 允许手动触发
 
 jobs:
