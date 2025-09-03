@@ -61,10 +61,39 @@ class APIHandler(BaseHTTPRequestHandler):
             self.wfile.write(response.encode('utf-8'))
     
     def do_GET(self):
-        """处理GET请求 - 提供静态文件服务"""
+        """处理GET请求 - 提供静态文件服务和API端点"""
         try:
             parsed_path = urlparse(self.path)
-            file_path = parsed_path.path.lstrip('/')
+            path = parsed_path.path
+            
+            # 健康检查端点
+            if path == '/health':
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                response = json.dumps({"status": "ok", "timestamp": datetime.now().isoformat()})
+                self.wfile.write(response.encode('utf-8'))
+                return
+            
+            # API数据端点
+            if path == '/api/taiwan-pk10-data':
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                
+                # 读取最新数据文件
+                data_file = 'data/latest_taiwan_pk10_data.json'
+                if os.path.exists(data_file):
+                    with open(data_file, 'r', encoding='utf-8') as f:
+                        self.wfile.write(f.read().encode('utf-8'))
+                else:
+                    response = json.dumps({"error": "数据文件不存在"})
+                    self.wfile.write(response.encode('utf-8'))
+                return
+            
+            file_path = path.lstrip('/')
             
             # 安全检查 - 防止目录遍历攻击
             if '..' in file_path or file_path.startswith('/'):
