@@ -197,7 +197,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     # 从命令行参数或环境变量获取端口号
-    port = args.port or int(os.environ.get('PORT', 3001))
+    port = args.port or int(os.environ.get('PORT', 3000))
     
     print(f"启动API服务器，端口: {port}")
     
