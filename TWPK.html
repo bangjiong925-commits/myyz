@@ -2316,14 +2316,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       } else {
         console.warn('MongoDB API调用失败:', response.status);
-        if (v) {
-          v.textContent = "数据库连接失败";
+        // 如果已有数据，不显示错误提示
+        if (v && r.length === 0) {
+          v.textContent = "正在连接数据库...";
         }
       }
     } catch (error) {
       console.error('数据库数据加载失败:', error);
-      if (v) {
-        v.textContent = "数据库连接失败";
+      // 如果已有数据，不显示错误提示
+      if (v && r.length === 0) {
+        v.textContent = "正在连接数据库...";
       }
     }
   }
@@ -3319,7 +3321,17 @@ async function autoScrapeAndCalculate() {
         if (result.success && result.data && result.data.length > 0) {
             // 检查是否有新数据
             const latestData = result.data[0]; // 假设数据按时间倒序排列
-            const currentPeriodNumber = latestData.期号 || latestData.period_number;
+            let currentPeriodNumber;
+            
+            // 处理字符串格式的数据
+            if (typeof latestData === 'string') {
+                const parts = latestData.trim().split(' ');
+                if (parts.length >= 2) {
+                    currentPeriodNumber = parts[0];
+                }
+            } else if (typeof latestData === 'object') {
+                currentPeriodNumber = latestData.期号 || latestData.period_number;
+            }
             
             if (lastPeriodNumber && currentPeriodNumber === lastPeriodNumber) {
                 v.textContent = '暂无新数据，140秒后重试...';
@@ -3487,7 +3499,17 @@ async function autoRefreshLatestData() {
             if (result.success && result.data && result.data.length > 0) {
                 // 检查是否有新数据
                 const latestData = result.data[0];
-                const currentPeriodNumber = latestData.期号 || latestData.period || latestData.period_number;
+                let currentPeriodNumber;
+                
+                // 处理字符串格式的数据
+                if (typeof latestData === 'string') {
+                    const parts = latestData.trim().split(' ');
+                    if (parts.length >= 2) {
+                        currentPeriodNumber = parts[0];
+                    }
+                } else if (typeof latestData === 'object') {
+                    currentPeriodNumber = latestData.期号 || latestData.period || latestData.period_number;
+                }
                 
                 // 如果有新数据，更新数据
                 if (!lastPeriodNumber || currentPeriodNumber !== lastPeriodNumber) {
@@ -3556,12 +3578,22 @@ async function autoRefreshLatestData() {
             }
         } else {
             console.warn('MongoDB API调用失败:', response.status);
-            v.textContent = `数据库连接失败 (${currentTime})`;
+            // 如果已有数据，显示友好提示而不是错误信息
+            if (r.length > 0) {
+                v.textContent = `数据连接中断，显示已缓存的 ${r.length} 条记录 (${currentTime})`;
+            } else {
+                v.textContent = `正在连接数据库... (${currentTime})`;
+            }
         }
     } catch (error) {
         console.error('自动刷新数据失败:', error);
         const currentTime = new Date().toLocaleTimeString();
-        v.textContent = `数据刷新失败 (${currentTime})`;
+        // 如果已有数据，显示友好提示而不是错误信息
+        if (r.length > 0) {
+            v.textContent = `数据连接中断，显示已缓存的 ${r.length} 条记录 (${currentTime})`;
+        } else {
+            v.textContent = `正在连接数据库... (${currentTime})`;
+        }
     }
 }
 
