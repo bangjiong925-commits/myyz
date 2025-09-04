@@ -230,12 +230,12 @@ if __name__ == '__main__':
     
     print(f"启动API服务器，端口: {port}")
     
-    # 检查必要文件是否存在
+    # 检查必要文件是否存在（仅警告，不退出）
     required_files = ['python_scraper.py', 'TWPK.html']
     missing_files = [f for f in required_files if not os.path.exists(f)]
     
     if missing_files:
-        print(f"错误: 缺少必要文件: {', '.join(missing_files)}")
-        sys.exit(1)
+        print(f"警告: 缺少必要文件: {', '.join(missing_files)}")
+        print("服务器将继续启动，但某些功能可能不可用")
     
     run_server(port)
