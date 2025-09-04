@@ -200,9 +200,9 @@ class APIHandler(BaseHTTPRequestHandler):
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         print(f"[{timestamp}] {format % args}")
 
-def run_server(port=3001):
+def run_server(port=3000):
     """启动API服务器"""
-    server_address = ('', port)
+    server_address = ('0.0.0.0', port)
     httpd = HTTPServer(server_address, APIHandler)
     
     print(f"API服务器启动在端口 {port}")
