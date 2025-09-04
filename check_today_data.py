@@ -1,11 +1,23 @@
 #!/usr/bin/env python3
 import pymongo
+import os
 from datetime import datetime
 
 try:
-    # 连接MongoDB数据库
-    client = pymongo.MongoClient('mongodb://localhost:27017/')
-    db = client['taiwan_pk10']
+    print('正在连接数据库...')
+    # 从环境变量获取MongoDB连接信息，如果没有则使用默认值
+    mongodb_uri = os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/')
+    db_name = os.environ.get('MONGODB_DB_NAME', 'taiwan_pk10')
+    
+    print(f'使用连接字符串: {mongodb_uri.replace("://", "://*****:*****@") if "@" in mongodb_uri else mongodb_uri}')
+    print(f'数据库名称: {db_name}')
+    
+    # 连接MongoDB数据库，设置超时时间
+    client = pymongo.MongoClient(mongodb_uri, serverSelectionTimeoutMS=5000)
+    # 测试连接
+    client.admin.command('ping')
+    print('数据库连接成功！')
+    db = client[db_name]
     
     # 检查所有集合
     collections = db.list_collection_names()
@@ -68,6 +80,12 @@ try:
             date = data.get('draw_date', 'N/A')
             print(f'{i}. 日期: {date}, 期号: {period}, 开奖号码: {numbers}, 时间: {time}')
     
+except pymongo.errors.ServerSelectionTimeoutError as e:
+    print(f'连接MongoDB服务器超时: {e}')
+    print('请检查MongoDB服务是否已启动，可能需要运行以下命令启动服务：')
+    print('  1. 如果使用Docker: docker-compose up -d mongodb')
+    print('  2. 如果本地安装MongoDB: brew services start mongodb-community')
+    print('  3. 如果使用远程MongoDB: 请检查连接字符串和网络连接')
 except Exception as e:
     print(f'查询数据库时出错: {e}')
 finally:
