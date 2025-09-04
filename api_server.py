@@ -226,7 +226,12 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     # 从命令行参数或环境变量获取端口号
+    # Railway会自动设置PORT环境变量，如果没有则使用3000
     port = args.port or int(os.environ.get('PORT', 3000))
+    
+    # 确保端口在有效范围内
+    if port < 1 or port > 65535:
+        port = 3000
     
     print(f"启动API服务器，端口: {port}")
     

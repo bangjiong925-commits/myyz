@@ -1,45 +1,5 @@
 [
   {
-    "period": "114050020",
-    "drawNumbers": [
-      4,
-      1,
-      5,
-      10,
-      7,
-      3,
-      2,
-      9,
-      6,
-      8
-    ],
-    "drawDate": "2025-09-04T00:00:00",
-    "drawTime": "13:50",
-    "dataSource": "python-scraper",
-    "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306549"
-  },
-  {
-    "period": "114050019",
-    "drawNumbers": [
-      6,
-      2,
-      4,
-      1,
-      5,
-      3,
-      8,
-      7,
-      10,
-      9
-    ],
-    "drawDate": "2025-09-04T00:00:00",
-    "drawTime": "13:45",
-    "dataSource": "python-scraper",
-    "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306555"
-  },
-  {
     "period": "114050018",
     "drawNumbers": [
       1,
@@ -57,7 +17,7 @@
     "drawTime": "13:40",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306559"
+    "scrapedAt": "2025-09-04T13:43:12.781165"
   },
   {
     "period": "114050017",
@@ -77,7 +37,7 @@
     "drawTime": "13:35",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306562"
+    "scrapedAt": "2025-09-04T13:43:12.781170"
   },
   {
     "period": "114050016",
@@ -97,7 +57,7 @@
     "drawTime": "13:30",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306565"
+    "scrapedAt": "2025-09-04T13:43:12.781174"
   },
   {
     "period": "114050015",
@@ -117,7 +77,7 @@
     "drawTime": "13:25",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306569"
+    "scrapedAt": "2025-09-04T13:43:12.781177"
   },
   {
     "period": "114050014",
@@ -137,7 +97,7 @@
     "drawTime": "13:20",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306572"
+    "scrapedAt": "2025-09-04T13:43:12.781181"
   },
   {
     "period": "114050013",
@@ -157,7 +117,7 @@
     "drawTime": "13:15",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306575"
+    "scrapedAt": "2025-09-04T13:43:12.781184"
   },
   {
     "period": "114050012",
@@ -177,7 +137,7 @@
     "drawTime": "13:10",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306578"
+    "scrapedAt": "2025-09-04T13:43:12.781187"
   },
   {
     "period": "114050011",
@@ -197,7 +157,7 @@
     "drawTime": "13:05",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306581"
+    "scrapedAt": "2025-09-04T13:43:12.781190"
   },
   {
     "period": "114050010",
@@ -217,7 +177,7 @@
     "drawTime": "13:00",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306585"
+    "scrapedAt": "2025-09-04T13:43:12.781193"
   },
   {
     "period": "114050009",
@@ -237,7 +197,7 @@
     "drawTime": "12:55",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306588"
+    "scrapedAt": "2025-09-04T13:43:12.781196"
   },
   {
     "period": "114050008",
@@ -257,7 +217,7 @@
     "drawTime": "12:50",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306591"
+    "scrapedAt": "2025-09-04T13:43:12.781200"
   },
   {
     "period": "114050007",
@@ -277,7 +237,7 @@
     "drawTime": "12:45",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306594"
+    "scrapedAt": "2025-09-04T13:43:12.781203"
   },
   {
     "period": "114050006",
@@ -297,7 +257,7 @@
     "drawTime": "12:40",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306597"
+    "scrapedAt": "2025-09-04T13:43:12.781206"
   },
   {
     "period": "114050005",
@@ -317,7 +277,7 @@
     "drawTime": "12:35",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306601"
+    "scrapedAt": "2025-09-04T13:43:12.781209"
   },
   {
     "period": "114050004",
@@ -337,7 +297,7 @@
     "drawTime": "12:30",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306604"
+    "scrapedAt": "2025-09-04T13:43:12.781212"
   },
   {
     "period": "114050003",
@@ -357,7 +317,7 @@
     "drawTime": "12:25",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306607"
+    "scrapedAt": "2025-09-04T13:43:12.781215"
   },
   {
     "period": "114050002",
@@ -377,7 +337,7 @@
     "drawTime": "12:20",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306611"
+    "scrapedAt": "2025-09-04T13:43:12.781218"
   },
   {
     "period": "114050001",
@@ -397,7 +357,7 @@
     "drawTime": "12:15",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306614"
+    "scrapedAt": "2025-09-04T13:43:12.781221"
   },
   {
     "period": "114050000",
@@ -417,7 +377,7 @@
     "drawTime": "12:10",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306617"
+    "scrapedAt": "2025-09-04T13:43:12.781224"
   },
   {
     "period": "114049999",
@@ -437,7 +397,7 @@
     "drawTime": "12:05",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306620"
+    "scrapedAt": "2025-09-04T13:43:12.781226"
   },
   {
     "period": "114049998",
@@ -457,7 +417,7 @@
     "drawTime": "12:00",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306623"
+    "scrapedAt": "2025-09-04T13:43:12.781229"
   },
   {
     "period": "114049997",
@@ -477,7 +437,7 @@
     "drawTime": "11:55",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306626"
+    "scrapedAt": "2025-09-04T13:43:12.781232"
   },
   {
     "period": "114049996",
@@ -497,7 +457,7 @@
     "drawTime": "11:50",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306630"
+    "scrapedAt": "2025-09-04T13:43:12.781235"
   },
   {
     "period": "114049995",
@@ -517,7 +477,7 @@
     "drawTime": "11:45",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306633"
+    "scrapedAt": "2025-09-04T13:43:12.781238"
   },
   {
     "period": "114049994",
@@ -537,7 +497,7 @@
     "drawTime": "11:40",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306636"
+    "scrapedAt": "2025-09-04T13:43:12.781241"
   },
   {
     "period": "114049993",
@@ -557,7 +517,7 @@
     "drawTime": "11:35",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306640"
+    "scrapedAt": "2025-09-04T13:43:12.781244"
   },
   {
     "period": "114049992",
@@ -577,7 +537,7 @@
     "drawTime": "11:30",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306643"
+    "scrapedAt": "2025-09-04T13:43:12.781247"
   },
   {
     "period": "114049991",
@@ -597,7 +557,7 @@
     "drawTime": "11:25",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306646"
+    "scrapedAt": "2025-09-04T13:43:12.781250"
   },
   {
     "period": "114049990",
@@ -617,7 +577,7 @@
     "drawTime": "11:20",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306649"
+    "scrapedAt": "2025-09-04T13:43:12.781253"
   },
   {
     "period": "114049989",
@@ -637,7 +597,7 @@
     "drawTime": "11:15",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306652"
+    "scrapedAt": "2025-09-04T13:43:12.781256"
   },
   {
     "period": "114049988",
@@ -657,7 +617,7 @@
     "drawTime": "11:10",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306656"
+    "scrapedAt": "2025-09-04T13:43:12.781259"
   },
   {
     "period": "114049987",
@@ -677,7 +637,7 @@
     "drawTime": "11:05",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306659"
+    "scrapedAt": "2025-09-04T13:43:12.781262"
   },
   {
     "period": "114049986",
@@ -697,7 +657,7 @@
     "drawTime": "11:00",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306662"
+    "scrapedAt": "2025-09-04T13:43:12.781265"
   },
   {
     "period": "114049985",
@@ -717,7 +677,7 @@
     "drawTime": "10:55",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306665"
+    "scrapedAt": "2025-09-04T13:43:12.781268"
   },
   {
     "period": "114049984",
@@ -737,7 +697,7 @@
     "drawTime": "10:50",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306668"
+    "scrapedAt": "2025-09-04T13:43:12.781271"
   },
   {
     "period": "114049983",
@@ -757,7 +717,7 @@
     "drawTime": "10:45",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306671"
+    "scrapedAt": "2025-09-04T13:43:12.781274"
   },
   {
     "period": "114049982",
@@ -777,7 +737,7 @@
     "drawTime": "10:40",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306674"
+    "scrapedAt": "2025-09-04T13:43:12.781277"
   },
   {
     "period": "114049981",
@@ -797,7 +757,7 @@
     "drawTime": "10:35",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306677"
+    "scrapedAt": "2025-09-04T13:43:12.781284"
   },
   {
     "period": "114049980",
@@ -817,7 +777,7 @@
     "drawTime": "10:30",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306680"
+    "scrapedAt": "2025-09-04T13:43:12.781287"
   },
   {
     "period": "114049979",
@@ -837,7 +797,7 @@
     "drawTime": "10:25",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306689"
+    "scrapedAt": "2025-09-04T13:43:12.781290"
   },
   {
     "period": "114049978",
@@ -857,7 +817,7 @@
     "drawTime": "10:20",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306693"
+    "scrapedAt": "2025-09-04T13:43:12.781293"
   },
   {
     "period": "114049977",
@@ -877,7 +837,7 @@
     "drawTime": "10:15",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306696"
+    "scrapedAt": "2025-09-04T13:43:12.781297"
   },
   {
     "period": "114049976",
@@ -897,7 +857,7 @@
     "drawTime": "10:10",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306699"
+    "scrapedAt": "2025-09-04T13:43:12.781300"
   },
   {
     "period": "114049975",
@@ -917,7 +877,7 @@
     "drawTime": "10:05",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306702"
+    "scrapedAt": "2025-09-04T13:43:12.781302"
   },
   {
     "period": "114049974",
@@ -937,7 +897,7 @@
     "drawTime": "10:00",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306705"
+    "scrapedAt": "2025-09-04T13:43:12.781306"
   },
   {
     "period": "114049973",
@@ -957,7 +917,7 @@
     "drawTime": "09:55",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306708"
+    "scrapedAt": "2025-09-04T13:43:12.781309"
   },
   {
     "period": "114049972",
@@ -977,7 +937,7 @@
     "drawTime": "09:50",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306712"
+    "scrapedAt": "2025-09-04T13:43:12.781312"
   },
   {
     "period": "114049971",
@@ -997,7 +957,7 @@
     "drawTime": "09:45",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306715"
+    "scrapedAt": "2025-09-04T13:43:12.781315"
   },
   {
     "period": "114049970",
@@ -1017,7 +977,7 @@
     "drawTime": "09:40",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306721"
+    "scrapedAt": "2025-09-04T13:43:12.781318"
   },
   {
     "period": "114049969",
@@ -1037,7 +997,7 @@
     "drawTime": "09:35",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306724"
+    "scrapedAt": "2025-09-04T13:43:12.781321"
   },
   {
     "period": "114049968",
@@ -1057,7 +1017,7 @@
     "drawTime": "09:30",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306727"
+    "scrapedAt": "2025-09-04T13:43:12.781325"
   },
   {
     "period": "114049967",
@@ -1077,7 +1037,7 @@
     "drawTime": "09:25",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306731"
+    "scrapedAt": "2025-09-04T13:43:12.781328"
   },
   {
     "period": "114049966",
@@ -1097,7 +1057,7 @@
     "drawTime": "09:20",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306734"
+    "scrapedAt": "2025-09-04T13:43:12.781331"
   },
   {
     "period": "114049965",
@@ -1117,7 +1077,7 @@
     "drawTime": "09:15",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306737"
+    "scrapedAt": "2025-09-04T13:43:12.781335"
   },
   {
     "period": "114049964",
@@ -1137,7 +1097,7 @@
     "drawTime": "09:10",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306740"
+    "scrapedAt": "2025-09-04T13:43:12.781337"
   },
   {
     "period": "114049963",
@@ -1157,7 +1117,7 @@
     "drawTime": "09:05",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306743"
+    "scrapedAt": "2025-09-04T13:43:12.781340"
   },
   {
     "period": "114049962",
@@ -1177,7 +1137,7 @@
     "drawTime": "09:00",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306746"
+    "scrapedAt": "2025-09-04T13:43:12.781345"
   },
   {
     "period": "114049961",
@@ -1197,7 +1157,7 @@
     "drawTime": "08:55",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306749"
+    "scrapedAt": "2025-09-04T13:43:12.781348"
   },
   {
     "period": "114049960",
@@ -1217,7 +1177,7 @@
     "drawTime": "08:50",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306752"
+    "scrapedAt": "2025-09-04T13:43:12.781351"
   },
   {
     "period": "114049959",
@@ -1237,7 +1197,7 @@
     "drawTime": "08:45",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306755"
+    "scrapedAt": "2025-09-04T13:43:12.781354"
   },
   {
     "period": "114049958",
@@ -1257,7 +1217,7 @@
     "drawTime": "08:40",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306758"
+    "scrapedAt": "2025-09-04T13:43:12.781357"
   },
   {
     "period": "114049957",
@@ -1277,7 +1237,7 @@
     "drawTime": "08:35",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306764"
+    "scrapedAt": "2025-09-04T13:43:12.781360"
   },
   {
     "period": "114049956",
@@ -1297,7 +1257,7 @@
     "drawTime": "08:30",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306768"
+    "scrapedAt": "2025-09-04T13:43:12.781362"
   },
   {
     "period": "114049955",
@@ -1317,7 +1277,7 @@
     "drawTime": "08:25",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306771"
+    "scrapedAt": "2025-09-04T13:43:12.781367"
   },
   {
     "period": "114049954",
@@ -1337,7 +1297,7 @@
     "drawTime": "08:20",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306777"
+    "scrapedAt": "2025-09-04T13:43:12.781370"
   },
   {
     "period": "114049953",
@@ -1357,7 +1317,7 @@
     "drawTime": "08:15",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306781"
+    "scrapedAt": "2025-09-04T13:43:12.781373"
   },
   {
     "period": "114049952",
@@ -1377,7 +1337,7 @@
     "drawTime": "08:10",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306784"
+    "scrapedAt": "2025-09-04T13:43:12.781376"
   },
   {
     "period": "114049951",
@@ -1397,7 +1357,7 @@
     "drawTime": "08:05",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306787"
+    "scrapedAt": "2025-09-04T13:43:12.781379"
   },
   {
     "period": "114049950",
@@ -1417,7 +1377,7 @@
     "drawTime": "08:00",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306790"
+    "scrapedAt": "2025-09-04T13:43:12.781382"
   },
   {
     "period": "114049949",
@@ -1437,7 +1397,7 @@
     "drawTime": "07:55",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306793"
+    "scrapedAt": "2025-09-04T13:43:12.781385"
   },
   {
     "period": "114049948",
@@ -1457,7 +1417,7 @@
     "drawTime": "07:50",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306796"
+    "scrapedAt": "2025-09-04T13:43:12.781387"
   },
   {
     "period": "114049947",
@@ -1477,7 +1437,7 @@
     "drawTime": "07:45",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306799"
+    "scrapedAt": "2025-09-04T13:43:12.781390"
   },
   {
     "period": "114049946",
@@ -1497,7 +1457,7 @@
     "drawTime": "07:40",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306802"
+    "scrapedAt": "2025-09-04T13:43:12.781427"
   },
   {
     "period": "114049945",
@@ -1517,7 +1477,7 @@
     "drawTime": "07:35",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306805"
+    "scrapedAt": "2025-09-04T13:43:12.781434"
   },
   {
     "period": "114049944",
@@ -1537,7 +1497,7 @@
     "drawTime": "07:30",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306812"
+    "scrapedAt": "2025-09-04T13:43:12.781437"
   },
   {
     "period": "114049943",
@@ -1557,7 +1517,7 @@
     "drawTime": "07:25",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306819"
+    "scrapedAt": "2025-09-04T13:43:12.781441"
   },
   {
     "period": "114049942",
@@ -1577,7 +1537,7 @@
     "drawTime": "07:20",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306822"
+    "scrapedAt": "2025-09-04T13:43:12.781465"
   },
   {
     "period": "114049941",
@@ -1597,7 +1557,7 @@
     "drawTime": "07:15",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306825"
+    "scrapedAt": "2025-09-04T13:43:12.781474"
   },
   {
     "period": "114049940",
@@ -1617,7 +1577,7 @@
     "drawTime": "07:10",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306828"
+    "scrapedAt": "2025-09-04T13:43:12.781478"
   },
   {
     "period": "114049939",
@@ -1637,6 +1597,6 @@
     "drawTime": "07:05",
     "dataSource": "python-scraper",
     "isValid": true,
-    "scrapedAt": "2025-09-04T13:54:53.306831"
+    "scrapedAt": "2025-09-04T13:43:12.781481"
   }
 ]

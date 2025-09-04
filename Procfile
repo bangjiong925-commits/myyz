@@ -1,7 +1,7 @@
 # Railway Procfile for Taiwan PK10 Scraper System
 
 # Web service - File-based API Server (更适合Railway部署)
-web: python3 api_server.py --port $PORT
+web: python3 api_server.py --port ${PORT:-3000}
 
 # Worker service - Auto Scraper (定时爬虫)
 worker: python3 auto_scraper.py
