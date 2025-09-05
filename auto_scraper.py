@@ -28,7 +28,7 @@ except ImportError:
 class AutoScraper:
     """自动爬虫管理器"""
     
-    def __init__(self, mongodb_uri="mongodb://localhost:27017", db_name="taiwan_pk10"):
+    def __init__(self, mongodb_uri=None, db_name="taiwan_pk10"):
         self.mongodb_uri = mongodb_uri
         self.db_name = db_name
         self.scraper = None
@@ -306,7 +306,7 @@ def main():
     args = parser.parse_args()
     
     # 从环境变量或命令行参数获取配置
-    mongodb_uri = args.mongodb_uri or os.environ.get('MONGODB_URI', 'mongodb://localhost:27017')
+    mongodb_uri = args.mongodb_uri or os.environ.get('MONGODB_URI')
     db_name = args.db_name or os.environ.get('MONGODB_DB_NAME', 'taiwan_pk10')
     
     print(f"自动爬虫启动配置:")

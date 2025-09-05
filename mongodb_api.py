@@ -22,7 +22,7 @@ except ImportError:
     print("请运行: pip install pymongo")
 
 class MongoDBAPIHandler(BaseHTTPRequestHandler):
-    def __init__(self, *args, mongodb_uri="mongodb://localhost:27017", db_name="taiwan_pk10", **kwargs):
+    def __init__(self, *args, mongodb_uri=None, db_name="taiwan_pk10", **kwargs):
         self.mongodb_uri = mongodb_uri
         self.db_name = db_name
         self.mongo_client = None
@@ -42,7 +42,7 @@ class MongoDBAPIHandler(BaseHTTPRequestHandler):
         try:
             # 设置CORS头
             self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             
@@ -59,8 +59,8 @@ class MongoDBAPIHandler(BaseHTTPRequestHandler):
                 result = self.get_latest_data()
                 response = json.dumps(result, ensure_ascii=False)
                 self.wfile.write(response.encode('utf-8'))
-            elif parsed_path.path == '/api/health':
-                # 健康检查
+            elif parsed_path.path == '/api/health' or parsed_path.path == '/health':
+                # 健康检查 (支持 /health 和 /api/health 两个路径)
                 result = self.health_check()
                 response = json.dumps(result, ensure_ascii=False)
                 self.wfile.write(response.encode('utf-8'))
@@ -69,19 +69,71 @@ class MongoDBAPIHandler(BaseHTTPRequestHandler):
                 result = self.cleanup_history_data()
                 response = json.dumps(result, ensure_ascii=False)
                 self.wfile.write(response.encode('utf-8'))
+            elif parsed_path.path == '/api/taiwan-pk10-data':
+                # 获取台湾PK10数据（兼容前端调用）
+                query_params = parse_qs(parsed_path.query)
+                limit = int(query_params.get('limit', [100])[0])
+                result = self.get_taiwan_pk10_data(limit)
+                response = json.dumps(result, ensure_ascii=False)
+                self.wfile.write(response.encode('utf-8'))
+            elif parsed_path.path == '/':
+                # 根路径 - 返回API信息
+                result = {
+                    'success': True,
+                    'message': 'Taiwan PK10 API服务',
+                    'version': '1.0.0',
+                    'endpoints': [
+                        '/api/today-data',
+                        '/api/latest-data', 
+                        '/api/taiwan-pk10-data',
+                        '/api/health',
+                        '/api/cleanup-history'
+                    ],
+                    'timestamp': datetime.now().isoformat()
+                }
+                response = json.dumps(result, ensure_ascii=False)
+                self.wfile.write(response.encode('utf-8'))
             else:
                 # 404错误
-                self.send_error(404, "API端点未找到")
+                self.send_response(404)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                
+                error_response = {
+                    'success': False,
+                    'error': 'API端点未找到',
+                    'timestamp': datetime.now().isoformat()
+                }
+                response = json.dumps(error_response, ensure_ascii=False)
+                self.wfile.write(response.encode('utf-8'))
                 
         except Exception as e:
             # 500错误
-            error_response = {
-                'success': False,
-                'error': f'服务器内部错误: {str(e)}',
-                'timestamp': datetime.now().isoformat()
-            }
-            response = json.dumps(error_response, ensure_ascii=False)
-            self.wfile.write(response.encode('utf-8'))
+            try:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                
+                # 确保错误信息能正确编码
+                error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
+                error_response = {
+                    'success': False,
+                    'error': f'服务器内部错误: {error_msg}',
+                    'timestamp': datetime.now().isoformat()
+                }
+                response = json.dumps(error_response, ensure_ascii=False)
+                self.wfile.write(response.encode('utf-8'))
+            except Exception as inner_e:
+                # 如果连错误响应都失败了，发送最基本的错误
+                try:
+                    self.send_response(500)
+                    self.send_header('Content-Type', 'text/plain; charset=utf-8')
+                    self.end_headers()
+                    self.wfile.write(b'Internal Server Error')
+                except:
+                    pass
     
     def connect_mongodb(self):
         """连接MongoDB数据库"""
@@ -219,6 +271,53 @@ class MongoDBAPIHandler(BaseHTTPRequestHandler):
             if self.mongo_client:
                 self.mongo_client.close()
     
+    def get_taiwan_pk10_data(self, limit=100):
+        """获取台湾PK10数据（兼容前端调用）"""
+        if not self.connect_mongodb():
+            return {
+                'success': False,
+                'error': 'MongoDB连接失败',
+                'timestamp': datetime.now().isoformat()
+            }
+        
+        try:
+            # 首先尝试从web_formatted_data集合获取最新的完整数据
+            web_collection = self.db['web_formatted_data']
+            latest_web_data = web_collection.find().sort([('created_at', -1)]).limit(1)
+            
+            for doc in latest_web_data:
+                if 'data' in doc and doc['data']:
+                    # 限制返回的数据条数
+                    limited_data = doc['data'][:limit] if limit > 0 else doc['data']
+                    return limited_data
+            
+            # 如果web_formatted_data没有数据，则从lottery_data集合获取
+            collection = self.db['lottery_data']
+            
+            # 查询最新数据
+            cursor = collection.find(
+                {'is_valid': True},
+                sort=[('scraped_at', -1)]
+            ).limit(limit)
+            
+            data = []
+            for doc in cursor:
+                # 转换为前端需要的格式
+                formatted_data = f"{doc['period']} {','.join(map(str, doc['draw_numbers']))}"
+                data.append(formatted_data)
+            
+            return data
+                
+        except Exception as e:
+            return {
+                'success': False,
+                'error': f'获取数据失败: {str(e)}',
+                'timestamp': datetime.now().isoformat()
+            }
+        finally:
+            if self.mongo_client:
+                self.mongo_client.close()
+    
     def cleanup_history_data(self):
         """清理历史数据，只保留今天(2025-09-03)的数据"""
         if not self.connect_mongodb():
@@ -298,7 +397,7 @@ def create_handler_class(mongodb_uri, db_name):
             super().__init__(*args, mongodb_uri=mongodb_uri, db_name=db_name, **kwargs)
     return ConfiguredHandler
 
-def run_mongodb_server(port=3002, mongodb_uri="mongodb://localhost:27017", db_name="taiwan_pk10"):
+def run_mongodb_server(port=3002, mongodb_uri=None, db_name="taiwan_pk10"):
     """运行MongoDB API服务器"""
     handler_class = create_handler_class(mongodb_uri, db_name)
     server = HTTPServer(('', port), handler_class)
@@ -333,7 +432,7 @@ if __name__ == '__main__':
     
     # 从环境变量或命令行参数获取配置
     port = args.port or int(os.environ.get('PORT', 3002))
-    mongodb_uri = args.mongodb_uri or os.environ.get('MONGODB_URI', 'mongodb://localhost:27017')
+    mongodb_uri = args.mongodb_uri or os.environ.get('MONGODB_URI')
     db_name = args.db_name or os.environ.get('MONGODB_DB_NAME', 'taiwan_pk10')
     
     print(f"启动配置:")

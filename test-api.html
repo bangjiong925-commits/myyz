@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API测试页面</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>台湾PK10 API测试</h1>
+    
+    <button onclick="testAPI()">测试API调用</button>
+    <button onclick="clearResults()">清空结果</button>
+    
+    <div id="results"></div>
+    
+    <script>
+        const RAILWAY_API_BASE = 'https://twpk.up.railway.app';
+        
+        async function testAPI() {
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                addResult('开始测试API调用...', 'info');
+                
+                const response = await fetch(`${RAILWAY_API_BASE}/api/taiwan-pk10-data`);
+                addResult(`API响应状态: ${response.status}`, response.ok ? 'success' : 'error');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult(`数据类型: ${Array.isArray(data) ? '数组' : typeof data}`, 'info');
+                    addResult(`数据长度: ${Array.isArray(data) ? data.length : 'N/A'}`, 'info');
+                    
+                    if (Array.isArray(data) && data.length > 0) {
+                        const firstItem = data[0];
+                        addResult(`第一条数据: ${JSON.stringify(firstItem, null, 2)}`, 'success');
+                        
+                        // 测试数据处理逻辑
+                        let period, numbers, time;
+                        if (typeof firstItem === 'object') {
+                            period = firstItem.期号 || firstItem.period || firstItem.period_number;
+                            numbers = firstItem.开奖号码 || firstItem.numbers || firstItem.drawNumbers;
+                            time = firstItem.时间 || firstItem.time || firstItem.drawTime;
+                        }
+                        
+                        addResult(`解析结果 - 期号: ${period}, 号码: [${numbers}], 时间: ${time}`, 
+                                numbers && numbers.length === 10 ? 'success' : 'error');
+                    } else {
+                        addResult('API返回空数据', 'error');
+                    }
+                } else {
+                    const errorText = await response.text();
+                    addResult(`API错误响应: ${errorText}`, 'error');
+                }
+            } catch (error) {
+                addResult(`网络错误: ${error.message}`, 'error');
+            }
+        }
+        
+        function addResult(message, type) {
+            const resultsDiv = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            resultsDiv.appendChild(div);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        // 页面加载时自动测试
+        window.onload = function() {
+            testAPI();
+        };
+    </script>
+</body>
+</html>

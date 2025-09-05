@@ -1,93 +1,63 @@
 #!/usr/bin/env python3
-import pymongo
-import os
+import json
+import sys
+import requests
 from datetime import datetime
 
-try:
-    print('正在连接数据库...')
-    # 从环境变量获取MongoDB连接信息，如果没有则使用默认值
-    mongodb_uri = os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/')
-    db_name = os.environ.get('MONGODB_DB_NAME', 'taiwan_pk10')
-    
-    print(f'使用连接字符串: {mongodb_uri.replace("://", "://*****:*****@") if "@" in mongodb_uri else mongodb_uri}')
-    print(f'数据库名称: {db_name}')
-    
-    # 连接MongoDB数据库，设置超时时间
-    client = pymongo.MongoClient(mongodb_uri, serverSelectionTimeoutMS=5000)
-    # 测试连接
-    client.admin.command('ping')
-    print('数据库连接成功！')
-    db = client[db_name]
-    
-    # 检查所有集合
-    collections = db.list_collection_names()
-    print(f'数据库中的集合: {collections}')
-    
-    # 检查两个可能的集合
-    data_collection = db['data']
-    lottery_collection = db['lottery_data']
-    
-    # 获取今天的日期
-    today = datetime.now().strftime('%Y-%m-%d')
-    
-    # 检查data集合
-    data_count = data_collection.count_documents({'date': today})
-    print(f'\ndata集合 - 今天({today})共有 {data_count} 条数据')
-    
-    # 检查lottery_data集合
-    lottery_count = lottery_collection.count_documents({'draw_date': today})
-    print(f'lottery_data集合 - 今天({today})共有 {lottery_count} 条数据')
-    
-    # 获取lottery_data集合的最近5条数据
-    recent_lottery_data = list(lottery_collection.find({'draw_date': today}).sort('_id', -1).limit(5))
-    
-    if recent_lottery_data:
-        print('\nlottery_data集合最近5条数据:')
-        for i, data in enumerate(recent_lottery_data, 1):
-            period = data.get('period', 'N/A')
-            numbers = data.get('draw_numbers', 'N/A')
-            time = data.get('draw_time', 'N/A')
-            print(f'{i}. 期号: {period}, 开奖号码: {numbers}, 时间: {time}')
-    else:
-        print('\nlottery_data集合今天暂无数据')
+def check_today_data():
+    try:
+        # 获取API数据
+        response = requests.get('https://twpk.up.railway.app/api/taiwan-pk10-data?limit=100')
+        data = response.json()
         
-    # 获取数据库总数据量
-    data_total = data_collection.count_documents({})
-    lottery_total = lottery_collection.count_documents({})
-    print(f'\ndata集合总共有 {data_total} 条数据')
-    print(f'lottery_data集合总共有 {lottery_total} 条数据')
-    
-    # 获取lottery_data集合中所有日期的统计
-    pipeline = [
-        {'$group': {'_id': '$draw_date', 'count': {'$sum': 1}}},
-        {'$sort': {'_id': -1}}
-    ]
-    lottery_date_stats = list(lottery_collection.aggregate(pipeline))
-    
-    if lottery_date_stats:
-        print('\nlottery_data集合各日期数据统计:')
-        for stat in lottery_date_stats[:10]:  # 显示最近10天
-            print(f'{stat["_id"]}: {stat["count"]} 条数据')
-    
-    # 检查lottery_data集合最新的几条数据（不限日期）
-    latest_lottery = list(lottery_collection.find().sort('_id', -1).limit(5))
-    if latest_lottery:
-        print('\nlottery_data集合中最新的5条数据（不限日期）:')
-        for i, data in enumerate(latest_lottery, 1):
-            period = data.get('period', 'N/A')
-            numbers = data.get('draw_numbers', 'N/A')
-            time = data.get('draw_time', 'N/A')
-            date = data.get('draw_date', 'N/A')
-            print(f'{i}. 日期: {date}, 期号: {period}, 开奖号码: {numbers}, 时间: {time}')
-    
-except pymongo.errors.ServerSelectionTimeoutError as e:
-    print(f'连接MongoDB服务器超时: {e}')
-    print('请检查MongoDB服务是否已启动，可能需要运行以下命令启动服务：')
-    print('  1. 如果使用Docker: docker-compose up -d mongodb')
-    print('  2. 如果本地安装MongoDB: brew services start mongodb-community')
-    print('  3. 如果使用远程MongoDB: 请检查连接字符串和网络连接')
-except Exception as e:
-    print(f'查询数据库时出错: {e}')
-finally:
-    if 'client' in locals():
-        client.close()
+        # 获取今天的日期
+        today = datetime.now().strftime('%Y-%m-%d')
+        print(f"检查日期: {today}")
+        print("=" * 50)
+        
+        # 筛选今天的数据
+        today_data = [d for d in data if today in d['drawDate']]
+        
+        print(f"今天数据条数: {len(today_data)}")
+        
+        if data:
+            print(f"最新期号: {data[0]['period']}")
+            print(f"最新开奖时间: {data[0]['drawDate']} {data[0]['drawTime']}")
+            print(f"数据抓取时间: {data[0]['scrapedAt']}")
+        else:
+            print("无数据")
+            return
+        
+        print("\n今天的数据:")
+        if today_data:
+            for i, d in enumerate(today_data[:10]):
+                print(f"{i+1}. 期号: {d['period']}, 时间: {d['drawTime']}, 开奖号码: {d['drawNumbers'][:3]}...")
+        else:
+            print("今天暂无数据")
+        
+        # 检查数据时间范围
+        if len(data) > 0:
+            earliest = data[-1]
+            latest = data[0]
+            print(f"\n数据时间范围:")
+            print(f"最早: {earliest['drawDate']} {earliest['drawTime']} (期号: {earliest['period']})")
+            print(f"最新: {latest['drawDate']} {latest['drawTime']} (期号: {latest['period']})")
+        
+        # 检查数据更新状态
+        if today_data:
+            latest_today = today_data[0]
+            scrape_time = datetime.fromisoformat(latest_today['scrapedAt'].replace('Z', '+00:00'))
+            now = datetime.now()
+            time_diff = now - scrape_time.replace(tzinfo=None)
+            print(f"\n数据更新状态:")
+            print(f"最后更新: {time_diff.total_seconds()/60:.1f} 分钟前")
+            if time_diff.total_seconds() > 3600:  # 超过1小时
+                print("⚠️ 数据可能未及时更新")
+            else:
+                print("✅ 数据更新正常")
+        
+    except Exception as e:
+        print(f"检查数据时出错: {e}")
+
+if __name__ == "__main__":
+    check_today_data()

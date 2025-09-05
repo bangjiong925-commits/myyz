@@ -38,8 +38,8 @@ export default async function handler(req, res) {
       message: 'Data updated successfully'
     };
     
-    // 如果有数据库连接，可以在这里保存数据
-    // await saveToDatabase(latestData);
+    // 保存数据到MongoDB数据库
+    await saveToDatabase(latestData);
     
     return res.status(200).json(updateResult);
     
@@ -55,11 +55,43 @@ export default async function handler(req, res) {
   }
 }
 
-// 辅助函数：保存到数据库（示例）
-// async function saveToDatabase(data) {
-//   // 这里可以连接到数据库（如MongoDB、PostgreSQL等）
-//   // 保存最新的开奖数据
-//   // 例如：
-//   // const db = await connectToDatabase();
-//   // await db.collection('taiwan_pk10').insertOne(data);
-// }
+// 辅助函数：保存到数据库
+async function saveToDatabase(data) {
+  try {
+    const { MongoClient } = require('mongodb');
+    
+    const mongodb_uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+    const db_name = process.env.MONGODB_DB_NAME || 'taiwan_pk10';
+    const collection_name = 'lottery_data';
+    
+    const client = new MongoClient(mongodb_uri);
+    await client.connect();
+    
+    const db = client.db(db_name);
+    const collection = db.collection(collection_name);
+    
+    // 检查数据是否已存在（避免重复插入）
+    if (data.issue_number) {
+      const existingRecord = await collection.findOne({ issue_number: data.issue_number });
+      if (existingRecord) {
+        console.log(`期号 ${data.issue_number} 的数据已存在，跳过插入`);
+        await client.close();
+        return;
+      }
+    }
+    
+    // 插入新数据
+    const result = await collection.insertOne({
+      ...data,
+      created_at: new Date(),
+      updated_at: new Date()
+    });
+    
+    console.log(`数据已保存到MongoDB，ID: ${result.insertedId}`);
+    await client.close();
+    
+  } catch (error) {
+    console.error('保存数据到MongoDB失败:', error);
+    throw error;
+  }
+}

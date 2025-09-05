@@ -1,37 +1,6 @@
-# Taiwan PK10 自动爬虫系统依赖包
-
-# 网页爬虫相关
-selenium>=4.15.0
-beautifulsoup4>=4.12.0
-requests>=2.31.0
-
-# 数据库相关
-pymongo>=4.6.0
-
-# 任务调度
-schedule>=1.2.0
-
-# Web API服务器
-Flask>=3.0.0
-Flask-CORS>=4.0.0
-
-# 数据处理
-pandas>=2.1.0
-numpy>=1.24.0
-
-# 日期时间处理
-python-dateutil>=2.8.0
-pytz>=2023.3
-
-# 日志和配置
-coloredlogs>=15.0
-pyyaml>=6.0
-
-# 系统工具
-psutil>=5.9.0
-
-# 开发和测试（可选）
-pytest>=7.4.0
-pytest-cov>=4.1.0
-flake8>=6.0.0
-black>=23.0.0
+pymongo==4.6.0
+requests==2.31.0
+beautifulsoup4==4.12.2
+lxml==4.9.3
+selenium==4.15.2
+webdriver-manager==4.0.1

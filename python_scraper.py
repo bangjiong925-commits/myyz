@@ -911,13 +911,8 @@ class TaiwanPK10Scraper:
             with open(filepath, 'w', encoding='utf-8') as f:
                 json.dump(json_data, f, ensure_ascii=False, indent=2)
             
-            # 同时保存为最新数据文件
-            latest_filepath = os.path.join('data', 'latest_taiwan_pk10_data.json')
-            with open(latest_filepath, 'w', encoding='utf-8') as f:
-                json.dump(json_data, f, ensure_ascii=False, indent=2)
-            
             logger.info(f"数据已保存到: {filepath}")
-            logger.info(f"最新数据已保存到: {latest_filepath}")
+            # 注意: 不再保存本地latest_taiwan_pk10_data.json文件，所有数据现在存储在远程MongoDB数据库中
             
             return filepath
             
@@ -1229,6 +1224,8 @@ def get_target_date(args):
         return datetime.now()
 
 if __name__ == "__main__":
+    import os
+    
     # 解析命令行参数
     args = parse_arguments()
     
@@ -1237,6 +1234,10 @@ if __name__ == "__main__":
     if target_date is None:
         exit(1)
     
+    # 从环境变量获取MongoDB连接字符串
+    mongodb_uri = os.environ.get('MONGODB_URI', 'mongodb://localhost:27017')
+    db_name = os.environ.get('MONGODB_DB_NAME', 'taiwan_pk10')
+    
     # 显示抓取配置
     print(f"\n=== 抓取配置 ===")
     print(f"目标日期: {target_date.strftime('%Y-%m-%d')}")
@@ -1244,10 +1245,11 @@ if __name__ == "__main__":
     print(f"保存到数据库: {not args.no_db}")
     print(f"保存到文件: {not args.no_file}")
     print(f"无头模式: {args.headless}")
+    print(f"MongoDB URI: {mongodb_uri[:50]}..." if len(mongodb_uri) > 50 else f"MongoDB URI: {mongodb_uri}")
     print(f"="*30)
     
     # 创建抓取器实例
-    scraper = TaiwanPK10Scraper(headless=args.headless)
+    scraper = TaiwanPK10Scraper(headless=args.headless, mongodb_uri=mongodb_uri, db_name=db_name)
     
     # 运行抓取器
     data = scraper.run_scraper(
