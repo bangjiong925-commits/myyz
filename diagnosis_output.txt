@@ -1,0 +1,18 @@
+MongoDB Atlas 连接诊断
+==================================================
+数据库名: taiwan_pk10
+完整URI: mongodb+srv://zhu:0ghZG7yrF3lqgDuV@cluster0.p4yg8ug.mongodb.net/taiwan_pk10?retryWrites=true&w=majority
+
+用户名: zhu
+密码: 0ghZG7yrF3lqgDuV
+密码长度: 16
+
+尝试连接 (5秒超时)...
+执行 ping 命令...
+连接失败: bad auth : authentication failed, full error: {'ok': 0, 'errmsg': 'bad auth : authentication failed', 'code': 8000, 'codeName': 'AtlasError'}
+错误类型: OperationFailure
+
+尝试更长超时时间 (30秒)...
+长超时也失败: bad auth : authentication failed, full error: {'ok': 0, 'errmsg': 'bad auth : authentication failed', 'code': 8000, 'codeName': 'AtlasError'}
+
+诊断完成

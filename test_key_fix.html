@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>密钥修复测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .result { margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 3px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>密钥修复测试</h1>
+    
+    <div class="test-section">
+        <h2>1. 生成新密钥测试</h2>
+        <button onclick="testKeyGeneration()">生成7天密钥</button>
+        <div id="generationResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. 验证修复后的密钥</h2>
+        <button onclick="testKeyValidation()">验证生成的密钥</button>
+        <div id="validationResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. 测试用户提供的密钥</h2>
+        <input type="text" id="userKey" placeholder="输入密钥" value="0700t2ay1k65j743rcfx" style="width: 300px; padding: 5px;">
+        <button onclick="testUserKey()">验证用户密钥</button>
+        <div id="userKeyResult" class="result"></div>
+    </div>
+
+    <script>
+        let generatedKey = '';
+        
+        // 生成短标识符（4个字符）
+        function generateShortIdentifier(validityPeriod) {
+            let baseId;
+            if (validityPeriod <= 60) {
+                baseId = '01'; // 1分钟
+            } else if (validityPeriod <= 3 * 24 * 60 * 60) {
+                baseId = '03'; // 3天
+            } else if (validityPeriod <= 7 * 24 * 60 * 60) {
+                baseId = '07'; // 7天
+            } else if (validityPeriod <= 30 * 24 * 60 * 60) {
+                baseId = '30'; // 30天
+            } else if (validityPeriod <= 90 * 24 * 60 * 60) {
+                baseId = '90'; // 90天
+            } else {
+                baseId = '99'; // 365天或更长
+            }
+            
+            // 生成2位随机数补充到4个字符
+            const array = new Uint8Array(1);
+            window.crypto.getRandomValues(array);
+            const randomSuffix = (array[0] % 100).toString().padStart(2, '0');
+            
+            return baseId + randomSuffix;
+        }
+        
+        // 生成校验和（6个字符）
+        function generateChecksum(input) {
+            let hash = 0;
+            for (let i = 0; i < input.length; i++) {
+                const char = input.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // 转换为32位整数
+            }
+            
+            // 转换为正数并生成6位字符串
+            const positiveHash = Math.abs(hash);
+            return positiveHash.toString(36).substring(0, 6).padStart(6, '0');
+        }
+        
+        // 生成密钥
+        function generateSecureKey(days) {
+            const currentTime = Math.floor(Date.now() / 1000);
+            const validityPeriod = days * 24 * 60 * 60;
+            const expiryTime = currentTime + validityPeriod;
+            
+            const identifier = generateShortIdentifier(validityPeriod);
+            const timestampPart = expiryTime.toString(36).substring(-8).padStart(8, '0');
+            const randomPadding = Math.random().toString(36).substring(2, 6);
+            
+            const coreData = identifier + timestampPart + randomPadding;
+            const checksum = generateChecksum(coreData);
+            
+            return coreData + checksum;
+        }
+        
+        // 验证密钥
+        function validateKey(key) {
+            try {
+                if(key.length < 20 || key.length > 25) {
+                    return {valid: false, reason: "密钥格式无效"};
+                }
+                
+                const identifier = key.substring(0, 4);
+                const timestampPart = key.substring(4, 12);
+                const randomPadding = key.substring(12, 16);
+                const checksum = key.substring(16);
+                
+                // 解析有效期
+                const baseTimestamp = parseInt(timestampPart, 36);
+                const idPrefix = identifier.substring(0, 2);
+                
+                let expiry;
+                if(idPrefix === '01') {
+                    expiry = baseTimestamp;
+                } else if(idPrefix === '03') {
+                    expiry = baseTimestamp;
+                } else if(idPrefix === '07') {
+                    expiry = baseTimestamp;
+                } else if(idPrefix === '30') {
+                    expiry = baseTimestamp;
+                } else if(idPrefix === '90') {
+                    expiry = baseTimestamp;
+                } else if(idPrefix === '99') {
+                    expiry = baseTimestamp;
+                } else {
+                    return {valid: false, reason: "密钥标识符无效: " + idPrefix};
+                }
+                
+                // 检查是否过期
+                const currentTime = Math.floor(Date.now() / 1000);
+                if(currentTime > expiry) {
+                    return {valid: false, reason: "密钥已过期"};
+                }
+                
+                // 验证校验和
+                const expectedChecksum = generateChecksum(identifier + timestampPart + randomPadding);
+                if(checksum !== expectedChecksum) {
+                    return {valid: false, reason: "密钥校验失败"};
+                }
+                
+                return {valid: true, data: {identifier: identifier, expiry: expiry, checksum: checksum}};
+            } catch (error) {
+                return {valid: false, reason: "验证过程异常: " + error.message};
+            }
+        }
+        
+        function testKeyGeneration() {
+            try {
+                generatedKey = generateSecureKey(7); // 生成7天密钥
+                document.getElementById('generationResult').innerHTML = 
+                    `<div class="success">✓ 成功生成密钥: <strong>${generatedKey}</strong><br>` +
+                    `长度: ${generatedKey.length} 字符<br>` +
+                    `标识符: ${generatedKey.substring(0, 4)}<br>` +
+                    `时间戳: ${generatedKey.substring(4, 12)}<br>` +
+                    `随机填充: ${generatedKey.substring(12, 16)}<br>` +
+                    `校验和: ${generatedKey.substring(16)}</div>`;
+            } catch (error) {
+                document.getElementById('generationResult').innerHTML = 
+                    `<div class="error">✗ 生成失败: ${error.message}</div>`;
+            }
+        }
+        
+        function testKeyValidation() {
+            if (!generatedKey) {
+                document.getElementById('validationResult').innerHTML = 
+                    `<div class="error">✗ 请先生成密钥</div>`;
+                return;
+            }
+            
+            const result = validateKey(generatedKey);
+            if (result.valid) {
+                document.getElementById('validationResult').innerHTML = 
+                    `<div class="success">✓ 密钥验证成功!<br>` +
+                    `标识符: ${result.data.identifier}<br>` +
+                    `过期时间: ${new Date(result.data.expiry * 1000).toLocaleString()}<br>` +
+                    `校验和: ${result.data.checksum}</div>`;
+            } else {
+                document.getElementById('validationResult').innerHTML = 
+                    `<div class="error">✗ 密钥验证失败: ${result.reason}</div>`;
+            }
+        }
+        
+        function testUserKey() {
+            const userKey = document.getElementById('userKey').value.trim();
+            if (!userKey) {
+                document.getElementById('userKeyResult').innerHTML = 
+                    `<div class="error">✗ 请输入密钥</div>`;
+                return;
+            }
+            
+            const result = validateKey(userKey);
+            if (result.valid) {
+                document.getElementById('userKeyResult').innerHTML = 
+                    `<div class="success">✓ 用户密钥验证成功!<br>` +
+                    `标识符: ${result.data.identifier}<br>` +
+                    `过期时间: ${new Date(result.data.expiry * 1000).toLocaleString()}<br>` +
+                    `校验和: ${result.data.checksum}</div>`;
+            } else {
+                document.getElementById('userKeyResult').innerHTML = 
+                    `<div class="error">✗ 用户密钥验证失败: ${result.reason}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>简单密钥测试</title>
+</head>
+<body>
+    <h1>密钥验证测试结果</h1>
+    <div id="output"></div>
+    
+    <script>
+        function generateEnhancedChecksum(input) {
+            let hash1 = 0;
+            let hash2 = 0;
+            
+            for (let i = 0; i < input.length; i++) {
+                const char = input.charCodeAt(i);
+                hash1 = ((hash1 << 5) - hash1) + char;
+                hash1 = hash1 & hash1;
+                
+                hash2 = ((hash2 << 3) + hash2) ^ char;
+                hash2 = hash2 & hash2;
+            }
+            
+            const combinedHash = Math.abs(hash1) + Math.abs(hash2);
+            
+            let checksum = combinedHash.toString(36).substring(0, 6);
+            if (checksum.length < 6) {
+                const padding = '0123456789abcdefghijklmnopqrstuvwxyz';
+                for (let i = checksum.length; i < 6; i++) {
+                    checksum += padding[(combinedHash + i) % padding.length];
+                }
+            }
+            
+            return checksum.substring(0, 6);
+        }
+
+        function testUserKey() {
+            const key = '1z9nt2czlsossgemphk1ca';
+            const output = document.getElementById('output');
+            
+            output.innerHTML += '<p><strong>测试密钥:</strong> ' + key + '</p>';
+            
+            // 解析密钥各部分
+            const identifier = key.substring(0, 4);  // 1z9n
+            const timestampPart = key.substring(4, 10);  // t2czls
+            const randomPart = key.substring(10, 16);  // ossgem
+            const originalChecksum = key.substring(16, 22);  // phk1ca
+            
+            output.innerHTML += '<p><strong>标识符:</strong> ' + identifier + '</p>';
+            output.innerHTML += '<p><strong>时间戳部分:</strong> ' + timestampPart + '</p>';
+            output.innerHTML += '<p><strong>随机部分:</strong> ' + randomPart + '</p>';
+            output.innerHTML += '<p><strong>原始校验和:</strong> ' + originalChecksum + '</p>';
+            
+            // 重新计算校验和
+            const dataForChecksum = identifier + timestampPart + randomPart;
+            const calculatedChecksum = generateEnhancedChecksum(dataForChecksum);
+            
+            output.innerHTML += '<p><strong>重新计算的校验和:</strong> ' + calculatedChecksum + '</p>';
+            
+            // 验证结果
+            if (originalChecksum === calculatedChecksum) {
+                output.innerHTML += '<p style="color: green;"><strong>✓ 验证成功！校验和匹配</strong></p>';
+            } else {
+                output.innerHTML += '<p style="color: red;"><strong>✗ 验证失败！校验和不匹配</strong></p>';
+            }
+            
+            // 显示调试信息
+            output.innerHTML += '<hr>';
+            output.innerHTML += '<p><strong>调试信息:</strong></p>';
+            output.innerHTML += '<p>用于计算校验和的数据: ' + dataForChecksum + '</p>';
+            output.innerHTML += '<p>数据长度: ' + dataForChecksum.length + '</p>';
+            
+            console.log('测试密钥:', key);
+            console.log('原始校验和:', originalChecksum);
+            console.log('计算校验和:', calculatedChecksum);
+            console.log('验证结果:', originalChecksum === calculatedChecksum);
+        }
+        
+        // 页面加载时执行测试
+        window.onload = testUserKey;
+    </script>
+</body>
+</html>

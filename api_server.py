@@ -29,46 +29,36 @@ class APIHandler(BaseHTTPRequestHandler):
             # 连接MongoDB
             client = MongoClient(self.mongo_uri)
             db = client[self.db_name]
-            collection = db[self.collection_name]
+            collection = db['today_data']  # 使用today_data集合
             
-            # 获取今天的日期范围（台湾时区）
-            taiwan_tz = timezone(timedelta(hours=8))
-            now_taiwan = datetime.now(taiwan_tz)
-            today_start = now_taiwan.replace(hour=0, minute=0, second=0, microsecond=0)
-            today_end = today_start + timedelta(days=1)
+            # 获取今天的日期
+            today = datetime.now().strftime('%Y-%m-%d')
             
-            # 查询今天的数据 - 基于draw_date字段
-            today_date_str = now_taiwan.strftime('%Y-%m-%d')
-            query = {
-                'draw_date': {
-                    '$regex': f'^{today_date_str}'
-                }
-            }
+            # 查询今天的数据
+            today_doc = collection.find_one({'date': today})
             
-            # 按期号降序排序
-            cursor = collection.find(query).sort('period', -1)
-            
-            # 转换为列表
-            today_data = []
-            for doc in cursor:
+            if today_doc:
                 # 移除MongoDB的_id字段
-                if '_id' in doc:
-                    del doc['_id']
-                # 转换datetime对象为字符串
-                for key, value in doc.items():
-                    if isinstance(value, datetime):
-                        doc[key] = value.isoformat()
-                today_data.append(doc)
-            
-            client.close()
-            
-            return {
-                'success': True,
-                'data': today_data,
-                'count': len(today_data),
-                'date': now_taiwan.strftime('%Y-%m-%d'),
-                'timestamp': now_taiwan.isoformat()
-            }
+                if '_id' in today_doc:
+                    del today_doc['_id']
+                
+                return {
+                    'success': True,
+                    'data': today_doc.get('periods', []),
+                    'count': len(today_doc.get('periods', [])),
+                    'date': today,
+                    'last_updated': today_doc.get('last_updated'),
+                    'timestamp': datetime.now().isoformat()
+                }
+            else:
+                return {
+                    'success': True,
+                    'data': [],
+                    'count': 0,
+                    'date': today,
+                    'message': '今日暂无数据',
+                    'timestamp': datetime.now().isoformat()
+                }
             
         except Exception as e:
             return {
@@ -77,6 +67,11 @@ class APIHandler(BaseHTTPRequestHandler):
                 'data': [],
                 'count': 0
             }
+        finally:
+            try:
+                client.close()
+            except:
+                pass
     
     def get_latest_data_from_db(self, limit=100):
         """从MongoDB获取最新数据"""
@@ -84,10 +79,10 @@ class APIHandler(BaseHTTPRequestHandler):
             # 连接MongoDB
             client = MongoClient(self.mongo_uri)
             db = client[self.db_name]
-            collection = db[self.collection_name]
+            collection = db['taiwan_pk10_data']  # 使用taiwan_pk10_data集合
             
-            # 按期号降序排序，获取最新数据
-            cursor = collection.find().sort('issue_number', -1).limit(limit)
+            # 按日期降序排序，获取最新数据
+            cursor = collection.find().sort('date', -1).limit(limit)
             
             # 转换为列表
             latest_data = []
@@ -101,13 +96,16 @@ class APIHandler(BaseHTTPRequestHandler):
                         doc[key] = value.isoformat()
                 latest_data.append(doc)
             
-            client.close()
-            
             return latest_data
             
         except Exception as e:
             print(f"获取最新数据失败: {str(e)}")
             return []
+        finally:
+            try:
+                client.close()
+            except:
+                pass
     
     def do_OPTIONS(self):
         """处理CORS预检请求"""

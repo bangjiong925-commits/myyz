@@ -1,0 +1,4 @@
+MongoDB Atlas Connection Test
+Database: taiwan_pk10
+URI: mongodb+srv://zhu:0ghZG7yrF3lq...
+ERROR: bad auth : authentication failed, full error: {'ok': 0, 'errmsg': 'bad auth : authentication failed', 'code': 8000, 'codeName': 'AtlasError'}
