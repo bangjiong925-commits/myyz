@@ -40,65 +40,139 @@ class MongoDBAPIHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         """处理GET请求"""
         try:
-            # 设置CORS头
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json; charset=utf-8')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            
             # 解析请求路径
             parsed_path = urlparse(self.path)
             
             if parsed_path.path == '/api/today-data':
+                # 设置JSON响应头
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                
                 # 获取今天的数据
                 result = self.get_today_data()
                 response = json.dumps(result, ensure_ascii=False)
                 self.wfile.write(response.encode('utf-8'))
             elif parsed_path.path == '/api/latest-data':
+                # 设置JSON响应头
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                
                 # 获取最新数据
                 result = self.get_latest_data()
                 response = json.dumps(result, ensure_ascii=False)
                 self.wfile.write(response.encode('utf-8'))
             elif parsed_path.path == '/api/health' or parsed_path.path == '/health':
+                # 设置JSON响应头
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                
                 # 健康检查 (支持 /health 和 /api/health 两个路径)
                 result = self.health_check()
                 response = json.dumps(result, ensure_ascii=False)
                 self.wfile.write(response.encode('utf-8'))
             elif parsed_path.path == '/api/cleanup-history':
+                # 设置JSON响应头
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                
                 # 清理历史数据
                 result = self.cleanup_history_data()
                 response = json.dumps(result, ensure_ascii=False)
                 self.wfile.write(response.encode('utf-8'))
             elif parsed_path.path == '/api/taiwan-pk10-data':
+                # 设置JSON响应头
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                
                 # 获取台湾PK10数据（兼容前端调用）
                 query_params = parse_qs(parsed_path.query)
                 limit = int(query_params.get('limit', [100])[0])
                 result = self.get_taiwan_pk10_data(limit)
                 response = json.dumps(result, ensure_ascii=False)
                 self.wfile.write(response.encode('utf-8'))
-            elif parsed_path.path == '/api/proxy-scraper':
-                # 代理爬虫API端点
-                result = self.proxy_scraper()
-                response = json.dumps(result, ensure_ascii=False)
-                self.wfile.write(response.encode('utf-8'))
             elif parsed_path.path == '/':
-                # 根路径 - 返回API信息
-                result = {
-                    'success': True,
-                    'message': 'Taiwan PK10 API服务',
-                    'version': '1.0.0',
-                    'endpoints': [
-                        '/api/today-data',
-                        '/api/latest-data', 
-                        '/api/taiwan-pk10-data',
-                        '/api/proxy-scraper',
-                        '/api/health',
-                        '/api/cleanup-history'
-                    ],
-                    'timestamp': datetime.now().isoformat()
-                }
-                response = json.dumps(result, ensure_ascii=False)
-                self.wfile.write(response.encode('utf-8'))
+                # 根路径 - 返回index.html文件
+                try:
+                    # 读取index.html文件
+                    index_path = os.path.join(os.path.dirname(__file__), 'index.html')
+                    with open(index_path, 'r', encoding='utf-8') as f:
+                        html_content = f.read()
+                    
+                    # 设置HTML响应头
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'text/html; charset=utf-8')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    
+                    self.wfile.write(html_content.encode('utf-8'))
+                    return
+                    
+                except FileNotFoundError:
+                    # 如果index.html不存在，返回备用HTML内容
+                    backup_html = '''
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taiwan PK10</title>
+</head>
+<body>
+    <h1>Taiwan PK10 系统</h1>
+    <p>正在加载...</p>
+    <script>
+        // 自动跳转到TWPK.html
+        setTimeout(function() {
+            window.location.href = 'TWPK.html';
+        }, 1000);
+    </script>
+</body>
+</html>
+                    '''
+                    
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'text/html; charset=utf-8')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    
+                    self.wfile.write(backup_html.encode('utf-8'))
+                    return
+                    
+                except Exception as e:
+                    # 如果读取文件出错，返回错误页面
+                    error_html = f'''
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>错误 - Taiwan PK10</title>
+</head>
+<body>
+    <h1>页面加载错误</h1>
+    <p>无法加载主页: {str(e)}</p>
+    <p><a href="/api/health">检查API状态</a></p>
+</body>
+</html>
+                    '''
+                    
+                    self.send_response(500)
+                    self.send_header('Content-Type', 'text/html; charset=utf-8')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    
+                    self.wfile.write(error_html.encode('utf-8'))
+                    return
             else:
                 # 404错误
                 self.send_response(404)
@@ -376,125 +450,6 @@ class MongoDBAPIHandler(BaseHTTPRequestHandler):
         finally:
             if self.mongo_client:
                 self.mongo_client.close()
-    
-    def proxy_scraper(self):
-        """代理爬虫API端点 - 从目标网站获取数据"""
-        try:
-            import requests
-            from bs4 import BeautifulSoup
-            import re
-            
-            # 目标网站URL
-            target_url = 'https://www.twlottery.net/'
-            
-            # 设置请求头
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
-                'Accept-Encoding': 'gzip, deflate, br',
-                'Connection': 'keep-alive',
-                'Upgrade-Insecure-Requests': '1'
-            }
-            
-            # 发送请求
-            response = requests.get(target_url, headers=headers, timeout=10)
-            response.raise_for_status()
-            
-            # 解析HTML
-            soup = BeautifulSoup(response.text, 'html.parser')
-            
-            # 查找数据表格或列表
-            data = []
-            
-            # 尝试多种选择器来查找数据
-            selectors = [
-                'table tr',
-                '.lottery-result tr',
-                '.data-row',
-                'tr',
-                '.result-item'
-            ]
-            
-            for selector in selectors:
-                elements = soup.select(selector)
-                if elements and len(elements) > 1:  # 至少有标题行和数据行
-                    for element in elements[1:]:  # 跳过标题行
-                        text = element.get_text(strip=True)
-                        if text and self.is_valid_lottery_data(text):
-                            # 解析期号和开奖号码
-                            parsed_data = self.parse_lottery_text(text)
-                            if parsed_data:
-                                data.append(parsed_data)
-                    
-                    if data:
-                        break
-            
-            if data:
-                return {
-                    'success': True,
-                    'data': data[:50],  # 限制返回50条数据
-                    'total_records': len(data),
-                    'timestamp': datetime.now().isoformat(),
-                    'message': f'成功获取 {len(data)} 条数据'
-                }
-            else:
-                return {
-                    'success': False,
-                    'error': '未找到有效的彩票数据',
-                    'timestamp': datetime.now().isoformat()
-                }
-                
-        except requests.RequestException as e:
-            return {
-                'success': False,
-                'error': f'网络请求失败: {str(e)}',
-                'timestamp': datetime.now().isoformat()
-            }
-        except Exception as e:
-            return {
-                'success': False,
-                'error': f'数据解析失败: {str(e)}',
-                'timestamp': datetime.now().isoformat()
-            }
-    
-    def is_valid_lottery_data(self, text):
-        """检查文本是否包含有效的彩票数据"""
-        # 检查是否包含期号和数字
-        return bool(re.search(r'\d{8,}', text) and re.search(r'[0-9,\s]+', text))
-    
-    def parse_lottery_text(self, text):
-        """解析彩票文本数据"""
-        try:
-            # 清理文本
-            text = re.sub(r'\s+', ' ', text.strip())
-            
-            # 尝试提取期号（8位或更多数字）
-            period_match = re.search(r'(\d{8,})', text)
-            if not period_match:
-                return None
-            
-            period = period_match.group(1)
-            
-            # 提取开奖号码（查找连续的数字，用逗号或空格分隔）
-            numbers_text = text.replace(period, '').strip()
-            numbers = re.findall(r'\d+', numbers_text)
-            
-            # 过滤有效的开奖号码（1-10之间的数字）
-            valid_numbers = []
-            for num in numbers:
-                num_int = int(num)
-                if 1 <= num_int <= 10:
-                    valid_numbers.append(num_int)
-            
-            # 台湾PK10应该有10个号码
-            if len(valid_numbers) >= 5:  # 至少5个号码才认为有效
-                return f"{period} {','.join(map(str, valid_numbers[:10]))}"
-            
-            return None
-            
-        except Exception:
-            return None
     
     def health_check(self):
         """健康检查"""
