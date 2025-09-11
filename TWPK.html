@@ -1709,20 +1709,7 @@ function initFiveStarModule(moduleId) {
       });
   });
 
-  // 命中数字按钮点击事件
-  const hitNumberButtons = document.querySelectorAll('.hit-number-btn');
-  hitNumberButtons.forEach(button => {
-      button.addEventListener('click', function() {
-          if (this.classList.contains('btn-active')) {
-              this.classList.remove('btn-active', 'bg-primary', 'text-white');
-              this.classList.add('border-gray-300');
-          } else {
-              this.classList.add('btn-active', 'bg-primary', 'text-white');
-              this.classList.remove('border-gray-300');
-          }
-          // 移除立即筛选，等待确认按钮点击
-      });
-  });
+  // 命中数字按钮点击事件已在DOMContentLoaded中统一处理
 
   // 胆码按钮点击事件
   damaButtons.forEach(button => {
@@ -2774,20 +2761,38 @@ function N(t) {
 }
 
 function C(t) {
-    t.forEach(t => t.addEventListener("click", () => {
-        console.log('*** 命中码数按钮点击事件触发 ***', t.textContent, t.dataset.hit);
-        if (t.classList.contains("btn-active")) {
-            console.log('*** 移除选中状态 ***');
-            t.classList.remove("btn-active", "bg-primary", "text-white");
-            t.classList.add("bg-gray-200");
-        } else {
-            console.log('*** 添加选中状态 ***');
-            t.classList.add("btn-active", "bg-primary", "text-white");
-            t.classList.remove("bg-gray-200");
-        }
-        console.log('*** 当前按钮类名 ***', t.className);
-        console.log('命中码数选择已更改，等待确认按钮点击');
-    }));
+    t.forEach(t => {
+        // 设置初始样式
+        t.style.backgroundColor = '#e5e7eb'; // gray-200
+        t.style.color = '#374151'; // gray-700
+        t.style.cursor = 'pointer';
+        t.style.transition = 'all 0.2s ease';
+        
+        t.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('*** 命中码数按钮点击事件触发 ***', t.textContent, t.dataset.hit);
+            
+            // 切换选中状态
+            if (t.classList.contains("btn-active")) {
+                // 取消选中
+                console.log('*** 移除选中状态 ***');
+                t.classList.remove("btn-active");
+                t.style.backgroundColor = '#e5e7eb'; // gray-200
+                t.style.color = '#374151'; // gray-700
+            } else {
+                // 选中
+                console.log('*** 添加选中状态 ***');
+                t.classList.add("btn-active");
+                t.style.backgroundColor = '#3b82f6'; // blue-500
+                t.style.color = 'white';
+            }
+            
+            console.log('*** 当前按钮类名 ***', t.className);
+            console.log('命中码数选择已更改，等待确认按钮点击');
+        });
+    });
 }
 // 立即输出调试信息
 console.log('*** 脚本开始执行 ***');
@@ -2842,26 +2847,23 @@ document.addEventListener('DOMContentLoaded', function() {
             button.style.cursor = 'pointer';
             button.style.transition = 'all 0.2s ease';
             
-            // 添加点击事件
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                console.log('位置按钮点击:', this.textContent, this.dataset.position);
+            // 位置按钮状态切换函数
+            function togglePositionButton() {
+                console.log('位置按钮点击:', button.textContent, button.dataset.position);
                 
                 // 切换选中状态
-                if (this.classList.contains('btn-active')) {
+                if (button.classList.contains('btn-active')) {
                     // 取消选中
-                    this.classList.remove('btn-active');
-                    this.style.backgroundColor = '#e5e7eb'; // gray-200
-                    this.style.color = '#374151'; // gray-700
-                    console.log('取消选中:', this.textContent);
+                    button.classList.remove('btn-active');
+                    button.style.backgroundColor = '#e5e7eb'; // gray-200
+                    button.style.color = '#374151'; // gray-700
+                    console.log('取消选中:', button.textContent);
                 } else {
                     // 选中
-                    this.classList.add('btn-active');
-                    this.style.backgroundColor = '#3b82f6'; // blue-500
-                    this.style.color = 'white';
-                    console.log('选中:', this.textContent);
+                    button.classList.add('btn-active');
+                    button.style.backgroundColor = '#3b82f6'; // blue-500
+                    button.style.color = 'white';
+                    console.log('选中:', button.textContent);
                 }
                 
                 // 输出当前选中状态
@@ -2871,7 +2873,63 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // 移除立即筛选，等待确认按钮点击
                 console.log('位置选择已更改，等待确认按钮点击');
+            }
+            
+            // 移动端触摸事件处理变量
+            let touchStartTime = 0;
+            let touchMoved = false;
+            let touchHandled = false;
+            
+            // 添加点击事件（仅在非触摸设备上生效）
+            button.addEventListener('click', function(e) {
+                // 如果触摸事件已处理，则跳过click事件
+                if (touchHandled) {
+                    touchHandled = false;
+                    return;
+                }
+                e.preventDefault();
+                e.stopPropagation();
+                togglePositionButton();
             });
+            
+            // 添加移动端触摸事件处理
+            button.addEventListener('touchstart', function(e) {
+                touchStartTime = Date.now();
+                touchMoved = false;
+                touchHandled = false;
+                // 添加触摸开始的视觉反馈
+                this.style.opacity = '0.7';
+            }, { passive: true });
+            
+            button.addEventListener('touchmove', function(e) {
+                touchMoved = true;
+                // 移除视觉反馈
+                this.style.opacity = '';
+            }, { passive: true });
+            
+            button.addEventListener('touchend', function(e) {
+                const touchDuration = Date.now() - touchStartTime;
+                // 恢复视觉反馈
+                this.style.opacity = '';
+                
+                // 如果是快速点击且没有移动，则触发状态切换
+                if (!touchMoved && touchDuration < 500) {
+                    touchHandled = true;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    togglePositionButton();
+                    // 延迟重置标志，确保click事件被跳过
+                    setTimeout(() => {
+                        touchHandled = false;
+                    }, 100);
+                }
+            }, { passive: true });
+            
+            button.addEventListener('touchcancel', function(e) {
+                // 恢复视觉反馈
+                this.style.opacity = '';
+                touchHandled = false;
+            }, { passive: true });
             
             console.log(`位置按钮 ${index + 1} (${button.textContent}) 初始化完成`);
         });
@@ -3952,17 +4010,37 @@ document.addEventListener('DOMContentLoaded', function() {
     // 命中数字按钮多选功能
     const hitNumberButtons = document.querySelectorAll('.hit-number-btn');
     hitNumberButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            // 切换按钮状态 - 支持多选和取消选中
+        // 设置初始样式
+        button.style.backgroundColor = '#e5e7eb'; // gray-200
+        button.style.color = '#374151'; // gray-700
+        button.style.cursor = 'pointer';
+        button.style.transition = 'all 0.2s ease';
+        
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('命中数字按钮点击:', this.textContent, this.dataset.number);
+            
+            // 切换选中状态
             if (this.classList.contains('btn-active')) {
-                // 当前是选中状态，取消选中
-                this.classList.remove('btn-active', 'bg-primary', 'text-white');
-                this.classList.add('bg-gray-200');
+                // 取消选中
+                this.classList.remove('btn-active');
+                this.style.backgroundColor = '#e5e7eb'; // gray-200
+                this.style.color = '#374151'; // gray-700
+                console.log('取消选中:', this.textContent);
             } else {
-                // 当前是未选中状态，选中
-                this.classList.add('btn-active', 'bg-primary', 'text-white');
-                this.classList.remove('bg-gray-200');
+                // 选中
+                this.classList.add('btn-active');
+                this.style.backgroundColor = '#3b82f6'; // blue-500
+                this.style.color = 'white';
+                console.log('选中:', this.textContent);
             }
+            
+            // 输出当前选中状态
+            const selectedNumbers = Array.from(document.querySelectorAll('.hit-number-btn.btn-active'))
+                .map(btn => btn.dataset.number);
+            console.log('当前选中数字:', selectedNumbers);
             
             // 移除立即筛选，等待确认按钮点击
             console.log('命中数字选择已更改，等待确认按钮点击');
