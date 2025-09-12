@@ -810,15 +810,10 @@
             <h2 class="text-lg font-semibold">数据分析结果</h2>
             <!-- 统一的按钮组 -->
             <div class="flex gap-1">
-              <!-- 当前/历史切换 -->
+              <!-- 当前遗漏/当前连中切换 -->
               <div class="flex rounded-md overflow-hidden border border-gray-300">
-                <button id="currentBtn" class="px-3 py-1 bg-gray-200 text-gray-700 btn-hover text-sm">历史</button>
-                <button id="historyBtn" class="px-3 py-1 bg-blue-600 text-white btn-hover text-sm btn-active">当前</button>
-              </div>
-              <!-- 遗漏/连中切换 -->
-              <div class="flex rounded-md overflow-hidden border border-gray-300">
-                <button id="missBtn" class="px-3 py-1 bg-blue-600 text-white btn-hover text-sm btn-active">遗漏</button>
-                <button id="hitBtn" class="px-3 py-1 bg-gray-200 text-gray-700 btn-hover text-sm">连中</button>
+                <button id="currentMissBtn" class="px-3 py-1 bg-blue-600 text-white btn-hover text-sm btn-active">当前遗漏</button>
+                <button id="currentHitBtn" class="px-3 py-1 bg-gray-200 text-gray-700 btn-hover text-sm">当前连中</button>
               </div>
             </div>
           </div>
@@ -3701,12 +3696,14 @@ if(shouldHit){
   e++;
   s[n].cells[t]={txt:e,hit:!1};
 }
-console.log(`组合${t}在第${s[n].rec.period}期: 命中数=${r}, 是否命中=${shouldHit}, 选择的命中码数=${c.join(',')}`);}});console.log('表格数据处理完成，开始渲染');console.log(`L()函数: 当前数据数组长度 ${r.length}，期数统计显示 ${document.getElementById('periodCount').textContent}`);if(r.length.toString() !== document.getElementById('periodCount').textContent){console.warn('数据不一致：数据数组长度与期数统计不匹配！');}const d=H(s,a),u=U(s,a),l=z(s,a),b=a.slice().sort((t,e)=>{if(y){const{maxHit:n,maxMiss:o}=d[t],{maxHit:c,maxMiss:r}=d[e];return m?c-n||o-r:o-r||c-n}return m?u[e]-u[t]||l[t]-l[e]:l[e]-l[t]||u[e]-u[t]});
+console.log(`组合${t}在第${s[n].rec.period}期: 命中数=${r}, 是否命中=${shouldHit}, 选择的命中码数=${c.join(',')}`);}});console.log('表格数据处理完成，开始渲染');console.log(`L()函数: 当前数据数组长度 ${r.length}，期数统计显示 ${document.getElementById('periodCount').textContent}`);if(r.length.toString() !== document.getElementById('periodCount').textContent){console.warn('数据不一致：数据数组长度与期数统计不匹配！');}const d=H(s,a),u=U(s,a),l=z(s,a),b=a.slice().sort((t,e)=>{if(y){// 当前模式：按当前遗漏值或当前连中值排序
+return m?u[e]-u[t]||l[t]-l[e]:l[e]-l[t]||u[t]-u[e]}// 历史模式：按历史最大值排序
+const{maxHit:n,maxMiss:o}=d[t],{maxHit:c,maxMiss:r}=d[e];return m?c-n||o-r:o-r||c-n});
 
 // 保存处理后的数据到全局变量，供updateTablePage函数使用
 window.lastProcessedData = s;
 window.lastSortedCombinations = b;
-console.log('已保存处理后的数据到全局变量');document.getElementById("sortText").textContent=m?"按遗漏次数排序":"按连中次数排序";const startIndex=(currentPage-1)*pageSize,endIndex=Math.min(startIndex+pageSize,s.length),pageData=s.slice(startIndex,endIndex);document.getElementById("summary").innerHTML=`\n        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">\n          <div>共 ${b.length} 注分析组合</div>\n          <div>当前显示: ${displayData.length} 期 / 总计: ${r.length} 期</div>\n          <div>筛选条件: ${selectedNums.length>0?selectedNums.join("/"):"全部"}码组合，命中${c.length>0?c.join("/"):"全部"}胆${selectedPositions.length>0?`，位置${selectedPositions.join("/")}名`:""}${selectedHitNumbers.length>0?`，命中数字${selectedHitNumbers.join("/")}`:""}</div>\n          <div>第 ${currentPage}/${totalPages} 页 (${pageData.length}/${s.length} 行)</div>\n        </div>\n        <div class="flex justify-center items-center mt-4 space-x-2">\n          <button id="prevPage" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50" ${currentPage<=1?'disabled':''}>上一页</button>\n          <span class="text-sm text-gray-600">第 ${currentPage} 页，共 ${totalPages} 页</span>\n          <button id="nextPage" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50" ${currentPage>=totalPages?'disabled':''}>下一页</button>\n        </div>`;const h=document.createElement("tr");h.className="bg-gray-50 table-header-sticky",h.innerHTML='<th class="px-3 py-2 text-center sticky-col left-0 border-r border-gray-200 fixed-width-period sticky-bg-white" style="position: sticky; top: 0; z-index: 1001;">期数</th><th class="px-3 py-2 text-center sticky-col left-[120px] border-r border-gray-200 fixed-width-data sticky-bg-white" style="position: sticky; top: 0; z-index: 1001;">数据</th>';b.forEach(t=>{const{maxHit:e,maxMiss:n}=d[t],o=document.createElement("th");o.className="px-3 py-2 text-center border-r border-gray-200",o.innerHTML=y?m?`\n              <div class="font-medium">${t}</div>\n              <div class="text-xs text-gray-500 whitespace-nowrap">连:${e} (${Math.round((s.filter(row=>row.cells[t]&&row.cells[t].hit).length/s.length)*100)||0}%)</div>\n            `:`\n              <div class="font-medium">${t}</div>\n              <div class="text-xs text-gray-500 whitespace-nowrap">漏:${n} (${Math.round((s.filter(row=>row.cells[t]&&row.cells[t].hit).length/s.length)*100)||0}%)</div>\n            `:m?`\n              <div class="font-medium">${t}</div>\n              <div class="text-xs text-gray-500 whitespace-nowrap">连:${u[t]} (${Math.round((s.filter(row=>row.cells[t]&&row.cells[t].hit).length/s.length)*100)||0}%)</div>\n            `:`\n              <div class="font-medium">${t}</div>\n              <div class="text-xs text-gray-500 whitespace-nowrap">漏:${l[t]} (${Math.round((s.filter(row=>row.cells[t]&&row.cells[t].hit).length/s.length)*100)||0}%)</div>\n            `,h.appendChild(o)}),t.appendChild(h),pageData.forEach((t,n)=>{const o=document.createElement("tr");o.className=0===n?"bg-gray-100":1===n?"bg-gray-50":"",o.innerHTML=`\n          <td class="px-3 py-2 text-left sticky-col left-0 border-r border-gray-200 font-medium fixed-width-period ${0===n?"sticky-bg-gray-100":1===n?"sticky-bg-gray-50":"sticky-bg-white"}">${t.rec.period}</td>\n          <td class="px-3 py-2 text-left sticky-col left-[120px] border-r border-gray-200 fixed-width-data ${0===n?"sticky-bg-gray-100":1===n?"sticky-bg-gray-50":"sticky-bg-white"}">\n            <div class="number-row">${t.rec.data.slice(0,5).join(",")}</div>\n            <div class="number-row">${t.rec.data.slice(5).join(",")}</div>\n          </td>\n        `,b.forEach(e=>{const n=t.cells[e],c=document.createElement("td");c.className="px-3 py-2 text-center border-r border-gray-200 "+(n.hit?"hit-cell":"miss-cell"),c.textContent=n.txt,o.appendChild(c)}),e.appendChild(o)}),setTimeout(()=>{const t=document.getElementById("prevPage"),e=document.getElementById("nextPage");t&&t.addEventListener("click",(event)=>{event.preventDefault();if(currentPage>1){currentPage--;updateTablePage();}}),e&&e.addEventListener("click",(event)=>{event.preventDefault();if(currentPage<totalPages){currentPage++;updateTablePage();}});},100);
+console.log('已保存处理后的数据到全局变量');document.getElementById("sortText").textContent=m?"按遗漏次数排序":"按连中次数排序";const startIndex=(currentPage-1)*pageSize,endIndex=Math.min(startIndex+pageSize,s.length),pageData=s.slice(startIndex,endIndex);document.getElementById("summary").innerHTML=`\n        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">\n          <div>共 ${b.length} 注分析组合</div>\n          <div>当前显示: ${displayData.length} 期 / 总计: ${r.length} 期</div>\n          <div>筛选条件: ${selectedNums.length>0?selectedNums.join("/"):"全部"}码组合，命中${c.length>0?c.join("/"):"全部"}胆${selectedPositions.length>0?`，位置${selectedPositions.join("/")}名`:""}${selectedHitNumbers.length>0?`，命中数字${selectedHitNumbers.join("/")}`:""}</div>\n          <div>第 ${currentPage}/${totalPages} 页 (${pageData.length}/${s.length} 行)</div>\n        </div>\n        <div class="flex justify-center items-center mt-4 space-x-2">\n          <button id="prevPage" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50" ${currentPage<=1?'disabled':''}>上一页</button>\n          <span class="text-sm text-gray-600">第 ${currentPage} 页，共 ${totalPages} 页</span>\n          <button id="nextPage" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50" ${currentPage>=totalPages?'disabled':''}>下一页</button>\n        </div>`;const h=document.createElement("tr");h.className="bg-gray-50 table-header-sticky",h.innerHTML='<th class="px-3 py-2 text-center sticky-col left-0 border-r border-gray-200 fixed-width-period sticky-bg-white" style="position: sticky; top: 0; z-index: 1001;">期数</th><th class="px-3 py-2 text-center sticky-col left-[120px] border-r border-gray-200 fixed-width-data sticky-bg-white" style="position: sticky; top: 0; z-index: 1001;">数据</th>';b.forEach(t=>{const{maxHit:e,maxMiss:n}=d[t],o=document.createElement("th");o.className="px-3 py-2 text-center border-r border-gray-200",o.innerHTML=y?m?`\n              <div class="font-medium">${t}</div>\n              <div class="text-xs text-gray-500 whitespace-nowrap">连:${u[t]} 史:${e} (${Math.round((s.filter(row=>row.cells[t]&&row.cells[t].hit).length/s.length)*100)||0}%)</div>\n            `:`\n              <div class="font-medium">${t}</div>\n              <div class="text-xs text-gray-500 whitespace-nowrap">漏:${l[t]} 史:${n} (${Math.round((s.filter(row=>row.cells[t]&&row.cells[t].hit).length/s.length)*100)||0}%)</div>\n            `:m?`\n              <div class="font-medium">${t}</div>\n              <div class="text-xs text-gray-500 whitespace-nowrap">连:${u[t]} 史:${e} (${Math.round((s.filter(row=>row.cells[t]&&row.cells[t].hit).length/s.length)*100)||0}%)</div>\n            `:`\n              <div class="font-medium">${t}</div>\n              <div class="text-xs text-gray-500 whitespace-nowrap">漏:${l[t]} 史:${n} (${Math.round((s.filter(row=>row.cells[t]&&row.cells[t].hit).length/s.length)*100)||0}%)</div>\n            `,h.appendChild(o)}),t.appendChild(h),pageData.forEach((t,n)=>{const o=document.createElement("tr");o.className=0===n?"bg-gray-100":1===n?"bg-gray-50":"",o.innerHTML=`\n          <td class="px-3 py-2 text-left sticky-col left-0 border-r border-gray-200 font-medium fixed-width-period ${0===n?"sticky-bg-gray-100":1===n?"sticky-bg-gray-50":"sticky-bg-white"}">${t.rec.period}</td>\n          <td class="px-3 py-2 text-left sticky-col left-[120px] border-r border-gray-200 fixed-width-data ${0===n?"sticky-bg-gray-100":1===n?"sticky-bg-gray-50":"sticky-bg-white"}">\n            <div class="number-row">${t.rec.data.slice(0,5).join(",")}</div>\n            <div class="number-row">${t.rec.data.slice(5).join(",")}</div>\n          </td>\n        `,b.forEach(e=>{const n=t.cells[e],c=document.createElement("td");c.className="px-3 py-2 text-center border-r border-gray-200 "+(n.hit?"hit-cell":"miss-cell"),c.textContent=n.txt,o.appendChild(c)}),e.appendChild(o)}),setTimeout(()=>{const t=document.getElementById("prevPage"),e=document.getElementById("nextPage");t&&t.addEventListener("click",(event)=>{event.preventDefault();if(currentPage>1){currentPage--;updateTablePage();}}),e&&e.addEventListener("click",(event)=>{event.preventDefault();if(currentPage<totalPages){currentPage++;updateTablePage();}});},100);
 
 // 获取筛选后的数据
 function getFilteredData() {
@@ -4078,7 +4075,13 @@ document.getElementById("fetchApiBtn").addEventListener("click", async ()=>{
         btn.innerHTML = originalText;
         btn.disabled = false;
     }
-});document.getElementById("sortToggle").addEventListener("click",()=>{m=!m; /* 移除立即筛选，等待确认按钮点击 */});document.getElementById("currentBtn").addEventListener("click",()=>{const tableContainer=document.getElementById("tableContainer");const wasHidden=tableContainer&&tableContainer.scrollLeft>10;y=!0;document.getElementById("currentBtn").classList.add("btn-active","bg-blue-600","text-white");document.getElementById("currentBtn").classList.remove("bg-gray-200","text-gray-700");document.getElementById("historyBtn").classList.remove("btn-active","bg-blue-600","text-white");document.getElementById("historyBtn").classList.add("bg-gray-200","text-gray-700"); console.log('当前按钮被点击，开始刷新数据'); L(); /* 添加数据刷新功能 */ if(wasHidden){setTimeout(()=>{const periodCols=document.querySelectorAll(".fixed-width-period");const dataCols=document.querySelectorAll(".fixed-width-data");periodCols.forEach(col=>col.style.opacity="0");dataCols.forEach(col=>col.style.left="0px")},50)}});document.getElementById("historyBtn").addEventListener("click",()=>{const tableContainer=document.getElementById("tableContainer");const wasHidden=tableContainer&&tableContainer.scrollLeft>10;y=!1;document.getElementById("historyBtn").classList.add("btn-active","bg-blue-600","text-white");document.getElementById("historyBtn").classList.remove("bg-gray-200","text-gray-700");document.getElementById("currentBtn").classList.remove("btn-active","bg-blue-600","text-white");document.getElementById("currentBtn").classList.add("bg-gray-200","text-gray-700"); console.log('历史按钮被点击，开始刷新数据'); L(); /* 添加数据刷新功能 */ if(wasHidden){setTimeout(()=>{const periodCols=document.querySelectorAll(".fixed-width-period");const dataCols=document.querySelectorAll(".fixed-width-data");periodCols.forEach(col=>col.style.opacity="0");dataCols.forEach(col=>col.style.left="0px")},50)}});document.getElementById("missBtn").addEventListener("click",()=>{const tableContainer=document.getElementById("tableContainer");const wasHidden=tableContainer&&tableContainer.scrollLeft>10;m=!1;document.getElementById("missBtn").classList.add("btn-active","bg-blue-600","text-white");document.getElementById("missBtn").classList.remove("bg-gray-200","text-gray-700");document.getElementById("hitBtn").classList.remove("btn-active","bg-blue-600","text-white");document.getElementById("hitBtn").classList.add("bg-gray-200","text-gray-700"); console.log('遗漏按钮被点击，开始刷新数据'); L(); /* 添加数据刷新功能 */ if(wasHidden){setTimeout(()=>{const periodCols=document.querySelectorAll(".fixed-width-period");const dataCols=document.querySelectorAll(".fixed-width-data");periodCols.forEach(col=>col.style.opacity="0");dataCols.forEach(col=>col.style.left="0px")},50)}});document.getElementById("hitBtn").addEventListener("click",()=>{const tableContainer=document.getElementById("tableContainer");const wasHidden=tableContainer&&tableContainer.scrollLeft>10;m=!0;document.getElementById("hitBtn").classList.add("btn-active","bg-blue-600","text-white");document.getElementById("hitBtn").classList.remove("bg-gray-200","text-gray-700");document.getElementById("missBtn").classList.remove("btn-active","bg-blue-600","text-white");document.getElementById("missBtn").classList.add("bg-gray-200","text-gray-700"); console.log('连中按钮被点击，开始刷新数据'); L(); /* 添加数据刷新功能 */ if(wasHidden){setTimeout(()=>{const periodCols=document.querySelectorAll(".fixed-width-period");const dataCols=document.querySelectorAll(".fixed-width-data");periodCols.forEach(col=>col.style.opacity="0");dataCols.forEach(col=>col.style.left="0px")},50)}}); document.getElementById("statBtn").addEventListener("click",() => { /* 移除立即筛选，等待确认按钮点击 */ });document.getElementById("clearBtn").addEventListener("click",()=>{confirm("确定要清空所有数据吗？此操作不可恢复。")&&(r=[],i=1,d.clear(),document.getElementById("periodCount").textContent="0",document.getElementById("summary").textContent="", /* 移除立即筛选，等待确认按钮点击 */ v.textContent="数据已清空")});document.addEventListener("DOMContentLoaded",()=>{document.getElementById("uploadDataBtn").addEventListener("click",async()=>{try{[s]=await window.showOpenFilePicker();d.clear();u=null;r=[];i=1;await V();l&&clearInterval(l);l=setInterval(W,3e3);v.textContent=`已加载文件: ${s.name}`}catch(t){v.textContent=`文件选择错误: ${t.message}`}})});const X=document.querySelectorAll(".period-btn");X.forEach(t=>{t.addEventListener("click",()=>{X.forEach(t=>t.classList.remove("btn-active"));t.classList.add("btn-active");f=parseInt(t.dataset.period);document.getElementById("customPeriod").value=f;currentPage=1;console.log(`期数按钮被点击，设置期数为: ${f}`);L(); /* 添加表格刷新功能 */})});document.getElementById("customPeriodBtn").addEventListener("click",()=>{const t=parseInt(document.getElementById("customPeriod").value);!isNaN(t)&&t>=1&&t<=1e4?(f=t,X.forEach(t=>t.classList.remove("btn-active")),currentPage=1,console.log(`自定义期数被设置为: ${f}`),L() /* 添加表格刷新功能 */):alert("请输入1-10000之间的数字")});window.addEventListener("resize",j);
+});document.getElementById("sortToggle").addEventListener("click",()=>{m=!m; /* 移除立即筛选，等待确认按钮点击 */});// 当前遗漏按钮事件
+document.getElementById("currentMissBtn").addEventListener("click",()=>{const tableContainer=document.getElementById("tableContainer");const wasHidden=tableContainer&&tableContainer.scrollLeft>10;y=!0;m=!1; // 设置为当前模式和遗漏模式
+document.getElementById("currentMissBtn").classList.add("btn-active","bg-blue-600","text-white");document.getElementById("currentMissBtn").classList.remove("bg-gray-200","text-gray-700");document.getElementById("currentHitBtn").classList.remove("btn-active","bg-blue-600","text-white");document.getElementById("currentHitBtn").classList.add("bg-gray-200","text-gray-700"); console.log('当前遗漏按钮被点击，开始刷新数据'); L(); /* 添加数据刷新功能 */ if(wasHidden){setTimeout(()=>{const periodCols=document.querySelectorAll(".fixed-width-period");const dataCols=document.querySelectorAll(".fixed-width-data");periodCols.forEach(col=>col.style.opacity="0");dataCols.forEach(col=>col.style.left="0px")},50)}});
+
+// 当前连中按钮事件
+document.getElementById("currentHitBtn").addEventListener("click",()=>{const tableContainer=document.getElementById("tableContainer");const wasHidden=tableContainer&&tableContainer.scrollLeft>10;y=!0;m=!0; // 设置为当前模式和连中模式
+document.getElementById("currentHitBtn").classList.add("btn-active","bg-blue-600","text-white");document.getElementById("currentHitBtn").classList.remove("bg-gray-200","text-gray-700");document.getElementById("currentMissBtn").classList.remove("btn-active","bg-blue-600","text-white");document.getElementById("currentMissBtn").classList.add("bg-gray-200","text-gray-700"); console.log('当前连中按钮被点击，开始刷新数据'); L(); /* 添加数据刷新功能 */ if(wasHidden){setTimeout(()=>{const periodCols=document.querySelectorAll(".fixed-width-period");const dataCols=document.querySelectorAll(".fixed-width-data");periodCols.forEach(col=>col.style.opacity="0");dataCols.forEach(col=>col.style.left="0px")},50)}}); document.getElementById("statBtn").addEventListener("click",() => { /* 移除立即筛选，等待确认按钮点击 */ });document.getElementById("clearBtn").addEventListener("click",()=>{confirm("确定要清空所有数据吗？此操作不可恢复。")&&(r=[],i=1,d.clear(),document.getElementById("periodCount").textContent="0",document.getElementById("summary").textContent="", /* 移除立即筛选，等待确认按钮点击 */ v.textContent="数据已清空")});document.addEventListener("DOMContentLoaded",()=>{document.getElementById("uploadDataBtn").addEventListener("click",async()=>{try{[s]=await window.showOpenFilePicker();d.clear();u=null;r=[];i=1;await V();l&&clearInterval(l);l=setInterval(W,3e3);v.textContent=`已加载文件: ${s.name}`}catch(t){v.textContent=`文件选择错误: ${t.message}`}})});const X=document.querySelectorAll(".period-btn");X.forEach(t=>{t.addEventListener("click",()=>{X.forEach(t=>t.classList.remove("btn-active"));t.classList.add("btn-active");f=parseInt(t.dataset.period);document.getElementById("customPeriod").value=f;currentPage=1;console.log(`期数按钮被点击，设置期数为: ${f}`);L(); /* 添加表格刷新功能 */})});document.getElementById("customPeriodBtn").addEventListener("click",()=>{const t=parseInt(document.getElementById("customPeriod").value);!isNaN(t)&&t>=1&&t<=1e4?(f=t,X.forEach(t=>t.classList.remove("btn-active")),currentPage=1,console.log(`自定义期数被设置为: ${f}`),L() /* 添加表格刷新功能 */):alert("请输入1-10000之间的数字")});window.addEventListener("resize",j);
 
 
 
@@ -4208,61 +4211,84 @@ async function fetchApiData() {
 // 历史数据获取功能 - 获取指定日期的历史开奖数据
 async function fetchHistoryData() {
     try {
-        console.log('步骤1: 开始获取历史数据...');
+        console.log('步骤1: 开始获取历史数据（今天和昨天）...');
         
-        // 自动计算当前日期
+        // 计算今天和昨天的日期
         const today = new Date();
-        const dateStr = today.getFullYear() + '-' + 
-                       String(today.getMonth() + 1).padStart(2, '0') + '-' + 
-                       String(today.getDate()).padStart(2, '0');
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
         
-        // 构建历史数据API URL
-        const historyApiUrl = `https://api.api68.com/pks/getPksHistoryList.do?lotCode=10057&date=${dateStr}`;
-        console.log('步骤2: 请求URL:', historyApiUrl);
+        const todayStr = today.getFullYear() + '-' + 
+                        String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                        String(today.getDate()).padStart(2, '0');
         
-        let response;
-        try {
-            // 尝试正常fetch
-            response = await fetch(historyApiUrl, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-                }
-            });
-        } catch (corsError) {
-            console.log('CORS错误，尝试no-cors模式:', corsError);
-            // 如果CORS失败，尝试no-cors模式
-            response = await fetch(historyApiUrl, {
-                method: 'GET',
-                mode: 'no-cors',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-        }
+        const yesterdayStr = yesterday.getFullYear() + '-' + 
+                            String(yesterday.getMonth() + 1).padStart(2, '0') + '-' + 
+                            String(yesterday.getDate()).padStart(2, '0');
         
-        if (!response.ok) {
-            throw new Error(`HTTP错误! 状态: ${response.status}`);
-        }
+        console.log('步骤2: 准备获取两天数据:', { today: todayStr, yesterday: yesterdayStr });
         
-        const data = await response.json();
-        console.log('步骤3: 历史数据API返回:', data);
+        // 获取两天的数据
+        const dates = [todayStr, yesterdayStr];
+        let allHistoryItems = [];
         
-        // 检查API返回的错误码
-        if (data.errorCode !== 0) {
-            throw new Error(data.message || '历史数据API返回错误');
-        }
+        for (const dateStr of dates) {
+            const historyApiUrl = `https://api.api68.com/pks/getPksHistoryList.do?lotCode=10057&date=${dateStr}`;
+            console.log(`步骤2.${dates.indexOf(dateStr) + 1}: 请求URL:`, historyApiUrl);
         
-        // 解析历史数据
-        if (data && data.result && data.result.data && Array.isArray(data.result.data)) {
-            const historyItems = data.result.data;
-            console.log(`步骤4: 获取到 ${historyItems.length} 条历史数据`);
+            let response;
+            try {
+                // 尝试正常fetch
+                response = await fetch(historyApiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                    }
+                });
+            } catch (corsError) {
+                console.log(`CORS错误，尝试no-cors模式 (${dateStr}):`, corsError);
+                // 如果CORS失败，尝试no-cors模式
+                response = await fetch(historyApiUrl, {
+                    method: 'GET',
+                    mode: 'no-cors',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+            }
             
+            if (!response.ok) {
+                console.warn(`HTTP错误 (${dateStr})! 状态: ${response.status}`);
+                continue; // 跳过这个日期，继续下一个
+            }
+            
+            const data = await response.json();
+            console.log(`步骤3.${dates.indexOf(dateStr) + 1}: ${dateStr} 历史数据API返回:`, data);
+            
+            // 检查API返回的错误码
+            if (data.errorCode !== 0) {
+                console.warn(`API返回错误 (${dateStr}):`, data.message || '未知错误');
+                continue; // 跳过这个日期，继续下一个
+            }
+            
+            // 解析历史数据
+            if (data && data.result && data.result.data && Array.isArray(data.result.data)) {
+                const historyItems = data.result.data;
+                console.log(`步骤4.${dates.indexOf(dateStr) + 1}: ${dateStr} 获取到 ${historyItems.length} 条历史数据`);
+                allHistoryItems.push(...historyItems);
+            } else {
+                console.warn(`${dateStr} 历史数据API返回格式不正确`);
+            }
+        }
+        
+        console.log(`步骤3: 总共获取到 ${allHistoryItems.length} 条历史数据`);
+        
+        if (allHistoryItems.length > 0) {
             let addedCount = 0;
             
             // 按时间倒序排列历史数据（最新的在前）
-            historyItems.sort((a, b) => {
+            allHistoryItems.sort((a, b) => {
                 const timeA = new Date(a.preDrawTime);
                 const timeB = new Date(b.preDrawTime);
                 return timeB.getTime() - timeA.getTime(); // 倒序排列
@@ -4270,7 +4296,7 @@ async function fetchHistoryData() {
             
             // 收集新数据，然后一次性添加到数组开头
             const newDataItems = [];
-            for (const item of historyItems) {
+            for (const item of allHistoryItems) {
                 const period = item.preDrawIssue;
                 const numbersStr = item.preDrawCode;
                 const drawTime = item.preDrawTime;

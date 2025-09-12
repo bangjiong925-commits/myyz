@@ -2,6 +2,7 @@
   "name": "taiwan-pk10-proxy",
   "version": "1.0.0",
   "description": "Taiwan PK10 data proxy and web interface",
+  "type": "module",
   "main": "index.html",
   "scripts": {
     "start": "node proxy-server.js",

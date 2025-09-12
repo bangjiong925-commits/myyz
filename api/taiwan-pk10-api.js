@@ -1,5 +1,5 @@
-// 台湾PK10数据API端点
-// 获取指定日期或最新的台湾PK10开奖数据
+// 台湾PK10 API数据获取端点
+// 使用API接口获取数据，替代爬虫方案
 
 export default async function handler(req, res) {
   // 设置CORS头
@@ -17,22 +17,12 @@ export default async function handler(req, res) {
 
   try {
     // 获取查询参数
-    const { date, latest } = req.query;
+    const { date } = req.query;
     
-    let targetDate;
+    // 如果没有指定日期，使用今天的日期
+    const targetDate = date || new Date().toISOString().split('T')[0];
     
-    if (latest === 'true') {
-      // 获取最新数据（今天的数据）
-      targetDate = new Date().toISOString().split('T')[0];
-    } else if (date) {
-      // 使用指定日期
-      targetDate = date;
-    } else {
-      // 默认获取今天的数据
-      targetDate = new Date().toISOString().split('T')[0];
-    }
-    
-    console.log(`获取 ${targetDate} 的台湾PK10数据`);
+    console.log(`获取 ${targetDate} 的数据`);
     
     // 调用API获取数据
     const apiUrl = `https://api.api68.com/pks/getPksHistoryList.do?lotCode=10057&date=${targetDate}`;
@@ -40,10 +30,8 @@ export default async function handler(req, res) {
     const response = await fetch(apiUrl, {
       method: 'GET',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Accept': 'application/json'
-      },
-      timeout: 30000
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
     });
     
     if (!response.ok) {
@@ -65,34 +53,7 @@ export default async function handler(req, res) {
     const lotteryData = result.data;
     
     if (!lotteryData || lotteryData.length === 0) {
-      // 如果当天没有数据，尝试获取前一天的数据
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStr = yesterday.toISOString().split('T')[0];
-      
-      console.log(`${targetDate} 没有数据，尝试获取 ${yesterdayStr} 的数据`);
-      
-      const yesterdayUrl = `https://api.api68.com/pks/getPksHistoryList.do?lotCode=10057&date=${yesterdayStr}`;
-      const yesterdayResponse = await fetch(yesterdayUrl, {
-        method: 'GET',
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Accept': 'application/json'
-        },
-        timeout: 30000
-      });
-      
-      if (yesterdayResponse.ok) {
-        const yesterdayData = await yesterdayResponse.json();
-        if (yesterdayData.errorCode === 0 && yesterdayData.result.businessCode === 0 && yesterdayData.result.data.length > 0) {
-          targetDate = yesterdayStr;
-          lotteryData = yesterdayData.result.data;
-        }
-      }
-      
-      if (!lotteryData || lotteryData.length === 0) {
-        throw new Error('没有获取到有效数据');
-      }
+      throw new Error('没有获取到数据');
     }
     
     // 转换数据格式
@@ -100,13 +61,10 @@ export default async function handler(req, res) {
       const numbers = item.preDrawCode.split(',').map(num => parseInt(num));
       
       return {
-        issue: item.preDrawIssue.toString(),
         period: item.preDrawIssue.toString(),
-        drawTime: item.preDrawTime,
         time: item.preDrawTime,
         numbers: numbers,
         numbersString: item.preDrawCode,
-        // 统计信息
         sumFS: item.sumFS,
         sumBigSmall: item.sumBigSamll,
         sumSingleDouble: item.sumSingleDouble,
@@ -119,16 +77,12 @@ export default async function handler(req, res) {
       };
     });
     
-    // 按时间排序（最新的在前）
-    formattedData.sort((a, b) => new Date(b.drawTime) - new Date(a.drawTime));
-    
-    // 构建响应数据
+    // 返回数据
     const responseData = {
       success: true,
       date: targetDate,
       count: formattedData.length,
       data: formattedData,
-      latest: formattedData[0] || null, // 最新一期数据
       timestamp: Date.now(),
       source: 'api.api68.com',
       type: 'taiwan-pk10'
@@ -139,15 +93,14 @@ export default async function handler(req, res) {
     return res.status(200).json(responseData);
     
   } catch (error) {
-    console.error('获取台湾PK10数据失败:', error.message);
+    console.error('API数据获取失败:', error.message);
     
     // 返回错误信息
     return res.status(500).json({
       success: false,
       error: error.message,
       timestamp: Date.now(),
-      type: 'taiwan-pk10',
-      data: []
+      type: 'taiwan-pk10'
     });
   }
 }

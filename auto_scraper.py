@@ -19,10 +19,11 @@ import random
 sys.path.append(str(Path(__file__).parent))
 
 try:
-    from python_scraper import TaiwanPK10Scraper
+    from api_scraper import TaiwanPK10APIClient
+    from daily_scraper import DailyScraper
 except ImportError:
-    print("错误: 无法导入python_scraper模块")
-    print("请确保python_scraper.py文件在当前目录")
+    print("错误: 无法导入api_scraper或daily_scraper模块")
+    print("请确保api_scraper.py和daily_scraper.py文件在当前目录")
     sys.exit(1)
 
 class AutoScraper:
@@ -63,7 +64,7 @@ class AutoScraper:
         return random.randint(30, 60)
     
     def run_scraper_job(self):
-        """执行爬虫任务"""
+        """执行API数据获取任务 - 获取今天和昨天的数据"""
         # 检查是否在运行时间范围内
         if not self.is_within_operating_hours():
             current_time = datetime.now().strftime('%H:%M:%S')
@@ -71,74 +72,66 @@ class AutoScraper:
             return
         
         if self.is_running:
-            self.log("爬虫任务正在运行中，跳过本次执行")
+            self.log("数据获取任务正在运行中，跳过本次执行")
             return
         
         self.is_running = True
-        self.log("开始执行爬虫任务")
+        self.log("开始执行API数据获取任务 - 获取今天和昨天的数据")
         
         try:
-            # 创建爬虫实例
-            self.scraper = TaiwanPK10Scraper(
-                headless=True,
-                timeout=30,
-                mongodb_uri=self.mongodb_uri,
-                db_name=self.db_name
-            )
+            # 创建每日数据获取器
+            daily_scraper = DailyScraper(mongodb_uri=self.mongodb_uri)
             
-            # 抓取今天的完整数据
-            from datetime import datetime
-            today = datetime.now()
-            all_data = self.scraper.run_scraper(
-                target_date=today,
-                max_pages=10,  # 抓取更多页面以获取完整数据
-                save_to_file=True,
-                save_to_db=True
-            )
+            # 执行每日数据获取任务
+            results = daily_scraper.run_daily_task()
             
-            if all_data:
-                self.log(f"成功抓取今日完整数据，共 {len(all_data)} 条记录")
+            if results['success']:
+                self.log(f"数据获取任务完成，总计获取 {results['total_count']} 条记录")
                 
-                # 获取最新一条记录的期号
-                latest_record = all_data[0] if all_data else None
-                if latest_record:
-                    current_period = latest_record.period
-                    draw_time = latest_record.draw_time
+                if results['yesterday']:
+                    self.log(f"昨天数据: {results['yesterday']['count']} 条记录")
+                
+                if results['today']:
+                    self.log(f"今天数据: {results['today']['count']} 条记录")
                     
-                    # 检查是否有新数据
-                    if self.last_period_number and current_period == self.last_period_number:
-                        self.log(f"暂无新数据，当前期号: {current_period}")
-                        # 如果没有新数据，60秒后重试
-                        if self.smart_schedule_enabled:
-                            self.schedule_next_scrape(60)
-                    else:
-                        self.log(f"获取到新数据 - 期号: {current_period}, 开奖时间: {draw_time}")
-                        self.last_period_number = current_period
+                    # 获取最新一条记录的期号
+                    if results['today']['data']:
+                        latest_record = results['today']['data'][0]
+                        current_period = latest_record.get('period')
+                        draw_time = latest_record.get('draw_time')
                         
-                        # 根据开奖时间安排下次抓取（140秒后）
-                        if self.smart_schedule_enabled:
-                            self.schedule_next_scrape_from_draw_time(draw_time)
+                        # 检查是否有新数据
+                        if self.last_period_number and current_period == self.last_period_number:
+                            self.log(f"暂无新数据，当前期号: {current_period}")
+                            # 如果没有新数据，60秒后重试
+                            if self.smart_schedule_enabled:
+                                self.schedule_next_scrape(60)
+                        else:
+                            self.log(f"获取到新数据 - 期号: {current_period}, 开奖时间: {draw_time}")
+                            self.last_period_number = current_period
+                            
+                            # 根据开奖时间安排下次抓取（140秒后）
+                            if self.smart_schedule_enabled:
+                                self.schedule_next_scrape_from_draw_time(draw_time)
                 
-                self.log("爬虫任务执行成功")
+                self.log("API数据获取任务执行成功")
             else:
-                self.log("爬虫任务执行失败 - 未获取到数据")
+                self.log("API数据获取任务执行失败 - 未获取到数据")
                 # 失败时60秒后重试
                 if self.smart_schedule_enabled:
                     self.schedule_next_scrape(60)
+            
+            # 关闭连接
+            daily_scraper.close()
                 
         except Exception as e:
-            self.log(f"爬虫任务执行出错: {str(e)}")
+            self.log(f"API数据获取任务执行出错: {str(e)}")
             # 出错时60秒后重试
             if self.smart_schedule_enabled:
                 self.schedule_next_scrape(60)
         finally:
-            if self.scraper:
-                try:
-                    self.scraper.cleanup()
-                except:
-                    pass
             self.is_running = False
-            self.log("爬虫任务结束")
+            self.log("API数据获取任务结束")
     
     def save_latest_data(self, data):
         """保存最新数据到本地文件"""
@@ -218,8 +211,8 @@ class AutoScraper:
             self.schedule_next_scrape(140)
     
     def run_single_scrape(self):
-        """运行单次爬取"""
-        self.log("执行单次数据抓取")
+        """运行单次数据获取"""
+        self.log("执行单次API数据获取")
         self.smart_schedule_enabled = False  # 单次模式不启用智能调度
         self.run_scraper_job()
     
@@ -233,17 +226,17 @@ class AutoScraper:
     
     def run_scheduler(self):
         """运行调度器"""
-        self.log("自动爬虫调度器启动（智能调度模式）")
+        self.log("自动数据获取调度器启动（智能调度模式）")
         
         # 启动时执行一次
-        self.log("执行初始数据抓取")
+        self.log("执行初始数据获取")
         self.run_scraper_job()
         
         # 智能调度模式：基于开奖时间动态调整
         try:
             while True:
                 time.sleep(10)  # 每10秒检查一次状态
-                # 在智能调度模式下，主要通过Timer来控制抓取时机
+                # 在智能调度模式下，主要通过Timer来控制获取时机
                 # 这里只需要保持程序运行
         except KeyboardInterrupt:
             self.log("收到停止信号，正在关闭调度器")
@@ -254,16 +247,16 @@ class AutoScraper:
         finally:
             if self.countdown_timer:
                 self.countdown_timer.cancel()
-            self.log("自动爬虫调度器已停止")
+            self.log("自动数据获取调度器已停止")
     
     def run_traditional_scheduler(self):
         """运行传统调度器（随机间隔30-60秒）"""
-        self.log("自动爬虫调度器启动（传统模式，运行时间：7:05-23:59）")
+        self.log("自动数据获取调度器启动（传统模式，运行时间：7:05-23:59）")
         self.smart_schedule_enabled = False
         
         # 启动时执行一次（如果在运行时间内）
         if self.is_within_operating_hours():
-            self.log("执行初始数据抓取")
+            self.log("执行初始数据获取")
             self.run_scraper_job()
         else:
             current_time = datetime.now().strftime('%H:%M:%S')
@@ -289,13 +282,13 @@ class AutoScraper:
         except Exception as e:
             self.log(f"调度器运行出错: {str(e)}")
         finally:
-            self.log("自动爬虫调度器已停止")
+            self.log("自动数据获取调度器已停止")
 
 def main():
     """主函数"""
     import argparse
     
-    parser = argparse.ArgumentParser(description='自动爬虫脚本')
+    parser = argparse.ArgumentParser(description='自动数据获取脚本')
     parser.add_argument('--mode', choices=['single', 'smart', 'traditional'], default='smart',
                        help='运行模式: single(单次), smart(智能调度), traditional(传统定时)')
     parser.add_argument('--mongodb-uri',
@@ -309,7 +302,7 @@ def main():
     mongodb_uri = args.mongodb_uri or os.environ.get('MONGODB_URI')
     db_name = args.db_name or os.environ.get('MONGODB_DB_NAME', 'taiwan_pk10')
     
-    print(f"自动爬虫启动配置:")
+    print(f"自动数据获取启动配置:")
     print(f"  运行模式: {args.mode}")
     print(f"  数据库: {db_name}")
     print(f"  MongoDB URI: {mongodb_uri[:20]}..." if len(mongodb_uri) > 20 else f"  MongoDB URI: {mongodb_uri}")
@@ -319,7 +312,7 @@ def main():
     elif args.mode == 'traditional':
         print(f"  调度策略: 每30-60秒随机间隔（运行时间：7:05-23:59）")
     
-    # 创建自动爬虫实例
+    # 创建自动数据获取实例
     auto_scraper = AutoScraper(
         mongodb_uri=mongodb_uri,
         db_name=db_name
