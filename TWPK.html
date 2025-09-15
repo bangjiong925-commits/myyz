@@ -2263,15 +2263,42 @@ function initFiveStarModule(moduleId) {
     
     if (!isValidHitCount) {
       // 如果命中数不在选中的胆码数中，检查容错
-      // 容错X-Y表示：允许X到Y个胆码数条件不成立
+      // 新的容错逻辑：
+      // 0-0：命中胆码数都对（不允许错误）
+      // 0-1：2个命中胆码数只允许错一个
+      // 1-1：2个命中胆码数必须对一个错一个
+      // 1-2：3个命中胆码数中必须中一个和错一个或者2个
+      // 2-2：4个命中胆码数中必须中2个和错2个
       const toleranceMin = condition.toleranceMin;
       const toleranceMax = condition.toleranceMax;
       
-      // 计算不成立的条件数（这里是1，因为实际命中数不在选中范围内）
-      const unsatisfiedCount = 1;
+      // 计算命中和错误的胆码数
+      const selectedDamasCount = condition.selectedDamas.length;
+      const hitDamasCount = condition.selectedDamas.filter(dama => dama === actualHitCount).length;
+      const missedDamasCount = selectedDamasCount - hitDamasCount;
       
-      // 判断是否在容错范围内
-      const isValid = unsatisfiedCount >= toleranceMin && unsatisfiedCount <= toleranceMax;
+      let isValid = false;
+      
+      if (toleranceMin === 0 && toleranceMax === 0) {
+        // 0-0：命中胆码数都对
+        isValid = hitDamasCount === selectedDamasCount;
+      } else if (toleranceMin === 0 && toleranceMax === 1) {
+        // 0-1：2个命中胆码数只允许错一个
+        isValid = selectedDamasCount === 2 && missedDamasCount <= 1;
+      } else if (toleranceMin === 1 && toleranceMax === 1) {
+        // 1-1：2个命中胆码数必须对一个错一个
+        isValid = selectedDamasCount === 2 && hitDamasCount === 1 && missedDamasCount === 1;
+      } else if (toleranceMin === 1 && toleranceMax === 2) {
+        // 1-2：3个命中胆码数中必须中一个和错一个或者2个
+        isValid = selectedDamasCount === 3 && hitDamasCount >= 1 && missedDamasCount >= 1 && missedDamasCount <= 2;
+      } else if (toleranceMin === 2 && toleranceMax === 2) {
+        // 2-2：4个命中胆码数中必须中2个和错2个
+        isValid = selectedDamasCount === 4 && hitDamasCount === 2 && missedDamasCount === 2;
+      } else {
+        // 其他情况保持原有逻辑
+        const unsatisfiedCount = 1;
+        isValid = unsatisfiedCount >= toleranceMin && unsatisfiedCount <= toleranceMax;
+      }
       
       return {
         ok: isValid,
