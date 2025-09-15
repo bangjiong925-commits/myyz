@@ -2258,62 +2258,49 @@ function initFiveStarModule(moduleId) {
     // 已选择命中胆码数：检查实际命中数是否在选中的胆码数范围内
     // 胆码逻辑：选择1234作为胆码，命中胆码数选3-4时，筛选包含1234中任意3个或4个的号码
     
-    // 检查实际命中数是否在选中的胆码数列表中
-    const isValidHitCount = condition.selectedDamas.includes(actualHitCount);
+    // 基于数学公式的条件集K容错逻辑
+    // 条件集K = {选中的胆码数}，实际命中数k，容错参数r
+    // r=0: 并集逻辑 Sr=0(K) = ∑N(k) for k∈K (分别满足)
+    // r=1: 补集逻辑 Sr=1(K) = ∑N(k) for k∉K (不满足)
+    // r(0-1): 联合逻辑 Sr(0-1)(K) = Sr=0(K) + Sr=1(K) = P(10,n) (全集)
     
-    if (!isValidHitCount) {
-      // 如果命中数不在选中的胆码数中，检查容错
-      // 新的容错逻辑：
-      // 0-0：命中胆码数都对（不允许错误）
-      // 0-1：2个命中胆码数只允许错一个
-      // 1-1：2个命中胆码数必须对一个错一个
-      // 1-2：3个命中胆码数中必须中一个和错一个或者2个
-      // 2-2：4个命中胆码数中必须中2个和错2个
-      const toleranceMin = condition.toleranceMin;
-      const toleranceMax = condition.toleranceMax;
+    const toleranceMin = condition.toleranceMin;
+    const toleranceMax = condition.toleranceMax;
+    const selectedDamasSet = new Set(condition.selectedDamas);
+    
+    let isValid = false;
+    
+    if (toleranceMin === 0 && toleranceMax === 0) {
+      // r=0: 并集逻辑 - 实际命中数必须在条件集K中
+      isValid = selectedDamasSet.has(actualHitCount);
+    } else if (toleranceMin === 1 && toleranceMax === 1) {
+      // r=1: 补集逻辑 - 实际命中数必须不在条件集K中
+      isValid = !selectedDamasSet.has(actualHitCount);
+    } else if (toleranceMin === 0 && toleranceMax === 1) {
+      // r(0-1): 联合逻辑 - 实际命中数可以在K中或不在K中（全集）
+      isValid = true; // 任何命中数都满足
+    } else {
+      // 扩展容错逻辑：基于条件集K的包含关系
+      // 计算条件集K中满足的胆码数量
+      const satisfiedInK = selectedDamasSet.has(actualHitCount) ? 1 : 0;
+      const unsatisfiedInK = selectedDamasSet.has(actualHitCount) ? 0 : 1;
       
-      // 计算命中和错误的胆码数
-      const selectedDamasCount = condition.selectedDamas.length;
-      const hitDamasCount = condition.selectedDamas.filter(dama => dama === actualHitCount).length;
-      const missedDamasCount = selectedDamasCount - hitDamasCount;
-      
-      let isValid = false;
-      
-      if (toleranceMin === 0 && toleranceMax === 0) {
-        // 0-0：命中胆码数都对（不允许任何错误）
-        isValid = hitDamasCount === selectedDamasCount;
-      } else if (toleranceMin === 0 && toleranceMax === 1) {
-        // 0-1：命中胆码数只允许错一个
-        isValid = missedDamasCount <= 1;
-      } else if (toleranceMin === 1 && toleranceMax === 1) {
-        // 1-1：命中胆码数必须错一个
-        isValid = missedDamasCount === 1;
-      } else if (toleranceMin === 1 && toleranceMax === 2) {
-        // 1-2：命中胆码数中必须错一个或者2个
-        isValid = missedDamasCount >= 1 && missedDamasCount <= 2;
-      } else if (toleranceMin === 2 && toleranceMax === 2) {
-        // 2-2：命中胆码数中必须错2个
-        isValid = missedDamasCount === 2;
+      // 检查满足条件的数量是否在容错范围内
+      if (toleranceMin <= toleranceMax) {
+        // 标准范围容错：允许unsatisfiedInK在[toleranceMin, toleranceMax]范围内
+        isValid = unsatisfiedInK >= toleranceMin && unsatisfiedInK <= toleranceMax;
       } else {
-        // 其他情况保持原有逻辑
-        const unsatisfiedCount = 1;
-        isValid = unsatisfiedCount >= toleranceMin && unsatisfiedCount <= toleranceMax;
+        // 特殊情况处理
+        isValid = false;
       }
-      
-      return {
-        ok: isValid,
-        errors: picksLen - actualHitCount,
-        hitCount: actualHitCount
-      };
     }
-    
-    // 命中数在选中的胆码数中，条件成立
-    const isValid = true;
     
     return {
       ok: isValid,
       errors: picksLen - actualHitCount,
-      hitCount: actualHitCount
+      hitCount: actualHitCount,
+      conditionSetK: Array.from(selectedDamasSet),
+      toleranceApplied: `r(${toleranceMin}-${toleranceMax})`
     };
   }  
   // 评估所有条件（适配现有接口）
