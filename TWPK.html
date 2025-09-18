@@ -2913,14 +2913,13 @@ function initFiveStarModule(moduleId) {
             
             // 检查是否为有效的五星号码
             if (numbers.length === 5 && numbers.every(n => !isNaN(n))) {
-              // 检查计划号码是否在前五名中（任意位置匹配）
-              const hasMatch = numbers.some(planNum => drawNumbers.includes(planNum));
+              // 检查前五位是否完全一致（顺序一致）
+              const exactMatch = numbers.every((n, idx) => drawNumbers[idx] && drawNumbers[idx].toString() === n.toString());
               
-              if (hasMatch) {
+              if (exactMatch) {
                 periodWin = true;
                 winningNumber = numbers.join(' ');
-                const matchedNumbers = numbers.filter(planNum => drawNumbers.includes(planNum));
-                console.log(`🎉 计划 ${plan.planId} 在期数 ${periodData.period} 中奖！号码: ${winningNumber}, 开奖前五: ${drawNumbers.join(',')}, 匹配号码: ${matchedNumbers.join(',')}`);
+                console.log(`🎉 计划 ${plan.planId} 在期数 ${periodData.period} 中奖！号码: ${winningNumber}, 开奖前五: ${drawNumbers.join(',')}`);
                 break; // 只要有一注命中就停止检查该期
               }
             }
@@ -3044,16 +3043,16 @@ function initFiveStarModule(moduleId) {
             const numbers = numberStr.split(' ').map(n => parseInt(n.trim()));
             
             // 检查是否为有效的五星号码
-            if (numbers.length === 5 && numbers.every(n => !isNaN(n))) {
-              // 检查计划号码是否在前五名中（任意位置匹配）
-              const hasMatch = numbers.some(planNum => drawNumbers.includes(planNum));
-              
-              if (hasMatch) {
-                periodWin = true;
-                winningNumber = numberStr;
-                break; // 只要有一注命中就停止检查该期
-              }
-            }
+        if (numbers.length === 5 && numbers.every(n => !isNaN(n))) {
+          // 严格判定：前五位顺序完全一致才算中
+          const exactMatch = numbers.every((num, idx) => num === drawNumbers.slice(0, 5)[idx]);
+          
+          if (exactMatch) {
+            periodWin = true;
+            winningNumber = numberStr;
+            break; // 只要有一注命中就停止检查该期
+          }
+        }
           }
           
           totalPeriods++;
@@ -3294,14 +3293,13 @@ function initFiveStarModule(moduleId) {
         
         // 检查是否为有效的五星号码
         if (numbers.length === 5 && numbers.every(n => !isNaN(n))) {
-          // 检查计划号码是否在前五名中（任意位置匹配）
-          const hasMatch = numbers.some(planNum => drawNumbers.includes(planNum));
+          // 严格判定：前五位顺序完全一致才算中
+          const exactMatch = numbers.every((num, idx) => num === drawNumbers.slice(0, 5)[idx]);
           
-          if (hasMatch) {
+          if (exactMatch) {
             periodWin = true;
             winningNumber = numberStr;
-            const matchedNumbers = numbers.filter(planNum => drawNumbers.includes(planNum));
-            console.log(`🎉 期数 ${periodData.period} 中奖！号码: ${winningNumber}, 开奖前五: ${drawNumbers.join(',')}, 匹配号码: ${matchedNumbers.join(',')}`);
+            console.log(`🎉 期数 ${periodData.period} 命中（顺序完全一致）！号码: ${winningNumber}, 开奖前五: ${drawNumbers.slice(0, 5).join(',')}`);
             break; // 只要有一注命中就停止检查该期
           }
         }
@@ -5218,9 +5216,11 @@ function getFilteredData() {
         });
     }
     
-    if (selectedHitNumbers.length > 0) {
+    if (selectedHitNumbers.length === 5) {
+        // 仅当用户选择了5个命中号码时，按严格顺序筛选
         filteredData = filteredData.filter(item => {
-            return selectedHitNumbers.some(hitNum => item.data.includes(hitNum));
+            const firstFive = item.data.slice(0, 5);
+            return selectedHitNumbers.every((num, idx) => num === firstFive[idx]);
         });
     }
     
