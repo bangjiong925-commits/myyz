@@ -1,3 +1,0 @@
-2025-09-12 13:27:46 | INFO | API数据获取器启动
-2025-09-12 13:27:46 | INFO | 请求API: https://api.api68.com/pks/getPksHistoryList.do?lotCode=10057&date=2025-09-12
-2025-09-12 13:27:46 | INFO | 成功获取 2025-09-12 的数据，共 4 条记录
