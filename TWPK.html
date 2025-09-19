@@ -499,6 +499,203 @@
           margin: 1px !important;
           flex-shrink: 0 !important; /* 防止按钮收缩 */
         }
+      }
+      
+      /* 交集拼接页面专用样式 */
+      .intersection-page-title {
+        @apply text-2xl font-bold text-gray-800 text-center mb-6;
+      }
+      
+      .function-switch-area {
+        @apply flex justify-center mb-6;
+      }
+      
+      .function-switch-btn {
+        @apply px-6 py-2 mx-2 rounded-md font-medium transition-colors duration-200;
+      }
+      
+      .function-switch-btn.active {
+        @apply bg-blue-500 text-white;
+      }
+      
+      .function-switch-btn:not(.active) {
+        @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
+      }
+      
+      .management-functions {
+        @apply flex justify-center gap-4 mb-6;
+      }
+      
+      .management-btn {
+        @apply px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors;
+      }
+      
+      .main-input-area {
+        @apply bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-6;
+      }
+      
+      .main-input-title {
+        @apply text-lg font-medium text-gray-800 mb-3;
+      }
+      
+      .main-input-textarea {
+        @apply w-full h-24 px-3 py-2 border border-gray-300 rounded-md resize-none text-sm bg-white;
+      }
+      
+      .main-input-actions {
+        @apply flex justify-end gap-2 mt-3;
+      }
+      
+      .input-action-btn {
+        @apply px-4 py-2 rounded-md text-white font-medium transition-colors;
+      }
+      
+      .input-action-btn.copy {
+        @apply bg-green-500 hover:bg-green-600;
+      }
+      
+      .input-action-btn.clear {
+        @apply bg-red-500 hover:bg-red-600;
+      }
+      
+      .input-action-btn.paste {
+        @apply bg-blue-500 hover:bg-blue-600;
+      }
+      
+      .input-modules-area {
+        @apply mb-6;
+      }
+      
+      .input-modules-title {
+        @apply text-lg font-medium text-gray-800 mb-4;
+      }
+      
+      .modules-grid {
+        @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4;
+      }
+      
+      .input-module {
+        @apply bg-white border border-gray-200 rounded-lg p-4 shadow-sm;
+      }
+      
+      .module-header {
+        @apply flex items-center justify-between mb-3;
+      }
+      
+      .module-title {
+        @apply text-base font-medium text-gray-800;
+      }
+      
+      .module-actions {
+        @apply flex gap-2;
+      }
+      
+      .module-btn {
+        @apply px-3 py-1 text-sm rounded transition-colors;
+      }
+      
+      .module-btn.paste {
+        @apply bg-blue-500 text-white hover:bg-blue-600;
+      }
+      
+      .module-btn.clear {
+        @apply bg-gray-500 text-white hover:bg-gray-600;
+      }
+      
+      .module-textarea {
+        @apply w-full px-3 py-2 border border-gray-300 rounded-md resize-none text-sm bg-white;
+      }
+
+      /* 号码交集功能专用样式 */
+      .tolerance-btn {
+        @apply px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors font-medium min-w-[40px] text-center;
+      }
+
+      .tolerance-btn.active {
+        @apply bg-blue-500 text-white hover:bg-blue-600;
+      }
+
+      .modules-container {
+        @apply border border-gray-200 rounded-lg bg-gray-50;
+      }
+
+      .modules-container::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .modules-container::-webkit-scrollbar-track {
+        @apply bg-gray-100 rounded;
+      }
+
+      .modules-container::-webkit-scrollbar-thumb {
+        @apply bg-gray-300 rounded hover:bg-gray-400;
+      }
+
+      .module-count {
+        @apply text-xs text-gray-500 ml-2;
+      }
+
+      .clear-btn {
+        @apply bg-red-500 text-white hover:bg-red-600;
+      }
+
+      .paste-btn {
+        @apply bg-blue-500 text-white hover:bg-blue-600;
+      }
+      
+      /* 移动端优化 */
+      @media (max-width: 768px) {
+        .intersection-page-title {
+          @apply text-xl mb-4;
+        }
+        
+        .function-switch-btn {
+          @apply px-4 py-2 mx-1 text-sm;
+        }
+        
+        .management-functions {
+          @apply flex-wrap gap-2 mb-4;
+        }
+        
+        .management-btn {
+          @apply px-3 py-1 text-sm;
+        }
+        
+        .main-input-area {
+          @apply p-3 mb-4;
+        }
+        
+        .main-input-title {
+          @apply text-base mb-2;
+        }
+        
+        .main-input-textarea {
+          @apply h-20 text-sm;
+        }
+        
+        .input-modules-title {
+          @apply text-base mb-3;
+        }
+        
+        .modules-grid {
+          @apply grid-cols-1 gap-3;
+        }
+        
+        .input-module {
+          @apply p-3;
+        }
+        
+        .module-title {
+          @apply text-sm;
+        }
+        
+        .module-btn {
+          @apply px-2 py-1 text-xs;
+        }
+        
+        .module-textarea {
+          @apply text-sm;
+        }
         
         /* 优化数字按钮容器 - 确保不换行 */
         .number-buttons {
@@ -939,6 +1136,7 @@
         <button id="fiveStarBtn" class="px-4 py-1 rounded bg-gray-600 text-white font-medium hover:bg-primary transition-colors">五星做号</button>
         <button id="verifyPlanBtn" class="px-4 py-1 rounded bg-gray-600 text-white font-medium hover:bg-primary transition-colors">验证计划</button>
         <button id="goldenRatioBtn" class="px-4 py-1 rounded bg-gray-600 text-white font-medium hover:bg-primary transition-colors">黄金切割</button>
+        <button id="intersectionCutBtn" class="px-4 py-1 rounded bg-gray-600 text-white font-medium hover:bg-primary transition-colors">交集拼接</button>
 
       </div>
     </div>
@@ -1755,6 +1953,249 @@
       </div>
     </div>
 
+    <!-- 交集拼接页面 -->
+    <div id="intersectionCutPage" class="hidden">
+      <div class="container mx-auto px-4 py-6 max-w-6xl">
+        <!-- 页面标题 -->
+        <div class="text-center mb-6">
+          <h1 class="intersection-page-title">交集拼接工具</h1>
+          <p class="text-gray-600 text-sm">多模块数据交集计算与拼接功能</p>
+        </div>
+
+        <!-- 功能切换区域 -->
+        <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+          <!-- 主要功能切换 -->
+          <div class="function-switch-area">
+            <button id="intersectionModeBtn" class="function-switch-btn active">
+              号码交集
+            </button>
+            <button id="concatenationModeBtn" class="function-switch-btn">
+              号码拼接
+            </button>
+          </div>
+        </div>
+
+        <!-- 号码交集功能区域 -->
+        <div id="intersectionContent" class="intersection-content">
+          <!-- 容错功能区域 -->
+          <div class="bg-white rounded-lg shadow-sm p-4 mb-4">
+            <h3 class="text-lg font-medium text-gray-800 mb-3">容错设置</h3>
+            <div class="flex flex-wrap gap-2">
+              <button class="tolerance-btn" data-tolerance="1">1</button>
+              <button class="tolerance-btn" data-tolerance="2">2</button>
+              <button class="tolerance-btn" data-tolerance="3">3</button>
+              <button class="tolerance-btn" data-tolerance="4">4</button>
+              <button class="tolerance-btn" data-tolerance="5">5</button>
+              <button class="tolerance-btn" data-tolerance="6">6</button>
+              <button class="tolerance-btn" data-tolerance="7">7</button>
+              <button class="tolerance-btn" data-tolerance="8">8</button>
+            </div>
+          </div>
+
+          <!-- 结果显示区域 -->
+          <div class="bg-white rounded-lg shadow-sm p-4 mb-4">
+            <h3 class="text-lg font-medium text-gray-800 mb-3">结果显示</h3>
+            <div class="flex gap-3 items-start">
+              <div class="flex-1">
+                <textarea id="resultDisplay" rows="4" 
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                  placeholder="交集结果将显示在这里..." readonly></textarea>
+              </div>
+              <div class="flex flex-col gap-2">
+                <button id="generateIntersectionBtn" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors font-medium">
+                  做号
+                </button>
+                <button id="copyResultBtn" class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors font-medium">
+                  复制
+                </button>
+              </div>
+            </div>
+            <div class="mt-2 text-sm text-gray-600">
+              <span id="resultCount">共0注</span>
+            </div>
+          </div>
+
+          <!-- 输入模块区域 -->
+          <div class="bg-white rounded-lg shadow-sm p-4">
+            <h3 class="text-lg font-medium text-gray-800 mb-3">输入模块</h3>
+            
+            <!-- 8个输入模块的可滚动容器 -->
+            <div class="modules-container max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4">
+              <div class="modules-grid grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- 模块1 -->
+                <div class="input-module">
+                  <div class="module-header">
+                    <div class="module-info">
+                      <h4 class="module-title">模块1</h4>
+                      <span class="module-count" data-module="1">0注</span>
+                    </div>
+                    <div class="module-actions">
+                      <button class="module-btn paste-btn" data-module="1">
+                        粘贴
+                      </button>
+                      <button class="module-btn clear-btn" data-module="1">
+                        清除
+                      </button>
+                    </div>
+                  </div>
+                  <textarea class="module-textarea" 
+                    rows="3" placeholder="请输入多组号码，每行一组，如：01,02,03" data-module="1"></textarea>
+                </div>
+
+                <!-- 模块2 -->
+                <div class="input-module">
+                  <div class="module-header">
+                    <div class="module-info">
+                      <h4 class="module-title">模块2</h4>
+                      <span class="module-count" data-module="2">0注</span>
+                    </div>
+                    <div class="module-actions">
+                      <button class="module-btn paste-btn" data-module="2">
+                        粘贴
+                      </button>
+                      <button class="module-btn clear-btn" data-module="2">
+                        清除
+                      </button>
+                    </div>
+                  </div>
+                  <textarea class="module-textarea" 
+                    rows="3" placeholder="请输入多组号码，每行一组，如：01,02,03" data-module="2"></textarea>
+                </div>
+
+                <!-- 模块3 -->
+                <div class="input-module">
+                  <div class="module-header">
+                    <div class="module-info">
+                      <h4 class="module-title">模块3</h4>
+                      <span class="module-count" data-module="3">0注</span>
+                    </div>
+                    <div class="module-actions">
+                      <button class="module-btn paste-btn" data-module="3">
+                        粘贴
+                      </button>
+                      <button class="module-btn clear-btn" data-module="3">
+                        清除
+                      </button>
+                    </div>
+                  </div>
+                  <textarea class="module-textarea" 
+                    rows="3" placeholder="请输入多组号码，每行一组，如：01,02,03" data-module="3"></textarea>
+                </div>
+
+                <!-- 模块4 -->
+                <div class="input-module">
+                  <div class="module-header">
+                    <div class="module-info">
+                      <h4 class="module-title">模块4</h4>
+                      <span class="module-count" data-module="4">0注</span>
+                    </div>
+                    <div class="module-actions">
+                      <button class="module-btn paste-btn" data-module="4">
+                        粘贴
+                      </button>
+                      <button class="module-btn clear-btn" data-module="4">
+                        清除
+                      </button>
+                    </div>
+                  </div>
+                  <textarea class="module-textarea" 
+                    rows="3" placeholder="请输入多组号码，每行一组，如：01,02,03" data-module="4"></textarea>
+                </div>
+
+                <!-- 模块5 -->
+                <div class="input-module">
+                  <div class="module-header">
+                    <div class="module-info">
+                      <h4 class="module-title">模块5</h4>
+                      <span class="module-count" data-module="5">0注</span>
+                    </div>
+                    <div class="module-actions">
+                      <button class="module-btn paste-btn" data-module="5">
+                        粘贴
+                      </button>
+                      <button class="module-btn clear-btn" data-module="5">
+                        清除
+                      </button>
+                    </div>
+                  </div>
+                  <textarea class="module-textarea" 
+                    rows="3" placeholder="请输入多组号码，每行一组，如：01,02,03" data-module="5"></textarea>
+                </div>
+
+                <!-- 模块6 -->
+                <div class="input-module">
+                  <div class="module-header">
+                    <div class="module-info">
+                      <h4 class="module-title">模块6</h4>
+                      <span class="module-count" data-module="6">0注</span>
+                    </div>
+                    <div class="module-actions">
+                      <button class="module-btn paste-btn" data-module="6">
+                        粘贴
+                      </button>
+                      <button class="module-btn clear-btn" data-module="6">
+                        清除
+                      </button>
+                    </div>
+                  </div>
+                  <textarea class="module-textarea" 
+                    rows="3" placeholder="请输入多组号码，每行一组，如：01,02,03" data-module="6"></textarea>
+                </div>
+
+                <!-- 模块7 -->
+                <div class="input-module">
+                  <div class="module-header">
+                    <div class="module-info">
+                      <h4 class="module-title">模块7</h4>
+                      <span class="module-count" data-module="7">0注</span>
+                    </div>
+                    <div class="module-actions">
+                      <button class="module-btn paste-btn" data-module="7">
+                        粘贴
+                      </button>
+                      <button class="module-btn clear-btn" data-module="7">
+                        清除
+                      </button>
+                    </div>
+                  </div>
+                  <textarea class="module-textarea" 
+                    rows="3" placeholder="请输入多组号码，每行一组，如：01,02,03" data-module="7"></textarea>
+                </div>
+
+                <!-- 模块8 -->
+                <div class="input-module">
+                  <div class="module-header">
+                    <div class="module-info">
+                      <h4 class="module-title">模块8</h4>
+                      <span class="module-count" data-module="8">0注</span>
+                    </div>
+                    <div class="module-actions">
+                      <button class="module-btn paste-btn" data-module="8">
+                        粘贴
+                      </button>
+                      <button class="module-btn clear-btn" data-module="8">
+                        清除
+                      </button>
+                    </div>
+                  </div>
+                  <textarea class="module-textarea" 
+                    rows="3" placeholder="请输入多组号码，每行一组，如：01,02,03" data-module="8"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 号码拼接功能区域（隐藏） -->
+        <div id="concatenationContent" class="concatenation-content hidden">
+          <div class="bg-white rounded-lg shadow-sm p-6">
+            <h3 class="text-lg font-medium text-gray-800 mb-4">号码拼接功能</h3>
+            <p class="text-gray-600">号码拼接功能正在开发中...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 验证计划页面 -->
     <div id="verifyPlanPage" class="hidden">
       <div class="container mx-auto px-4 py-6">
@@ -1849,8 +2290,8 @@
             </div>
           </div>
 
-          <!-- 统计信息 -->
-          <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- 统计信息（已隐藏） -->
+          <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4" style="display: none;">
             <div class="bg-blue-50 p-4 rounded-lg">
               <div class="text-sm text-gray-600">总期数</div>
               <div class="text-2xl font-bold text-blue-600" id="totalPeriods">0</div>
@@ -3779,17 +4220,20 @@ document.addEventListener('DOMContentLoaded', function() {
   const fiveStarBtn = document.getElementById('fiveStarBtn');
   const verifyPlanBtn = document.getElementById('verifyPlanBtn');
   const goldenRatioBtn = document.getElementById('goldenRatioBtn');
+  const intersectionCutBtn = document.getElementById('intersectionCutBtn');
   const dataAnalysisPage = document.getElementById('dataAnalysisPage');
   const fiveStarPage = document.getElementById('fiveStarPage');
   const verifyPlanPage = document.getElementById('verifyPlanPage');
   const goldenRatioPage = document.getElementById('goldenRatioPage');
+  const intersectionCutPage = document.getElementById('intersectionCutPage');
   
   // 滚动位置保存和恢复功能
   const scrollPositions = {
     dataAnalysis: 0,
     fiveStar: 0,
     verifyPlan: 0,
-    goldenRatio: 0
+    goldenRatio: 0,
+    intersectionCut: 0
   };
   
   // 保存当前页面的滚动位置
@@ -3814,10 +4258,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!fiveStarPage.classList.contains('hidden')) return 'fiveStar';
     if (!verifyPlanPage.classList.contains('hidden')) return 'verifyPlan';
     if (!goldenRatioPage.classList.contains('hidden')) return 'goldenRatio';
+    if (!intersectionCutPage.classList.contains('hidden')) return 'intersectionCut';
     return 'dataAnalysis'; // 默认
   }
 
-  if (dataAnalysisBtn && fiveStarBtn && verifyPlanBtn && goldenRatioBtn && dataAnalysisPage && fiveStarPage && verifyPlanPage && goldenRatioPage) {
+  if (dataAnalysisBtn && fiveStarBtn && verifyPlanBtn && goldenRatioBtn && intersectionCutBtn && dataAnalysisPage && fiveStarPage && verifyPlanPage && goldenRatioPage && intersectionCutPage) {
     dataAnalysisBtn.addEventListener('click', function() {
       // 禁用滚动监听，防止页面切换时跳动
       disableScrollListener();
@@ -3834,6 +4279,7 @@ document.addEventListener('DOMContentLoaded', function() {
       fiveStarPage.classList.add('hidden');
       verifyPlanPage.classList.add('hidden');
       goldenRatioPage.classList.add('hidden');
+      intersectionCutPage.classList.add('hidden');
       dataAnalysisBtn.classList.add('bg-primary');
       dataAnalysisBtn.classList.remove('bg-gray-600');
       fiveStarBtn.classList.add('bg-gray-600');
@@ -3842,6 +4288,8 @@ document.addEventListener('DOMContentLoaded', function() {
       verifyPlanBtn.classList.remove('bg-primary');
       goldenRatioBtn.classList.add('bg-gray-600');
       goldenRatioBtn.classList.remove('bg-primary');
+      intersectionCutBtn.classList.add('bg-gray-600');
+      intersectionCutBtn.classList.remove('bg-primary');
       
       // 恢复数据分析页面的滚动位置
       restoreScrollPosition('dataAnalysis');
@@ -3863,6 +4311,7 @@ document.addEventListener('DOMContentLoaded', function() {
       fiveStarPage.classList.remove('hidden');
       verifyPlanPage.classList.add('hidden');
       goldenRatioPage.classList.add('hidden');
+      intersectionCutPage.classList.add('hidden');
       fiveStarBtn.classList.add('bg-primary');
       fiveStarBtn.classList.remove('bg-gray-600');
       dataAnalysisBtn.classList.add('bg-gray-600');
@@ -3871,6 +4320,8 @@ document.addEventListener('DOMContentLoaded', function() {
       verifyPlanBtn.classList.remove('bg-primary');
       goldenRatioBtn.classList.add('bg-gray-600');
       goldenRatioBtn.classList.remove('bg-primary');
+      intersectionCutBtn.classList.add('bg-gray-600');
+      intersectionCutBtn.classList.remove('bg-primary');
       
       // 恢复五星做号页面的滚动位置
       restoreScrollPosition('fiveStar');
@@ -3889,6 +4340,7 @@ document.addEventListener('DOMContentLoaded', function() {
       fiveStarPage.classList.add('hidden');
       verifyPlanPage.classList.remove('hidden');
       goldenRatioPage.classList.add('hidden');
+      intersectionCutPage.classList.add('hidden');
       verifyPlanBtn.classList.add('bg-primary');
       verifyPlanBtn.classList.remove('bg-gray-600');
       dataAnalysisBtn.classList.add('bg-gray-600');
@@ -3897,6 +4349,8 @@ document.addEventListener('DOMContentLoaded', function() {
       fiveStarBtn.classList.remove('bg-primary');
       goldenRatioBtn.classList.add('bg-gray-600');
       goldenRatioBtn.classList.remove('bg-primary');
+      intersectionCutBtn.classList.add('bg-gray-600');
+      intersectionCutBtn.classList.remove('bg-primary');
       
       // 启动验证计划页面的数据加载和自动更新
       startVerifyPlanDataFetch();
@@ -3921,6 +4375,7 @@ document.addEventListener('DOMContentLoaded', function() {
       fiveStarPage.classList.add('hidden');
       verifyPlanPage.classList.add('hidden');
       goldenRatioPage.classList.remove('hidden');
+      intersectionCutPage.classList.add('hidden');
       goldenRatioBtn.classList.add('bg-primary');
       goldenRatioBtn.classList.remove('bg-gray-600');
       dataAnalysisBtn.classList.add('bg-gray-600');
@@ -3929,9 +4384,43 @@ document.addEventListener('DOMContentLoaded', function() {
       fiveStarBtn.classList.remove('bg-primary');
       verifyPlanBtn.classList.add('bg-gray-600');
       verifyPlanBtn.classList.remove('bg-primary');
+      intersectionCutBtn.classList.add('bg-gray-600');
+      intersectionCutBtn.classList.remove('bg-primary');
       
       // 恢复黄金切割页面的滚动位置
       restoreScrollPosition('goldenRatio');
+    });
+
+    // 交集拼接按钮事件监听器
+    intersectionCutBtn.addEventListener('click', function() {
+      // 禁用滚动监听，防止页面切换时跳动
+      disableScrollListener();
+      
+      // 保存当前页面的滚动位置
+      const currentPage = getCurrentPageType();
+      saveScrollPosition(currentPage);
+      
+      // 切换页面
+      dataAnalysisPage.classList.add('hidden');
+      fiveStarPage.classList.add('hidden');
+      verifyPlanPage.classList.add('hidden');
+      goldenRatioPage.classList.add('hidden');
+      intersectionCutPage.classList.remove('hidden');
+      
+      // 更新按钮样式
+      intersectionCutBtn.classList.add('bg-primary');
+      intersectionCutBtn.classList.remove('bg-gray-600');
+      dataAnalysisBtn.classList.add('bg-gray-600');
+      dataAnalysisBtn.classList.remove('bg-primary');
+      fiveStarBtn.classList.add('bg-gray-600');
+      fiveStarBtn.classList.remove('bg-primary');
+      verifyPlanBtn.classList.add('bg-gray-600');
+      verifyPlanBtn.classList.remove('bg-primary');
+      goldenRatioBtn.classList.add('bg-gray-600');
+      goldenRatioBtn.classList.remove('bg-primary');
+      
+      // 恢复交集拼接页面的滚动位置
+      restoreScrollPosition('intersectionCut');
     });
 
   } else {
@@ -5164,21 +5653,7 @@ const{maxHit:n,maxMiss:o}=d[t],{maxHit:c,maxMiss:r}=d[e];return m?c-n||o-r:o-r||
 window.lastProcessedData = s;
 window.lastSortedCombinations = b;
 console.log('已保存处理后的数据到全局变量');document.getElementById("sortText").textContent=m?"按遗漏次数排序":"按连中次数排序";const startIndex=(currentPage-1)*pageSize,endIndex=Math.min(startIndex+pageSize,s.length),pageData=s.slice(startIndex,endIndex);document.getElementById("summary").innerHTML=`\n        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">\n          <div>共 ${b.length} 注分析组合</div>\n          <div>当前显示: ${displayData.length} 期 / 总计: ${r.length} 期</div>\n          <div>筛选条件: ${selectedNums.length>0?selectedNums.join("/"):"全部"}码组合，命中${c.length>0?c.join("/"):"全部"}胆${selectedPositions.length>0?`，位置${selectedPositions.join("/")}名`:""}${selectedHitNumbers.length>0?`，命中数字${selectedHitNumbers.join("/")}`:""}</div>\n          <div>第 ${currentPage}/${totalPages} 页 (${pageData.length}/${s.length} 行)</div>\n        </div>\n        <div class="flex justify-center items-center mt-4 space-x-2">\n          <button id="prevPage" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50" ${currentPage<=1?'disabled':''}>上一页</button>\n          <span class="text-sm text-gray-600">第 ${currentPage} 页，共 ${totalPages} 页</span>\n          <button id="nextPage" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50" ${currentPage>=totalPages?'disabled':''}>下一页</button>\n        </div>`;const h=document.createElement("tr");
-h.className="bg-gray-50 table-header-sticky",h.innerHTML='<th class="px-3 py-2 text-center sticky-col left-0 border-r border-gray-200 fixed-width-period sticky-bg-white" style="position: sticky; top: 0; z-index: 1001;">期数</th><th class="px-3 py-2 text-center sticky-col left-[120px] border-r border-gray-200 fixed-width-data sticky-bg-white" style="position: sticky; top: 0; z-index: 1001;">数据</th><th class="px-3 py-2 text-center sticky-col left-[240px] border-r border-gray-200 sticky-bg-white" style="position: sticky; top: 0; z-index: 1001; width: 100px;">验证结果</th>';b.forEach(t=>{const{maxHit:e,maxMiss:n}=d[t],o=document.createElement("th");o.className="px-3 py-2 text-center border-r border-gray-200",o.innerHTML=y?m?`\n              <div class="font-medium">${t}</div>\n              <div class="text-xs text-gray-500 whitespace-nowrap">连:${u[t]} 漏${n} (${Math.round((s.filter(row=>row.cells[t]&&row.cells[t].hit).length/s.length)*100)||0}%)</div>\n            `:`\n              <div class="font-medium">${t}</div>\n              <div class="text-xs text-gray-500 whitespace-nowrap">漏:${l[t]} 史:${n} (${Math.round((s.filter(row=>row.cells[t]&&row.cells[t].hit).length/s.length)*100)||0}%)</div>\n            `:m?`\n              <div class="font-medium">${t}</div>\n              <div class="text-xs text-gray-500 whitespace-nowrap">连:${u[t]} 史:${e} (${Math.round((s.filter(row=>row.cells[t]&&row.cells[t].hit).length/s.length)*100)||0}%)</div>\n            `:`\n              <div class="font-medium">${t}</div>\n              <div class="text-xs text-gray-500 whitespace-nowrap">漏:${l[t]} 史:${n} (${Math.round((s.filter(row=>row.cells[t]&&row.cells[t].hit).length/s.length)*100)||0}%)</div>\n            `,h.appendChild(o)}),t.appendChild(h),pageData.forEach((t,n)=>{const o=document.createElement("tr");o.className=0===n?"bg-gray-100":1===n?"bg-gray-50":"",o.innerHTML=`\n          <td class="px-3 py-2 text-left sticky-col left-0 border-r border-gray-200 font-medium fixed-width-period ${0===n?"sticky-bg-gray-100":1===n?"sticky-bg-gray-50":"sticky-bg-white"}">${t.rec.period}</td>\n          <td class="px-3 py-2 text-left sticky-col left-[120px] border-r border-gray-200 fixed-width-data ${0===n?"sticky-bg-gray-100":1===n?"sticky-bg-gray-50":"sticky-bg-white"}">\n            <div class="number-row">${t.rec.data.slice(0,5).join(",")}</div>\n            <div class="number-row">${t.rec.data.slice(5).join(",")}</div>\n          </td>\n          <td class="px-3 py-2 text-center sticky-col left-[240px] border-r border-gray-200 ${0===n?"sticky-bg-gray-100":1===n?"sticky-bg-gray-50":"sticky-bg-white"}">${(() => {
-            const verifyResult = window.verifyPlanResults && window.verifyPlanResults[t.rec.period] ? window.verifyPlanResults[t.rec.period] : null;
-            if (verifyResult) {
-                const hitCount = verifyResult.hitNumbers ? verifyResult.hitNumbers.length : 0;
-                const resultClass = hitCount >= 3 ? 'text-green-600 font-bold' : hitCount >= 1 ? 'text-orange-600' : 'text-red-600';
-                let display = `<span class="${resultClass}">${hitCount}中</span>`;
-                if (verifyResult.hitNumbers && verifyResult.hitNumbers.length > 0) {
-                    display += `<br><span class="text-xs text-gray-500">${verifyResult.hitNumbers.join(',')}</span>`;
-                }
-                return display;
-            } else {
-                return '<span class="text-gray-400">-</span>';
-            }
-        })()}</td>
-        `,b.forEach(e=>{const n=t.cells[e],c=document.createElement("td");c.className="px-3 py-2 text-center border-r border-gray-200 "+(n.hit?"hit-cell":"miss-cell"),c.textContent=n.txt,o.appendChild(c)}),e.appendChild(o)}),setTimeout(()=>{const t=document.getElementById("prevPage"),e=document.getElementById("nextPage");t&&t.addEventListener("click",(event)=>{event.preventDefault();if(currentPage>1){currentPage--;updateTablePage();}}),e&&e.addEventListener("click",(event)=>{event.preventDefault();if(currentPage<totalPages){currentPage++;updateTablePage();}});},100);
+h.className="bg-gray-50 table-header-sticky",h.innerHTML='<th class="px-3 py-2 text-center sticky-col left-0 border-r border-gray-200 fixed-width-period sticky-bg-white" style="position: sticky; top: 0; z-index: 1001;">期数</th><th class="px-3 py-2 text-center sticky-col left-[120px] border-r border-gray-200 fixed-width-data sticky-bg-white" style="position: sticky; top: 0; z-index: 1001;">数据</th>';b.forEach(t=>{const{maxHit:e,maxMiss:n}=d[t],o=document.createElement("th");o.className="px-3 py-2 text-center border-r border-gray-200",o.innerHTML=y?m?`\n              <div class="font-medium">${t}</div>\n              <div class="text-xs text-gray-500 whitespace-nowrap">连:${u[t]} 漏${n} (${Math.round((s.filter(row=>row.cells[t]&&row.cells[t].hit).length/s.length)*100)||0}%)</div>\n            `:`\n              <div class="font-medium">${t}</div>\n              <div class="text-xs text-gray-500 whitespace-nowrap">漏:${l[t]} 史:${n} (${Math.round((s.filter(row=>row.cells[t]&&row.cells[t].hit).length/s.length)*100)||0}%)</div>\n            `:m?`\n              <div class="font-medium">${t}</div>\n              <div class="text-xs text-gray-500 whitespace-nowrap">连:${u[t]} 史:${e} (${Math.round((s.filter(row=>row.cells[t]&&row.cells[t].hit).length/s.length)*100)||0}%)</div>\n            `:`\n              <div class="font-medium">${t}</div>\n              <div class="text-xs text-gray-500 whitespace-nowrap">漏:${l[t]} 史:${n} (${Math.round((s.filter(row=>row.cells[t]&&row.cells[t].hit).length/s.length)*100)||0}%)</div>\n            `,h.appendChild(o)}),t.appendChild(h),pageData.forEach((t,n)=>{const o=document.createElement("tr");o.className=0===n?"bg-gray-100":1===n?"bg-gray-50":"",o.innerHTML=`\n          <td class="px-3 py-2 text-left sticky-col left-0 border-r border-gray-200 font-medium fixed-width-period ${0===n?"sticky-bg-gray-100":1===n?"sticky-bg-gray-50":"sticky-bg-white"}">${t.rec.period}</td>\n          <td class="px-3 py-2 text-left sticky-col left-[120px] border-r border-gray-200 fixed-width-data ${0===n?"sticky-bg-gray-100":1===n?"sticky-bg-gray-50":"sticky-bg-white"}">\n            <div class="number-row">${t.rec.data.slice(0,5).join(",")}</div>\n            <div class="number-row">${t.rec.data.slice(5).join(",")}</div>\n          </td>\n        `,b.forEach(e=>{const n=t.cells[e],c=document.createElement("td");c.className="px-3 py-2 text-center border-r border-gray-200 "+(n.hit?"hit-cell":"miss-cell"),c.textContent=n.txt,o.appendChild(c)}),e.appendChild(o)}),setTimeout(()=>{const t=document.getElementById("prevPage"),e=document.getElementById("nextPage");t&&t.addEventListener("click",(event)=>{event.preventDefault();if(currentPage>1){currentPage--;updateTablePage();}}),e&&e.addEventListener("click",(event)=>{event.preventDefault();if(currentPage<totalPages){currentPage++;updateTablePage();}});},100);
     
     // 将处理后的数据赋值给window.r，供验证计划页面使用
     window.r = r;
@@ -5286,27 +5761,12 @@ function updateTablePage() {
     pageData.forEach((t, n) => {
         const o = document.createElement("tr");
         o.className = 0 === n ? "bg-gray-100" : 1 === n ? "bg-gray-50" : "";
-        // 获取验证结果
-        const verifyResult = window.verifyPlanResults && window.verifyPlanResults[t.rec.period] ? window.verifyPlanResults[t.rec.period] : null;
-        let verifyDisplay = '';
-        if (verifyResult) {
-            const hitCount = verifyResult.hitNumbers ? verifyResult.hitNumbers.length : 0;
-            const resultClass = hitCount >= 3 ? 'text-green-600 font-bold' : hitCount >= 1 ? 'text-orange-600' : 'text-red-600';
-            verifyDisplay = `<span class="${resultClass}">${hitCount}中</span>`;
-            if (verifyResult.hitNumbers && verifyResult.hitNumbers.length > 0) {
-                verifyDisplay += `<br><span class="text-xs text-gray-500">${verifyResult.hitNumbers.join(',')}</span>`;
-            }
-        } else {
-            verifyDisplay = '<span class="text-gray-400">-</span>';
-        }
-        
         o.innerHTML = `
             <td class="px-3 py-2 text-left sticky-col left-0 border-r border-gray-200 font-medium fixed-width-period ${0 === n ? "sticky-bg-gray-100" : 1 === n ? "sticky-bg-gray-50" : "sticky-bg-white"}">${t.rec.period}</td>
             <td class="px-3 py-2 text-left sticky-col left-[120px] border-r border-gray-200 fixed-width-data ${0 === n ? "sticky-bg-gray-100" : 1 === n ? "sticky-bg-gray-50" : "sticky-bg-white"}">
                 <div class="number-row">${t.rec.data.slice(0,5).join(",")}</div>
                 <div class="number-row">${t.rec.data.slice(5).join(",")}</div>
             </td>
-            <td class="px-3 py-2 text-center sticky-col left-[240px] border-r border-gray-200 ${0 === n ? "sticky-bg-gray-100" : 1 === n ? "sticky-bg-gray-50" : "sticky-bg-white"}">${verifyDisplay}</td>
         `;
         
         b.forEach(e => {
@@ -7012,22 +7472,28 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     let cellContent = '';
                     if (verifyRecord) {
-                        // 检查该期是否在中奖期数中
-                        const winningPeriods = verifyRecord.winningPeriods || [];
-                        const currentPeriodWin = winningPeriods.find(wp => wp.period === item.rec.period);
-                        
-                        let cellResult = '';
-                        let resultClass = '';
-                        
-                        if (currentPeriodWin) {
-                            // 该期中奖
-                            cellResult = '中';
-                            resultClass = 'text-green-600 font-bold';
-                        } else {
-                            // 该期未中奖
-                            cellResult = '挂';
-                            resultClass = 'text-red-600 font-bold';
+                        // 动态判定当前行是否命中（基于当前显示期数的开奖号码）
+                        const drawNumbers = Array.isArray(item.rec.data) ? item.rec.data.slice(0, 5).map(n => parseInt(n)) : [];
+                        let isHit = false;
+                        const planNums = Array.isArray(verifyRecord.planNumbers) ? verifyRecord.planNumbers : [];
+                        for (const numberStr of planNums) {
+                            let numbers;
+                            if (Array.isArray(numberStr)) {
+                                numbers = numberStr.map(n => parseInt(n));
+                            } else if (typeof numberStr === 'string') {
+                                const parts = numberStr.split(/[\s,]+/).filter(Boolean);
+                                numbers = parts.map(n => parseInt(n));
+                            } else {
+                                continue;
+                            }
+                            if (numbers.length === 5 && numbers.every((n, idx) => !isNaN(n) && drawNumbers[idx] !== undefined && n === drawNumbers[idx])) {
+                                isHit = true;
+                                break;
+                            }
                         }
+                        
+                        const cellResult = isHit ? '中' : '挂';
+                        const resultClass = isHit ? 'text-green-600 font-bold' : 'text-red-600 font-bold';
                         
                         // 使用简洁文案，仅包含选号条件与容错（不拼接中奖号码）
                         let conditionText = buildConciseConditionText(verifyRecord);
@@ -7366,14 +7832,37 @@ document.addEventListener('DOMContentLoaded', function() {
         updateStatistics();
     }
     
-    // 更新统计信息
+    // 更新统计信息（基于当前可见期数与页面上显示的计划结果）
     function updateStatistics() {
-        const total = window.verifyPlanData ? window.verifyPlanData.length : 0;
-        const success = window.verifyPlanData ? window.verifyPlanData.filter(item => item.result === '中').length : 0;
-        const fail = total - success;
-        
-        if (verifyDataCount) verifyDataCount.textContent = `共 ${total} 条记录`;
-        if (totalPeriods) totalPeriods.textContent = total;
+        // 顶部“共 X 条记录”保留为当前计划总数（记录数）
+        const totalPlanRecords = Array.isArray(window.verifyPlanData)
+            ? window.verifyPlanData.filter(item => item && item.betCount > 0).length
+            : 0;
+        if (verifyDataCount) verifyDataCount.textContent = `共 ${totalPlanRecords} 条记录`;
+
+        const tbody = document.getElementById('verifyPlanTableBody');
+        if (!tbody) {
+            if (totalPeriods) totalPeriods.textContent = 0;
+            if (successCount) successCount.textContent = 0;
+            if (failCount) failCount.textContent = 0;
+            return;
+        }
+
+        // 当前可见期数：表体中期号列数量
+        const periodCells = tbody.querySelectorAll('td.fixed-width-period');
+        const visiblePeriods = periodCells ? periodCells.length : 0;
+
+        // 命中/未中：统计当前页渲染出来的 .plan-result 文本
+        let success = 0;
+        let fail = 0;
+        const resultNodes = tbody.querySelectorAll('.plan-result');
+        resultNodes.forEach(node => {
+            const txt = (node.textContent || '').trim();
+            if (txt === '中') success++;
+            else if (txt === '挂') fail++;
+        });
+
+        if (totalPeriods) totalPeriods.textContent = visiblePeriods;
         if (successCount) successCount.textContent = success;
         if (failCount) failCount.textContent = fail;
     }
@@ -7522,6 +8011,288 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         observer.observe(verifyPlanPage, { attributes: true });
     }
+
+    // 交集拼接功能
+    function initIntersectionCutPage() {
+        // 初始化功能切换
+        initFunctionSwitch();
+        
+        // 初始化容错按钮
+        initToleranceButtons();
+        
+        // 绑定粘贴按钮事件
+        document.querySelectorAll('.paste-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const moduleId = this.getAttribute('data-module');
+                const textarea = document.querySelector(`.module-textarea[data-module="${moduleId}"]`);
+                
+                try {
+                    const text = await navigator.clipboard.readText();
+                    textarea.value = text;
+                    updateModuleCount(moduleId);
+                } catch (err) {
+                    console.error('粘贴失败:', err);
+                    alert('粘贴失败，请手动输入');
+                }
+            });
+        });
+
+        // 绑定清除按钮事件
+        document.querySelectorAll('.clear-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const moduleId = this.getAttribute('data-module');
+                const textarea = document.querySelector(`.module-textarea[data-module="${moduleId}"]`);
+                textarea.value = '';
+                updateModuleCount(moduleId);
+            });
+        });
+
+        // 绑定输入框实时监听
+        document.querySelectorAll('.module-textarea').forEach(textarea => {
+            textarea.addEventListener('input', function() {
+                const moduleId = this.getAttribute('data-module');
+                updateModuleCount(moduleId);
+            });
+        });
+
+        // 绑定做号按钮事件
+        const generateBtn = document.getElementById('generateIntersectionBtn');
+        if (generateBtn) {
+            generateBtn.addEventListener('click', generateIntersection);
+        }
+
+        // 绑定复制结果按钮事件
+        const copyResultBtn = document.getElementById('copyResultBtn');
+        if (copyResultBtn) {
+            copyResultBtn.addEventListener('click', copyResult);
+        }
+        
+        // 初始化时更新总计数
+        updateTotalCount();
+    }
+
+    // 初始化功能切换
+    function initFunctionSwitch() {
+        const intersectionBtn = document.getElementById('intersectionModeBtn');
+        const concatenationBtn = document.getElementById('concatenationModeBtn');
+        const intersectionContent = document.getElementById('intersectionContent');
+        const concatenationContent = document.getElementById('concatenationContent');
+
+        if (intersectionBtn && concatenationBtn && intersectionContent && concatenationContent) {
+            intersectionBtn.addEventListener('click', function() {
+                // 切换到号码交集
+                intersectionBtn.classList.add('active');
+                concatenationBtn.classList.remove('active');
+                intersectionContent.classList.remove('hidden');
+                concatenationContent.classList.add('hidden');
+            });
+
+            concatenationBtn.addEventListener('click', function() {
+                // 切换到号码拼接
+                concatenationBtn.classList.add('active');
+                intersectionBtn.classList.remove('active');
+                concatenationContent.classList.remove('hidden');
+                intersectionContent.classList.add('hidden');
+            });
+        }
+    }
+
+    // 初始化容错按钮
+    function initToleranceButtons() {
+        let selectedTolerance = 0;
+        
+        document.querySelectorAll('.tolerance-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tolerance = parseInt(this.getAttribute('data-tolerance'));
+                
+                // 移除所有按钮的active状态
+                document.querySelectorAll('.tolerance-btn').forEach(b => b.classList.remove('active'));
+                
+                if (selectedTolerance === tolerance) {
+                    // 如果点击的是已选中的按钮，则取消选择
+                    selectedTolerance = 0;
+                } else {
+                    // 选择新的容错值
+                    selectedTolerance = tolerance;
+                    this.classList.add('active');
+                }
+            });
+        });
+    }
+
+    // 更新模块注数统计
+    function updateModuleCount(moduleId) {
+        const textarea = document.querySelector(`.module-textarea[data-module="${moduleId}"]`);
+        const countElement = document.querySelector(`.module-count[data-module="${moduleId}"]`);
+        
+        if (textarea && countElement) {
+            const content = textarea.value.trim();
+            if (content) {
+                // 计算实际的号码数量
+                let totalNumbers = 0;
+                const lines = content.split('\n').filter(line => line.trim());
+                
+                lines.forEach(line => {
+                    // 解析每行的号码，支持逗号分隔
+                    const numbers = line.split(',').map(n => n.trim()).filter(n => n);
+                    totalNumbers += numbers.length;
+                });
+                
+                countElement.textContent = `${totalNumbers}注`;
+            } else {
+                countElement.textContent = '0注';
+            }
+        }
+        
+        // 更新全局总计数
+        updateTotalCount();
+    }
+
+    // 更新全局总计数
+    function updateTotalCount() {
+        const resultCount = document.getElementById('resultCount');
+        if (!resultCount) return;
+        
+        let totalNumbers = 0;
+        
+        // 统计所有模块的号码数量
+        for (let i = 1; i <= 8; i++) {
+            const textarea = document.querySelector(`.module-textarea[data-module="${i}"]`);
+            if (textarea && textarea.value.trim()) {
+                const content = textarea.value.trim();
+                const lines = content.split('\n').filter(line => line.trim());
+                
+                lines.forEach(line => {
+                    // 解析每行的号码，支持逗号分隔
+                    const numbers = line.split(',').map(n => n.trim()).filter(n => n);
+                    totalNumbers += numbers.length;
+                });
+            }
+        }
+        
+        resultCount.textContent = `共${totalNumbers}注`;
+    }
+
+    // 生成交集
+    function generateIntersection() {
+        const modules = [];
+        
+        // 收集所有模块的数据
+        for (let i = 1; i <= 8; i++) {
+            const textarea = document.querySelector(`.module-textarea[data-module="${i}"]`);
+            if (textarea && textarea.value.trim()) {
+                const lines = textarea.value.trim().split('\n').filter(line => line.trim());
+                const moduleNumbers = [];
+                
+                lines.forEach(line => {
+                    // 解析每行的号码，支持逗号分隔
+                    const numbers = line.split(',').map(n => n.trim()).filter(n => n);
+                    moduleNumbers.push(...numbers);
+                });
+                
+                if (moduleNumbers.length > 0) {
+                    // 去重
+                    const uniqueNumbers = [...new Set(moduleNumbers)];
+                    modules.push(uniqueNumbers);
+                }
+            }
+        }
+
+        if (modules.length === 0) {
+            alert('请至少在一个模块中输入数据');
+            return;
+        }
+
+        if (modules.length === 1) {
+            // 只有一个模块时，直接显示该模块的数据
+            displayResult(modules[0]);
+            return;
+        }
+
+        // 获取选中的容错值
+        const selectedToleranceBtn = document.querySelector('.tolerance-btn.active');
+        const toleranceValue = selectedToleranceBtn ? parseInt(selectedToleranceBtn.getAttribute('data-tolerance')) : 0;
+
+        let result = [];
+
+        if (toleranceValue === 0) {
+            // 严格交集：必须在所有模块中都出现
+            result = modules[0];
+            for (let i = 1; i < modules.length; i++) {
+                result = result.filter(num => modules[i].includes(num));
+            }
+        } else {
+            // 容错交集：允许在指定数量的模块中缺失
+            const allNumbers = [...new Set(modules.flat())];
+            
+            allNumbers.forEach(num => {
+                let appearCount = 0;
+                modules.forEach(module => {
+                    if (module.includes(num)) {
+                        appearCount++;
+                    }
+                });
+                
+                // 如果缺失的模块数量不超过容错值，则包含该号码
+                const missingCount = modules.length - appearCount;
+                if (missingCount <= toleranceValue) {
+                    result.push(num);
+                }
+            });
+        }
+
+        displayResult(result);
+    }
+
+    // 显示结果
+    function displayResult(numbers) {
+        // 排序结果
+        numbers.sort((a, b) => {
+            const numA = parseInt(a);
+            const numB = parseInt(b);
+            return numA - numB;
+        });
+
+        // 显示结果
+        const resultDisplay = document.getElementById('resultDisplay');
+        const resultCount = document.getElementById('resultCount');
+        
+        if (resultDisplay && resultCount) {
+            resultDisplay.value = numbers.join(',');
+            resultCount.textContent = `共${numbers.length}注`;
+        }
+    }
+
+    // 复制结果
+    async function copyResult() {
+        const resultDisplay = document.getElementById('resultDisplay');
+        if (resultDisplay && resultDisplay.value) {
+            try {
+                await navigator.clipboard.writeText(resultDisplay.value);
+                
+                // 显示复制成功反馈
+                const copyBtn = document.getElementById('copyResultBtn');
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = '已复制';
+                copyBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
+                copyBtn.classList.add('bg-gray-500');
+                
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                    copyBtn.classList.remove('bg-gray-500');
+                    copyBtn.classList.add('bg-green-500', 'hover:bg-green-600');
+                }, 1000);
+            } catch (err) {
+                console.error('复制失败:', err);
+                alert('复制失败，请手动复制');
+            }
+        } else {
+            alert('没有结果可复制');
+        }
+    }
+
+    // 初始化交集拼接页面
+    initIntersectionCutPage();
 });
 
 
