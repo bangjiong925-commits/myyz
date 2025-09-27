@@ -2249,6 +2249,28 @@
             </div>
           </div>
 
+          <!-- 计划验证历史管理 -->
+          <div id="planHistoryControls" class="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200" style="display: none;">
+            <div class="flex flex-wrap items-center gap-4 justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-blue-700">计划验证历史:</span>
+                <span id="historyCount" class="text-sm text-blue-600">已保存 0 条记录</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button id="exportHistoryBtn" class="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600 transition-colors">
+                  导出历史
+                </button>
+                <button id="importHistoryBtn" class="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors">
+                  导入历史
+                </button>
+                <button id="clearHistoryBtn" class="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600 transition-colors">
+                  清空历史
+                </button>
+                <input type="file" id="importFileInput" accept=".json" style="display: none;">
+              </div>
+            </div>
+          </div>
+
           <!-- 期数选择控件 -->
           <div class="mb-6 p-4 bg-gray-50 rounded-lg">
             <div class="flex flex-wrap items-center gap-4 justify-between">
@@ -3169,7 +3191,13 @@ function initFiveStarModule(moduleId) {
   // 计划存储管理器
   window.PlanStorageManager = {
     // 存储计划
-    storePlan: function(verifyRecord) {
+    storePlan: function(verifyRecord, isVerified = true) {
+      // 只保存已验证的计划
+      if (!isVerified) {
+        console.log('⏸️ 计划未验证，跳过保存:', verifyRecord.planHash);
+        return false;
+      }
+      
       // 确保全局变量存在
       if (typeof window.verifyPlanData === 'undefined') {
         window.verifyPlanData = [];
@@ -3185,12 +3213,19 @@ function initFiveStarModule(moduleId) {
         window.verifyPlanData.splice(idx, 1);
         window.verifyPlanData.unshift(verifyRecord);
         console.log('🔄 检测到重复计划，已更新并置顶:', verifyRecord.planHash);
+        
+        // 自动保存到本地存储
+        this.saveToLocalStorage();
+        
         return true;
       }
       
       // 新计划，直接插入到最前
       window.verifyPlanData.unshift(verifyRecord);
       console.log('✅ 计划已存储，当前总数:', window.verifyPlanData.length);
+      
+      // 自动保存到本地存储
+      this.saveToLocalStorage();
       
       // 更新单期验证表格
       if (typeof window.updateSinglePeriodTable === 'function') {
@@ -3229,6 +3264,205 @@ function initFiveStarModule(moduleId) {
     clearAllPlans: function() {
       window.verifyPlanData = [];
       console.log('🧹 所有计划已清空');
+      // 同时清空本地存储
+      this.saveToLocalStorage();
+    },
+
+    // 保存到本地存储
+    saveToLocalStorage: function() {
+      try {
+        const dataToSave = {
+          verifyPlanData: window.verifyPlanData || [],
+          timestamp: new Date().toISOString(),
+          version: '1.0'
+        };
+        localStorage.setItem('twpk_verify_plan_data', JSON.stringify(dataToSave));
+        console.log('💾 计划验证历史已保存到本地存储，共', dataToSave.verifyPlanData.length, '条记录');
+        return true;
+      } catch (error) {
+        console.error('❌ 保存到本地存储失败:', error);
+        return false;
+      }
+    },
+
+    // 从本地存储加载
+    loadFromLocalStorage: function(skipVerification = false, batchSize = 50) {
+      try {
+        const savedData = localStorage.getItem('twpk_verify_plan_data');
+        if (!savedData) {
+          console.log('📂 本地存储中没有找到计划验证历史');
+          return false;
+        }
+
+        const parsedData = JSON.parse(savedData);
+        if (parsedData && Array.isArray(parsedData.verifyPlanData)) {
+          const totalPlans = parsedData.verifyPlanData.length;
+          
+          // 如果计划数量较少，直接加载
+          if (totalPlans <= batchSize) {
+            window.verifyPlanData = parsedData.verifyPlanData;
+            console.log('📂 从本地存储加载计划验证历史成功，共', totalPlans, '条记录');
+            console.log('📅 数据保存时间:', parsedData.timestamp);
+            
+            // 如果不跳过验证，则更新单期验证表格
+            if (!skipVerification && typeof window.updateSinglePeriodTable === 'function') {
+              // 延迟执行验证，避免页面刷新时立即卡顿
+              setTimeout(() => {
+                console.log('🔄 延迟执行验证逻辑，避免页面刷新卡顿');
+                window.updateSinglePeriodTable();
+              }, 500); // 延迟500ms
+            } else if (skipVerification) {
+              console.log('⏭️ 跳过验证逻辑，仅加载数据');
+            }
+            
+            return true;
+          }
+          
+          // 大量数据时使用批量加载
+          console.log('📊 检测到大量计划数据(' + totalPlans + '条)，启用批量加载优化');
+          
+          // 初始化为空数组
+          window.verifyPlanData = [];
+          
+          // 分批加载数据
+          this.loadDataInBatches(parsedData.verifyPlanData, batchSize, skipVerification);
+          
+          console.log('📂 批量加载已启动，数据保存时间:', parsedData.timestamp);
+          return true;
+        } else {
+          console.warn('⚠️ 本地存储数据格式不正确');
+          return false;
+        }
+      } catch (error) {
+        console.error('❌ 从本地存储加载失败:', error);
+        return false;
+      }
+    },
+
+    // 批量加载数据的辅助函数
+    loadDataInBatches: function(allData, batchSize, skipVerification) {
+      let currentIndex = 0;
+      const totalBatches = Math.ceil(allData.length / batchSize);
+      
+      const loadNextBatch = () => {
+        const endIndex = Math.min(currentIndex + batchSize, allData.length);
+        const batch = allData.slice(currentIndex, endIndex);
+        
+        // 将批次数据添加到全局数组
+        window.verifyPlanData.push(...batch);
+        
+        const currentBatch = Math.floor(currentIndex / batchSize) + 1;
+        console.log(`📦 批次 ${currentBatch}/${totalBatches} 加载完成 (${batch.length}条记录)`);
+        
+        currentIndex = endIndex;
+        
+        // 如果还有更多数据，继续加载下一批
+        if (currentIndex < allData.length) {
+          // 使用 requestAnimationFrame 来避免阻塞UI
+          requestAnimationFrame(() => {
+            setTimeout(loadNextBatch, 10); // 小延迟避免卡顿
+          });
+        } else {
+          // 所有数据加载完成
+          console.log('✅ 所有数据批量加载完成，共', window.verifyPlanData.length, '条记录');
+          
+          // 如果不跳过验证，则更新单期验证表格
+          if (!skipVerification && typeof window.updateSinglePeriodTable === 'function') {
+            setTimeout(() => {
+              console.log('🔄 批量加载完成后执行验证逻辑');
+              window.updateSinglePeriodTable();
+            }, 100);
+          }
+        }
+      };
+      
+      // 开始加载第一批
+      loadNextBatch();
+    },
+
+    // 导出数据到文件
+    exportToFile: function() {
+      try {
+        const dataToExport = {
+          verifyPlanData: window.verifyPlanData || [],
+          exportTime: new Date().toISOString(),
+          version: '1.0'
+        };
+        
+        const dataStr = JSON.stringify(dataToExport, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(dataBlob);
+        link.download = `twpk_verify_plan_data_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        console.log('📤 计划验证历史已导出到文件，共', dataToExport.verifyPlanData.length, '条记录');
+        return true;
+      } catch (error) {
+        console.error('❌ 导出到文件失败:', error);
+        return false;
+      }
+    },
+
+    // 从文件导入数据
+    importFromFile: function(file) {
+      return new Promise((resolve, reject) => {
+        if (!file) {
+          reject(new Error('未选择文件'));
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const importedData = JSON.parse(e.target.result);
+            
+            if (importedData && Array.isArray(importedData.verifyPlanData)) {
+              // 合并数据，避免重复
+              const existingHashes = new Set((window.verifyPlanData || []).map(plan => plan.planHash));
+              const newPlans = importedData.verifyPlanData.filter(plan => !existingHashes.has(plan.planHash));
+              
+              if (!window.verifyPlanData) {
+                window.verifyPlanData = [];
+              }
+              
+              // 将新计划添加到现有数据前面
+              window.verifyPlanData = [...newPlans, ...window.verifyPlanData];
+              
+              // 保存到本地存储
+              this.saveToLocalStorage();
+              
+              // 更新单期验证表格
+              if (typeof window.updateSinglePeriodTable === 'function') {
+                window.updateSinglePeriodTable();
+              }
+              
+              console.log('📥 从文件导入计划验证历史成功');
+              console.log('📊 导入', newPlans.length, '条新记录，总计', window.verifyPlanData.length, '条记录');
+              console.log('📅 导入数据时间:', importedData.exportTime);
+              
+              resolve({
+                imported: newPlans.length,
+                total: window.verifyPlanData.length,
+                skipped: importedData.verifyPlanData.length - newPlans.length
+              });
+            } else {
+              reject(new Error('文件格式不正确'));
+            }
+          } catch (error) {
+            reject(new Error('文件解析失败: ' + error.message));
+          }
+        };
+        
+        reader.onerror = () => {
+          reject(new Error('文件读取失败'));
+        };
+        
+        reader.readAsText(file);
+      });
     },
     
     // 自动验证所有计划的中挂情况
@@ -3375,6 +3609,12 @@ function initFiveStarModule(moduleId) {
           return;
         }
         
+        // 跳过已完成验证的计划
+        if (plan.isCompleted) {
+          console.log(`✅ 跳过已完成验证的计划: ${plan.planId} (结果: ${plan.result})`);
+          return;
+        }
+        
         console.log(`🔍 验证计划 ${plan.planId} 对所有 ${allHistoryData.length} 期历史数据`);
         
         // 初始化计划的验证结果统计
@@ -3439,6 +3679,7 @@ function initFiveStarModule(moduleId) {
         
         // 更新计划信息
         plan.result = newResult;
+        plan.isCompleted = true; // 标记为已完成验证
         plan.totalWins = totalWins;
         plan.totalPeriods = totalPeriods;
         plan.winningPeriods = winningPeriods;
@@ -3473,6 +3714,12 @@ function initFiveStarModule(moduleId) {
       
       if (updatedCount > 0) {
         console.log(`✅ 全历史期数验证完成，更新了 ${updatedCount} 个计划的结果`);
+        
+        // 保存更新后的计划数据到本地存储
+        if (typeof window.PlanStorageManager !== 'undefined' && window.PlanStorageManager.saveToLocalStorage) {
+          window.PlanStorageManager.saveToLocalStorage();
+          console.log('💾 已保存更新后的计划验证状态到本地存储');
+        }
         
         // 触发表格更新
         if (typeof window.updateVerifyPlanTable === 'function') {
@@ -3601,6 +3848,12 @@ function initFiveStarModule(moduleId) {
       
       if (updatedCount > 0) {
         console.log(`✅ 全期验证更新完成，更新了 ${updatedCount} 个计划的结果`);
+        
+        // 保存更新后的计划数据到本地存储
+        if (typeof window.PlanStorageManager !== 'undefined' && window.PlanStorageManager.saveToLocalStorage) {
+          window.PlanStorageManager.saveToLocalStorage();
+          console.log('💾 已保存更新后的计划验证状态到本地存储');
+        }
         
         // 更新验证计划表格
         if (typeof window.updateVerifyPlanTable === 'function') {
@@ -3848,29 +4101,30 @@ function initFiveStarModule(moduleId) {
       planHash: generatePlanHash(planNumbers, moduleState) // 生成计划唯一哈希
     };
     
-    // 创建验证计划记录 - 包含全期验证结果
+    // 创建验证计划记录 - 优化数据结构，只保留关键信息
     const verifyRecord = {
       period: latestPeriod.period, // 最新期数（用于显示）
       planNumbers: planNumbers,
       betCount: planNumbers.length,
       result: totalWins > 0 ? `中${totalWins}期` : '全挂', // 显示中奖期数
+      isCompleted: true, // 标记为已完成验证
       totalWins: totalWins,
       totalPeriods: totalPeriods,
       winRate: totalPeriods > 0 ? ((totalWins / totalPeriods) * 100).toFixed(2) + '%' : '0%',
-      winningPeriods: winningPeriods,
+      // 只保留最重要的中奖期数信息（最多保留3期）
+      winningPeriods: winningPeriods.slice(0, 3),
       latestData: latestPeriod.data,
       winningNumber: winningPeriods.length > 0 ? winningPeriods[0].winningNumber : null,
       timestamp: new Date().toLocaleString(),
       moduleId: currentModuleId, // 保留模块标识用于内部逻辑
       planId: `plan_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // 添加唯一计划ID
-      generationConditions: generationConditions, // 添加生成条件
-      planHash: generationConditions.planHash, // 计划唯一标识
-      verificationDetails: {
-        totalPeriods: totalPeriods,
-        totalWins: totalWins,
-        winRate: totalPeriods > 0 ? ((totalWins / totalPeriods) * 100).toFixed(2) + '%' : '0%',
-        winningPeriods: winningPeriods
-      }
+      // 简化生成条件，只保留核心信息
+      generationConditions: {
+        planHash: generationConditions.planHash,
+        moduleId: generationConditions.moduleId,
+        timestamp: generationConditions.timestamp
+      },
+      planHash: generationConditions.planHash // 计划唯一标识
     };
     console.log('创建的验证记录:', verifyRecord);
     
@@ -3880,8 +4134,8 @@ function initFiveStarModule(moduleId) {
       console.log('🔄 持续验证模式：已更新最后处理期数为', latestPeriod.period);
     }
     
-    // 使用计划存储管理器存储计划
-    const isStored = window.PlanStorageManager.storePlan(verifyRecord);
+    // 使用计划存储管理器存储计划（已验证）
+    const isStored = window.PlanStorageManager.storePlan(verifyRecord, true);
     
     if (!isStored) {
       // 理论上不会进入这里，storePlan 对重复计划会更新并返回 true
@@ -4212,6 +4466,18 @@ function initFiveStarModule(moduleId) {
     window.verifyPlanData.unshift(verifyRecord);
     console.log('✅ 计划已提交到单期验证:', displayName);
     console.log('当前验证计划数量:', window.verifyPlanData.length);
+    
+    // 自动保存到本地存储
+    if (window.PlanStorageManager && typeof window.PlanStorageManager.storePlan === 'function') {
+      try {
+        window.PlanStorageManager.storePlan(verifyRecord, true);
+        console.log('✅ 计划已自动保存到本地存储');
+      } catch (saveError) {
+        console.error('保存计划到本地存储失败:', saveError);
+      }
+    } else {
+      console.warn('⚠️ PlanStorageManager 不可用，无法自动保存');
+    }
     
     console.log('🔄 计划已提交到单期验证，将在下一期进行验证');
     
@@ -5117,6 +5383,25 @@ console.log('*** 当前时间戳:', Date.now(), '***');
 // 初始化命中码数按钮
 document.addEventListener('DOMContentLoaded', function() {
     console.log('*** DOMContentLoaded事件触发 ***');
+    
+    // 自动加载计划验证历史（但不触发验证表格更新）
+    if (window.PlanStorageManager && typeof window.PlanStorageManager.loadFromLocalStorage === 'function') {
+        setTimeout(() => {
+            window.PlanStorageManager.loadFromLocalStorage(true); // skipVerification = true，仅加载数据不更新表格
+        }, 100); // 延迟100ms确保页面完全加载
+    }
+    
+    // 初始化验证模式为单期验证，确保历史管理控件显示
+    setTimeout(() => {
+        if (typeof window.switchVerifyMode === 'function') {
+            const planHistoryControls = document.getElementById('planHistoryControls');
+            if (planHistoryControls) {
+                window.switchVerifyMode('single', true);
+                console.log('✅ 页面加载时验证模式初始化成功，历史管理控件已显示');
+            }
+        }
+    }, 200);
+    
     const S = document.getElementById("hitButtons");
     if (!S) {
         console.error('hitButtons元素未找到');
@@ -7259,6 +7544,35 @@ window.addEventListener('load', function() {
 // 验证计划数据存储（全局变量）
 window.verifyPlanData = window.verifyPlanData || [];
 
+// 验证状态管理器
+window.VerificationStateManager = {
+    isVerifying: false,
+    lastVerificationTime: 0,
+    verificationCooldown: 2000, // 2秒冷却时间
+    
+    canVerify: function() {
+        const now = Date.now();
+        return !this.isVerifying && (now - this.lastVerificationTime) > this.verificationCooldown;
+    },
+    
+    startVerification: function() {
+        this.isVerifying = true;
+        console.log('🔄 开始验证流程');
+    },
+    
+    endVerification: function() {
+        this.isVerifying = false;
+        this.lastVerificationTime = Date.now();
+        console.log('✅ 验证流程结束');
+    },
+    
+    reset: function() {
+        this.isVerifying = false;
+        this.lastVerificationTime = 0;
+        console.log('🔄 重置验证状态');
+    }
+};
+
 // 验证计划页面功能
 // 计算下一期期号的函数（全局函数）
 function calculateNextPeriod(currentPeriod) {
@@ -7642,9 +7956,21 @@ function displayHistoricalRecords(tableBody, currentPeriod) {
 window.singlePeriodPollingTimer = null;
 window.singlePeriodTargetPeriod = null;
 
-function updateSinglePeriodTable() {
+function updateSinglePeriodTable(pageSize = 20, currentPage = 1) {
+    // 检查验证状态管理器
+    if (!window.VerificationStateManager.canVerify()) {
+        console.log('⏸️ 验证正在进行中或在冷却期，跳过本次验证');
+        return;
+    }
+    
+    // 开始验证流程
+    window.VerificationStateManager.startVerification();
+    
     const singlePeriodTableBody = document.getElementById('singlePeriodTableBody');
-    if (!singlePeriodTableBody) return;
+    if (!singlePeriodTableBody) {
+        window.VerificationStateManager.endVerification();
+        return;
+    }
 
     // 获取验证计划
     const verifyPlans = window.verifyPlanData || [];
@@ -7662,6 +7988,45 @@ function updateSinglePeriodTable() {
                 </td>
             </tr>
         `;
+        window.VerificationStateManager.endVerification();
+        return;
+    }
+
+    // 性能优化：如果计划数量很多，实现分页显示
+    const totalPlans = validPlans.length;
+    if (totalPlans > pageSize) {
+        console.log(`📊 检测到大量验证计划(${totalPlans}条)，启用分页显示优化`);
+        
+        // 初始化分页状态
+        if (!window.singlePeriodPagination) {
+            window.singlePeriodPagination = {
+                currentPage: 1,
+                pageSize: pageSize,
+                totalPages: Math.ceil(totalPlans / pageSize)
+            };
+        }
+        
+        // 更新分页信息
+        window.singlePeriodPagination.totalPages = Math.ceil(totalPlans / pageSize);
+        window.singlePeriodPagination.currentPage = Math.min(currentPage, window.singlePeriodPagination.totalPages);
+        
+        // 计算当前页的数据范围
+        const startIndex = (window.singlePeriodPagination.currentPage - 1) * pageSize;
+        const endIndex = Math.min(startIndex + pageSize, totalPlans);
+        const currentPagePlans = validPlans.slice(startIndex, endIndex);
+        
+        console.log(`📄 显示第 ${window.singlePeriodPagination.currentPage}/${window.singlePeriodPagination.totalPages} 页，共 ${currentPagePlans.length} 条记录`);
+        
+        // 显示分页信息
+        this.showPaginationInfo(singlePeriodTableBody, window.singlePeriodPagination, totalPlans);
+        
+        // 处理当前页的计划
+        this.processPlansPage(currentPagePlans, singlePeriodTableBody);
+        
+        // 显示分页控件
+        this.showPaginationControls(singlePeriodTableBody, window.singlePeriodPagination);
+        
+        window.VerificationStateManager.endVerification();
         return;
     }
 
@@ -7681,6 +8046,7 @@ function updateSinglePeriodTable() {
                 </td>
             </tr>
         `;
+        window.VerificationStateManager.endVerification();
         return;
     }
 
@@ -7689,13 +8055,62 @@ function updateSinglePeriodTable() {
     // 按期号排序，最新的在前
     dataSource = dataSource.sort((a, b) => parseInt(b.period) - parseInt(a.period));
     
+    // 获取最新期号，用于缓存验证
+    const latestPeriod = dataSource.length > 0 ? dataSource[0].period : null;
+    
+    // 检查是否需要重新验证（数据源更新时）
+    const needsRevalidation = !window.lastValidatedPeriod || window.lastValidatedPeriod !== latestPeriod;
+    if (needsRevalidation) {
+        console.log('检测到数据源更新，期号从', window.lastValidatedPeriod, '更新到', latestPeriod);
+        window.lastValidatedPeriod = latestPeriod;
+    }
+    
+    // 使用文档片段优化DOM操作
+    const fragment = document.createDocumentFragment();
+    
     // 对每个计划进行验证，每个计划验证2期后停止
     validPlans.forEach(plan => {
         if (!plan.planNumbers || plan.planNumbers.length === 0) return;
         
+        // 如果计划已完成多期验证，跳过单期验证逻辑
+        if (plan.isCompleted) {
+            console.log('计划', plan.displayName || plan.planHash, '已完成多期验证，跳过单期验证');
+            // 显示已完成状态的行
+            const row = createSinglePeriodRowPending(null, plan, { period: plan.period || '已验证' });
+            if (row) fragment.appendChild(row);
+            return;
+        }
+        
         // 初始化验证状态
         if (!plan.singlePeriodVerificationResults) {
             plan.singlePeriodVerificationResults = [];
+        }
+        
+        // 检查是否有缓存的验证结果且数据源未更新
+        if (!needsRevalidation && plan.singlePeriodVerificationResults.length > 0) {
+            console.log('计划', plan.displayName || plan.planHash, '使用缓存的验证结果，跳过重复验证');
+            
+            // 使用缓存结果显示
+            if (plan.singlePeriodVerificationResults.length >= 2) {
+                // 显示第二期验证结果
+                const secondResult = plan.singlePeriodVerificationResults[1];
+                if (secondResult) {
+                    let row;
+                    if (secondResult.hasDrawn) {
+                        row = createSinglePeriodRow(null, plan, secondResult.periodData, secondResult.periodWin, secondResult.winningNumber, secondResult.drawNumbers);
+                    } else {
+                        row = createSinglePeriodRowPending(null, plan, secondResult.periodData);
+                    }
+                    if (row) fragment.appendChild(row);
+                }
+            } else if (plan.singlePeriodVerificationResults.length === 1) {
+                // 只有第一期结果，显示下一期待验证
+                const firstResult = plan.singlePeriodVerificationResults[0];
+                const nextPeriodNumber = calculateNextPeriod(firstResult.periodData.period);
+                const row = createSinglePeriodRowPending(null, plan, { period: nextPeriodNumber });
+                if (row) fragment.appendChild(row);
+            }
+            return;
         }
         
         // 如果已经验证了2期，只显示第二期结果，不再更新
@@ -7705,13 +8120,15 @@ function updateSinglePeriodTable() {
             // 只显示第二期验证结果（第一期在后台运行不显示）
             const secondResult = plan.singlePeriodVerificationResults[1];
             if (secondResult) {
+                let row;
                 if (secondResult.hasDrawn) {
                     // 第二期已开奖
-                    createSinglePeriodRow(singlePeriodTableBody, plan, secondResult.periodData, secondResult.periodWin, secondResult.winningNumber, secondResult.drawNumbers);
+                    row = createSinglePeriodRow(null, plan, secondResult.periodData, secondResult.periodWin, secondResult.winningNumber, secondResult.drawNumbers);
                 } else {
                     // 第二期未开奖
-                    createSinglePeriodRowPending(singlePeriodTableBody, plan, secondResult.periodData);
+                    row = createSinglePeriodRowPending(null, plan, secondResult.periodData);
                 }
+                if (row) fragment.appendChild(row);
             }
             return;
         }
@@ -7831,19 +8248,35 @@ function updateSinglePeriodTable() {
                     console.log('计划', plan.displayName || plan.planHash, '验证第2期:', nextPeriod.period, '结果:', periodWin ? '中' : '挂', '验证完成');
                     
                     // 显示第二期已开奖的验证结果
-                    createSinglePeriodRow(singlePeriodTableBody, plan, nextPeriod, periodWin, winningNumber, drawNumbers);
+                    const row = createSinglePeriodRow(null, plan, nextPeriod, periodWin, winningNumber, drawNumbers);
+                    if (row) fragment.appendChild(row);
                 } else {
                     // 第二期未开奖，显示待验证状态
-                    createSinglePeriodRowPending(singlePeriodTableBody, plan, nextPeriod);
+                    const row = createSinglePeriodRowPending(null, plan, nextPeriod);
+                    if (row) fragment.appendChild(row);
                 }
             }
         }
     });
 
+    // 一次性将所有行添加到表格中，优化DOM性能
+    if (fragment.children.length > 0) {
+        singlePeriodTableBody.appendChild(fragment);
+    }
+
     // 更新单期验证控制信息
     updateSinglePeriodControls();
     
+    // 保存验证结果到本地存储
+    if (typeof window.PlanStorageManager !== 'undefined' && window.PlanStorageManager.saveToLocalStorage) {
+        window.PlanStorageManager.saveToLocalStorage();
+        console.log('💾 单期验证结果已保存到本地存储');
+    }
+    
     console.log('updateSinglePeriodTable: 表格更新完成，使用多期验证逻辑一期一排显示');
+    
+    // 结束验证流程
+    window.VerificationStateManager.endVerification();
 }
 
 // 为每一期创建一行记录
@@ -7961,7 +8394,12 @@ function createSinglePeriodRow(tableBody, plan, periodData, periodWin, winningNu
     actionCell.appendChild(deleteBtn);
     row.appendChild(actionCell);
     
-    tableBody.appendChild(row);
+    // 如果提供了tableBody，直接添加；否则返回行元素
+    if (tableBody) {
+        tableBody.appendChild(row);
+    } else {
+        return row;
+    }
 }
 
 // 为未开奖期创建待验证记录
@@ -7998,7 +8436,22 @@ function createSinglePeriodRowPending(tableBody, plan, periodData) {
     const statusCell = document.createElement('td');
     statusCell.className = 'border border-gray-300 px-3 py-2 text-center';
     statusCell.style.width = '80px';
-    statusCell.innerHTML = `<span class="text-blue-600 font-bold">待验证</span>`;
+    
+    // 根据isCompleted字段显示正确的状态
+    if (plan.isCompleted) {
+        // 已完成验证，显示验证结果
+        const result = plan.result || '已验证';
+        if (result.includes('中')) {
+            statusCell.innerHTML = `<span class="text-green-600 font-bold">${result}</span>`;
+        } else if (result.includes('挂')) {
+            statusCell.innerHTML = `<span class="text-red-600 font-bold">${result}</span>`;
+        } else {
+            statusCell.innerHTML = `<span class="text-gray-600 font-bold">${result}</span>`;
+        }
+    } else {
+        // 未完成验证，显示待验证状态
+        statusCell.innerHTML = `<span class="text-blue-600 font-bold">待验证</span>`;
+    }
     row.appendChild(statusCell);
     
     // 计划规则列
@@ -8071,7 +8524,12 @@ function createSinglePeriodRowPending(tableBody, plan, periodData) {
     actionCell.appendChild(deleteBtn);
     row.appendChild(actionCell);
     
-    tableBody.appendChild(row);
+    // 如果提供了tableBody，直接添加；否则返回行元素
+    if (tableBody) {
+        tableBody.appendChild(row);
+    } else {
+        return row;
+    }
 }
 
 // 移除单期验证轮询功能 - startSinglePeriodPolling函数已删除
@@ -8121,6 +8579,145 @@ function deleteSinglePlan(planHash, currentPeriod) {
   
   // 移除删除成功的弹窗提示
 }
+
+// 分页辅助函数
+function showPaginationInfo(currentPage, totalPages, totalPlans) {
+    console.log(`📄 分页信息: 第${currentPage}页/共${totalPages}页，总计${totalPlans}个计划`);
+}
+
+function processPlansPage(plans, fragment) {
+    // 获取数据源
+    let dataSource = null;
+    if (window.r && Array.isArray(window.r) && window.r.length > 0) {
+        dataSource = window.r;
+    } else if (window.historyData && Array.isArray(window.historyData) && window.historyData.length > 0) {
+        dataSource = window.historyData;
+    } else {
+        console.warn('⚠️ 没有可用的数据源');
+        return;
+    }
+
+    // 按期号排序，最新的在前
+    dataSource = dataSource.sort((a, b) => parseInt(b.period) - parseInt(a.period));
+
+    // 处理每个计划
+    plans.forEach(plan => {
+        if (!plan.planNumbers || plan.planNumbers.length === 0) return;
+
+        // 如果计划已完成多期验证，跳过单期验证逻辑
+        if (plan.isCompleted) {
+            const row = createSinglePeriodRowPending(null, plan, { period: plan.period || '已验证' });
+            if (row) fragment.appendChild(row);
+            return;
+        }
+
+        // 初始化验证状态
+        if (!plan.singlePeriodVerificationResults) {
+            plan.singlePeriodVerificationResults = [];
+        }
+
+        // 找到最近一期已开奖的数据
+        const latestDrawnPeriod = dataSource.find(periodData => 
+            periodData && periodData.data && periodData.data.length >= 5
+        );
+
+        if (latestDrawnPeriod) {
+            // 验证最近一期已开奖的数据
+            const drawNumbers = latestDrawnPeriod.data;
+            let periodWin = false;
+            let winningNumber = null;
+
+            // 验证计划中的每注号码
+            for (const numberStr of plan.planNumbers) {
+                const numbers = numberStr.split(' ').map(n => parseInt(n.trim()));
+                
+                // 根据计划的星级确定需要匹配的位数
+                const conditions = plan.generationConditions || {};
+                const moduleType = conditions.moduleType || '5星做号';
+                const starLevel = parseInt(moduleType.match(/(\d+)星/)?.[1]) || 5;
+                
+                // 检查是否为有效的号码
+                if (numbers.length === starLevel && numbers.every(n => !isNaN(n))) {
+                    // 严格判定：前几位顺序完全一致才算中
+                    const frontNumbers = drawNumbers.slice(0, starLevel);
+                    const exactMatch = numbers.every((num, idx) => num === frontNumbers[idx]);
+                    
+                    if (exactMatch) {
+                        periodWin = true;
+                        winningNumber = numberStr;
+                        break;
+                    }
+                }
+            }
+
+            // 创建表格行
+            const row = createSinglePeriodRow(null, plan, latestDrawnPeriod, periodWin, winningNumber, drawNumbers);
+            if (row) fragment.appendChild(row);
+        }
+    });
+}
+
+function showPaginationControls(currentPage, totalPages, pageSize) {
+    const controlsContainer = document.getElementById('single-period-pagination-controls');
+    if (!controlsContainer) {
+        // 创建分页控件容器
+        const container = document.createElement('div');
+        container.id = 'single-period-pagination-controls';
+        container.className = 'flex justify-center items-center space-x-2 mt-4';
+        
+        const tableContainer = document.querySelector('#single-period-table').parentNode;
+        tableContainer.appendChild(container);
+    }
+
+    const container = document.getElementById('single-period-pagination-controls');
+    container.innerHTML = '';
+
+    if (totalPages <= 1) return;
+
+    // 首页按钮
+    if (currentPage > 1) {
+        const firstBtn = document.createElement('button');
+        firstBtn.className = 'px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600';
+        firstBtn.textContent = '首页';
+        firstBtn.onclick = () => updateSinglePeriodTable(pageSize, 1);
+        container.appendChild(firstBtn);
+    }
+
+    // 上一页按钮
+    if (currentPage > 1) {
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600';
+        prevBtn.textContent = '上一页';
+        prevBtn.onclick = () => updateSinglePeriodTable(pageSize, currentPage - 1);
+        container.appendChild(prevBtn);
+    }
+
+    // 页码信息
+    const pageInfo = document.createElement('span');
+    pageInfo.className = 'px-3 py-1 text-gray-700';
+    pageInfo.textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
+    container.appendChild(pageInfo);
+
+    // 下一页按钮
+    if (currentPage < totalPages) {
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600';
+        nextBtn.textContent = '下一页';
+        nextBtn.onclick = () => updateSinglePeriodTable(pageSize, currentPage + 1);
+        container.appendChild(nextBtn);
+    }
+
+    // 末页按钮
+    if (currentPage < totalPages) {
+        const lastBtn = document.createElement('button');
+        lastBtn.className = 'px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600';
+        lastBtn.textContent = '末页';
+        lastBtn.onclick = () => updateSinglePeriodTable(pageSize, totalPages);
+        container.appendChild(lastBtn);
+    }
+}
+
+
 
 // 删除历史记录的函数
 function deleteHistoricalRecord(recordId) {
@@ -8201,16 +8798,31 @@ document.addEventListener('DOMContentLoaded', function() {
     // 当前验证模式状态
     let currentVerifyMode = 'single'; // 'multi' 或 'single'
     
-    // 验证模式切换函数
-    function switchVerifyMode(mode) {
-        currentVerifyMode = mode;
+    // 验证模式切换函数 - 移到全局作用域
+    window.switchVerifyMode = function(mode, skipTableUpdate = false) {
+        // 获取必要的元素
+        const multiPeriodModeBtn = document.getElementById('multiPeriodModeBtn');
+        const singlePeriodModeBtn = document.getElementById('singlePeriodModeBtn');
+        const multiPeriodTable = document.getElementById('multiPeriodTable');
+        const singlePeriodTable = document.getElementById('singlePeriodTable');
+        const planHistoryControls = document.getElementById('planHistoryControls');
+        
+        window.currentVerifyMode = mode;
         
         if (mode === 'single') {
             // 切换到单期验证模式
-            multiPeriodModeBtn.className = 'px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium transition-colors hover:bg-gray-200';
-            singlePeriodModeBtn.className = 'px-4 py-2 bg-blue-500 text-white text-sm font-medium transition-colors hover:bg-blue-600';
-            multiPeriodTable.classList.add('hidden');
-            singlePeriodTable.classList.remove('hidden');
+            if (multiPeriodModeBtn) multiPeriodModeBtn.className = 'px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium transition-colors hover:bg-gray-200';
+            if (singlePeriodModeBtn) singlePeriodModeBtn.className = 'px-4 py-2 bg-blue-500 text-white text-sm font-medium transition-colors hover:bg-blue-600';
+            if (multiPeriodTable) multiPeriodTable.classList.add('hidden');
+            if (singlePeriodTable) singlePeriodTable.classList.remove('hidden');
+            
+            // 显示计划验证历史管理控件
+            if (planHistoryControls) {
+                planHistoryControls.style.display = 'block';
+                if (typeof updateHistoryCount === 'function') {
+                    updateHistoryCount();
+                }
+            }
             
             // 只在没有目标期号时才重新计算，保持已有的验证状态
             if (!window.singleVerifyTargetPeriod) {
@@ -8219,29 +8831,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('单期验证：保持现有目标期号:', window.singleVerifyTargetPeriod);
             }
             
-            // 更新单期验证表格
-            updateSinglePeriodTable();
+            // 更新单期验证表格（除非跳过表格更新）
+            if (!skipTableUpdate && typeof updateSinglePeriodTable === 'function') {
+                updateSinglePeriodTable();
+            }
         } else {
             // 切换到多期验证模式
-            multiPeriodModeBtn.className = 'px-4 py-2 bg-blue-500 text-white text-sm font-medium transition-colors hover:bg-blue-600';
-            singlePeriodModeBtn.className = 'px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium transition-colors hover:bg-gray-200';
-            multiPeriodTable.classList.remove('hidden');
-            singlePeriodTable.classList.add('hidden');
+            if (multiPeriodModeBtn) multiPeriodModeBtn.className = 'px-4 py-2 bg-blue-500 text-white text-sm font-medium transition-colors hover:bg-blue-600';
+            if (singlePeriodModeBtn) singlePeriodModeBtn.className = 'px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium transition-colors hover:bg-gray-200';
+            if (multiPeriodTable) multiPeriodTable.classList.remove('hidden');
+            if (singlePeriodTable) singlePeriodTable.classList.add('hidden');
+            
+            // 隐藏计划验证历史管理控件
+            if (planHistoryControls) {
+                planHistoryControls.style.display = 'none';
+            }
             
             // 更新多期验证表格
-            window.updateVerifyPlanTable();
+            if (typeof window.updateVerifyPlanTable === 'function') {
+                window.updateVerifyPlanTable();
+            }
         }
-    }
+    };
     
 
     
     // 绑定切换按钮事件
     if (multiPeriodModeBtn) {
-        multiPeriodModeBtn.addEventListener('click', () => switchVerifyMode('multi'));
+        multiPeriodModeBtn.addEventListener('click', () => window.switchVerifyMode('multi'));
     }
     
     if (singlePeriodModeBtn) {
-        singlePeriodModeBtn.addEventListener('click', () => switchVerifyMode('single'));
+        singlePeriodModeBtn.addEventListener('click', () => window.switchVerifyMode('single'));
     }
     
     // 切换到验证计划页面的函数
@@ -8338,8 +8959,19 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('验证计划页面已激活，数据更新已启动');
         
         // 初始化验证模式为单期验证
-        if (typeof switchVerifyMode === 'function') {
-            switchVerifyMode('single');
+        if (typeof window.switchVerifyMode === 'function') {
+            // 延迟执行以确保DOM元素完全加载，并添加重试机制
+            const initializeVerifyMode = () => {
+                const planHistoryControls = document.getElementById('planHistoryControls');
+                if (planHistoryControls) {
+                    window.switchVerifyMode('single');
+                    console.log('✅ 验证模式初始化成功，历史管理控件已显示');
+                } else {
+                    // 如果元素还没有加载，再次延迟重试
+                    setTimeout(initializeVerifyMode, 200);
+                }
+            };
+            setTimeout(initializeVerifyMode, 300);
         }
     };
     
@@ -9778,6 +10410,66 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 初始化交集拼接页面
     initIntersectionCutPage();
+    
+    // 历史记录数量更新函数
+    function updateHistoryCount() {
+        const historyCount = document.getElementById('historyCount');
+        if (historyCount && window.verifyPlanData) {
+            historyCount.textContent = `已保存 ${window.verifyPlanData.length} 条记录`;
+        }
+    }
+    
+    // 历史管理按钮事件监听器
+    const exportHistoryBtn = document.getElementById('exportHistoryBtn');
+    const importHistoryBtn = document.getElementById('importHistoryBtn');
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+    const importFileInput = document.getElementById('importFileInput');
+    
+    if (exportHistoryBtn) {
+        exportHistoryBtn.addEventListener('click', function() {
+            if (window.PlanStorageManager && typeof window.PlanStorageManager.exportToFile === 'function') {
+                window.PlanStorageManager.exportToFile();
+            } else {
+                alert('导出功能不可用');
+            }
+        });
+    }
+    
+    if (importHistoryBtn) {
+        importHistoryBtn.addEventListener('click', function() {
+            if (importFileInput) {
+                importFileInput.click();
+            }
+        });
+    }
+    
+    if (importFileInput) {
+        importFileInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file && window.PlanStorageManager && typeof window.PlanStorageManager.importFromFile === 'function') {
+                window.PlanStorageManager.importFromFile(file);
+                // 重置文件输入，允许重复选择同一文件
+                event.target.value = '';
+            }
+        });
+    }
+    
+    if (clearHistoryBtn) {
+        clearHistoryBtn.addEventListener('click', function() {
+            if (confirm('确定要清空所有计划验证历史吗？此操作不可恢复。')) {
+                if (window.PlanStorageManager && typeof window.PlanStorageManager.clearAllPlans === 'function') {
+                    window.PlanStorageManager.clearAllPlans();
+                    updateHistoryCount();
+                    alert('计划验证历史已清空');
+                } else {
+                    alert('清空功能不可用');
+                }
+            }
+        });
+    }
+    
+    // 页面加载时更新历史记录数量
+    updateHistoryCount();
     
     // 添加测试数据功能（仅用于本地测试）
     window.addTestData = function() {
