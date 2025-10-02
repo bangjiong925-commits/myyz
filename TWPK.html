@@ -6719,7 +6719,8 @@ const numToSelect = selectedNums.length > 0 ? selectedNums[0] : (numSelect && nu
 // 检查是否有选择条件，如果都没有选择则使用默认逻辑
 if (selectedHitNumbers.length > 0 && c.length > 0) {
   // 根据前五码数、命中码数、命中数字进行筛选
-  const allCombos = R(i, numToSelect); // 生成所有可能的组合
+  // 只从选中的命中数字中生成组合
+  const allCombos = R(selectedHitNumbers, numToSelect);
   
   const validCombos = allCombos.filter(combo => {
     // 检查组合中包含的命中数字个数
