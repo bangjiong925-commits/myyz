@@ -6719,94 +6719,23 @@ const numToSelect = selectedNums.length > 0 ? selectedNums[0] : (numSelect && nu
 // 检查是否有选择条件，如果都没有选择则使用默认逻辑
 if (selectedHitNumbers.length > 0 && c.length > 0) {
   // 根据前五码数、命中码数、命中数字进行筛选
+  const allCombos = R(i, numToSelect); // 生成所有可能的组合
   
-  if ((numToSelect === 3 || numToSelect === 5) && selectedHitNumbers.length === 6 && 
-      selectedHitNumbers.every(num => num >= 1 && num <= 6) &&
-      selectedHitNumbers.includes(1) && selectedHitNumbers.includes(2) && 
-      selectedHitNumbers.includes(3) && selectedHitNumbers.includes(4) && 
-      selectedHitNumbers.includes(5) && selectedHitNumbers.includes(6) &&
-      c.includes(2) && c.includes(3)) {
-      
-    if (numToSelect === 3) {
-      // 特殊情况：3码，命中数字1-6，命中码数2和3
-      // 从1-10中选3个数字，包含1-6中的2个或3个数字
-      const allNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-      const hitNumbers = [1, 2, 3, 4, 5, 6]; // 1-6
-      const nonHitNumbers = [7, 8, 9, 10]; // 7-10
-      
-      // 包含1-6中2个数字的情况：C(6,2) * C(4,1) * A(3,3) = 15 * 4 * 6 = 360
-      const hit2Combos = R(hitNumbers, 2); // C(6,2) = 15种组合
-      hit2Combos.forEach(hit2 => {
-        nonHitNumbers.forEach(nonHit => {
-          const combo = [...hit2, nonHit]; // 3个数字的组合
-          // 生成所有排列 A(3,3) = 6种排列
-          const perms = generatePermutations(combo);
-          filteredCombos.push(...perms);
-        });
-      });
-      
-      // 包含1-6中3个数字的情况：C(6,3) * A(3,3) = 20 * 6 = 120
-      const hit3Combos = R(hitNumbers, 3); // C(6,3) = 20种组合
-      hit3Combos.forEach(hit3 => {
-        // 生成所有排列 A(3,3) = 6种排列
-        const perms = generatePermutations(hit3);
-        filteredCombos.push(...perms);
-      });
-      
-      // 总计：360 + 120 = 480注
-    } else if (numToSelect === 5) {
-      // 特殊情况：5码，命中数字1-6，命中码数2和3
-      // 从1-10中选5个数字，包含1-6中的2个或3个数字
-      const allNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-      const hitNumbers = [1, 2, 3, 4, 5, 6]; // 1-6
-      const nonHitNumbers = [7, 8, 9, 10]; // 7-10
-      
-      // 包含1-6中2个数字的情况：C(6,2) * C(4,3) * A(5,5) = 15 * 4 * 120 = 7200
-      const hit2Combos = R(hitNumbers, 2); // C(6,2) = 15种组合
-      const nonHit3Combos = R(nonHitNumbers, 3); // C(4,3) = 4种组合
-      hit2Combos.forEach(hit2 => {
-        nonHit3Combos.forEach(nonHit3 => {
-          const combo = [...hit2, ...nonHit3]; // 5个数字的组合
-          // 生成所有排列 A(5,5) = 120种排列
-          const perms = generatePermutations(combo);
-          filteredCombos.push(...perms);
-        });
-      });
-      
-      // 包含1-6中3个数字的情况：C(6,3) * C(4,2) * A(5,5) = 20 * 6 * 120 = 14400
-      const hit3Combos = R(hitNumbers, 3); // C(6,3) = 20种组合
-      const nonHit2Combos = R(nonHitNumbers, 2); // C(4,2) = 6种组合
-      hit3Combos.forEach(hit3 => {
-        nonHit2Combos.forEach(nonHit2 => {
-          const combo = [...hit3, ...nonHit2]; // 5个数字的组合
-          // 生成所有排列 A(5,5) = 120种排列
-          const perms = generatePermutations(combo);
-          filteredCombos.push(...perms);
-        });
-      });
-      
-      // 总计：7200 + 14400 = 21600注
-    }
-  } else {
-    // 原有逻辑
-    const allCombos = R(i, numToSelect); // 生成所有可能的组合
-    
-    const validCombos = allCombos.filter(combo => {
-      // 检查组合中包含的命中数字个数
-      const hitCount = combo.filter(num => selectedHitNumbers.includes(num)).length;
-      return c.includes(hitCount); // 命中个数必须在选中的命中码数范围内
+  const validCombos = allCombos.filter(combo => {
+    // 检查组合中包含的命中数字个数
+    const hitCount = combo.filter(num => selectedHitNumbers.includes(num)).length;
+    return c.includes(hitCount); // 命中个数必须在选中的命中码数范围内
+  });
+  
+  // 对每个有效组合进行展开：将每个数字轮流置为第1位
+  filteredCombos = [];
+  validCombos.forEach(combo => {
+    combo.forEach(firstNum => {
+      const remainingNums = combo.filter(num => num !== firstNum).sort((a, b) => a - b);
+      const expandedCombo = [firstNum, ...remainingNums];
+      filteredCombos.push(expandedCombo);
     });
-    
-    // 对每个有效组合进行展开：将每个数字轮流置为第1位
-    filteredCombos = [];
-    validCombos.forEach(combo => {
-      combo.forEach(firstNum => {
-        const remainingNums = combo.filter(num => num !== firstNum).sort((a, b) => a - b);
-        const expandedCombo = [firstNum, ...remainingNums];
-        filteredCombos.push(expandedCombo);
-      });
-    });
-  }
+  });
 } else {
   // 当没有选择命中数字或命中码数时的默认逻辑
   if (selectedNums.length > 0) {
@@ -6920,12 +6849,20 @@ function getFilteredData() {
         });
     }
     
-    if (selectedHitNumbers.length === 5) {
-        // 仅当用户选择了5个命中号码时，按严格顺序筛选
-        filteredData = filteredData.filter(item => {
-            const firstFive = item.data.slice(0, 5);
-            return selectedHitNumbers.every((num, idx) => num === firstFive[idx]);
-        });
+    if (selectedHitNumbers.length > 0) {
+        // 获取选中的命中码数（胆码数量）
+        const selectedHitCounts = Array.from(document.querySelectorAll("#hitButtons .btn-active")).map(btn => parseInt(btn.dataset.hit));
+        
+        if (selectedHitCounts.length > 0) {
+            // 根据命中数字和命中码数进行筛选
+            filteredData = filteredData.filter(item => {
+                const firstFive = item.data.slice(0, 5);
+                // 计算前5位开奖号码中有多少个在选中的命中数字中
+                const hitCount = firstFive.filter(num => selectedHitNumbers.includes(num)).length;
+                // 检查命中数量是否在选中的命中码数范围内
+                return selectedHitCounts.includes(hitCount);
+            });
+        }
     }
     
     return filteredData;
