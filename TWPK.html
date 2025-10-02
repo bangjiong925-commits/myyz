@@ -1237,6 +1237,12 @@
               </div>
             </div>
             
+            <!-- 中出筛选 -->
+            <div class="flex-shrink-0 bg-blue-50 p-3 rounded-lg border border-blue-100">
+              <label class="block text-sm font-medium text-gray-700 mb-2">命中码数：</label>
+              <div id="hitButtons" class="flex flex-wrap gap-2"></div>
+            </div>
+            
             <!-- 命中数字选择 -->
             <div class="flex-shrink-0 bg-blue-50 p-3 rounded-lg border border-blue-100">
               <label class="block text-sm font-medium text-gray-700 mb-2">命中数字：</label>
@@ -1252,12 +1258,6 @@
                 <button class="hit-number-btn px-3 py-1 rounded-md bg-gray-200 btn-hover" data-number="9">9</button>
                 <button class="hit-number-btn px-3 py-1 rounded-md bg-gray-200 btn-hover" data-number="10">10</button>
               </div>
-            </div>
-            
-            <!-- 中出筛选 -->
-            <div class="flex-shrink-0 bg-blue-50 p-3 rounded-lg border border-blue-100">
-              <label class="block text-sm font-medium text-gray-700 mb-2">命中码数：</label>
-              <div id="hitButtons" class="flex flex-wrap gap-2"></div>
             </div>
             
             <!-- 确认按钮 -->
@@ -6716,42 +6716,20 @@ let filteredCombos = [];
 // 获取前五码数选择
 const numToSelect = selectedNums.length > 0 ? selectedNums[0] : (numSelect && numSelect.value ? parseInt(numSelect.value) : 3);
 
-// 按优先级顺序进行筛选：1.码数 → 2.位置 → 3.命中数字 → 4.命中码数
-
-// 第1优先级：码数选择 - 确定组合大小（默认3码，表示前几名）
-// numToSelect 已经在上面定义，表示要选择的码数
-
-// 第2优先级：位置筛选 - 确定候选数字池
-let candidateNumbers = i; // 默认使用1-10的所有数字
-if (selectedPositions.length > 0) {
-  // 如果选择了位置，从历史数据中提取这些位置上出现过的数字
-  const positionNumbers = new Set();
-  // 获取最近的历史数据来确定位置上的候选数字
-  const recentData = n.slice(0, Math.min(100, n.length)); // 取最近100期数据
-  recentData.forEach(record => {
-    const allPositions = record.data.slice(0, 8);
-    selectedPositions.forEach(pos => {
-      if (pos >= 1 && pos <= 8) {
-        positionNumbers.add(allPositions[pos - 1]);
-      }
-    });
-  });
-  candidateNumbers = Array.from(positionNumbers).filter(num => num >= 1 && num <= 10).sort((a, b) => a - b);
-}
-
-// 第3优先级：命中数字筛选 - 进一步缩小候选数字池
-if (selectedHitNumbers.length > 0) {
-  // 如果选择了命中数字，取候选数字池与命中数字的交集
-  candidateNumbers = candidateNumbers.filter(num => selectedHitNumbers.includes(num));
-}
-
-// 生成组合
-if (candidateNumbers.length >= numToSelect) {
-  const allCombos = R(candidateNumbers, numToSelect);
+// 检查是否有选择条件，如果都没有选择则使用默认逻辑
+if (selectedHitNumbers.length > 0 && c.length > 0) {
+  // 根据前五码数、命中码数、命中数字进行筛选
+  const allCombos = R(i, numToSelect); // 生成所有可能的组合
   
-  // 对每个组合进行展开：将每个数字轮流置为第1位
+  const validCombos = allCombos.filter(combo => {
+    // 检查组合中包含的命中数字个数
+    const hitCount = combo.filter(num => selectedHitNumbers.includes(num)).length;
+    return c.includes(hitCount); // 命中个数必须在选中的命中码数范围内
+  });
+  
+  // 对每个有效组合进行展开：将每个数字轮流置为第1位
   filteredCombos = [];
-  allCombos.forEach(combo => {
+  validCombos.forEach(combo => {
     combo.forEach(firstNum => {
       const remainingNums = combo.filter(num => num !== firstNum).sort((a, b) => a - b);
       const expandedCombo = [firstNum, ...remainingNums];
@@ -6759,7 +6737,7 @@ if (candidateNumbers.length >= numToSelect) {
     });
   });
 } else {
-  // 候选数字不足，使用默认逻辑
+  // 当没有选择命中数字或命中码数时的默认逻辑
   if (selectedNums.length > 0) {
     filteredCombos = selectedNums.flatMap(o=>o>0&&o<=10?R(i,o):[]);
   } else {
@@ -6800,42 +6778,11 @@ console.log('当前页面:', currentPage, '是否超出范围:', currentPage > t
 if (currentPage > totalPages) {
     currentPage = 1;
     console.log('当前页面超出范围，重置到第一页');
-}a.forEach(t=>{let e=0;for(let n=s.length-1;n>=0;n--){const o=s[n].rec,allPositions=o.data.slice(0,8);let r=0;
-// 第4优先级：命中码数筛选 - 根据命中胆码数判断是否命中
+}a.forEach(t=>{let e=0;for(let n=s.length-1;n>=0;n--){const o=s[n].rec,allPositions=o.data.slice(0,8);let r=0;if(selectedPositions.length>0){selectedPositions.forEach(pos=>{if(pos>=1&&pos<=8&&t.split(",").map(t=>+t).includes(allPositions[pos-1])){r++}});}else{// 修改筛选逻辑：数字相同但顺序不同算作同一个结果
 const comboNumbers = t.split(",").map(t=>+t).sort((a,b)=>a-b);
 const frontFiveSorted = allPositions.slice(0,5).sort((a,b)=>a-b);
-
-// 计算组合中的数字在前五位开奖号码中出现的次数
-r = comboNumbers.filter(num => frontFiveSorted.includes(num)).length;
-
-// 根据命中码数的新含义进行判断
-let shouldHit = false;
-if (c.length === 0) {
-  // 没有选择命中码数，显示所有组合
-  shouldHit = true;
-} else if (selectedHitNumbers.length > 0) {
-  // 如果选择了命中数字，需要根据新的命中码数含义判断
-  const hitInSelectedNumbers = comboNumbers.filter(num => selectedHitNumbers.includes(num)).length;
-  
-  for (const hitCount of c) {
-    if (hitCount === 0) {
-      // 0胆：一个都没命中（补集）
-      if (hitInSelectedNumbers === 0) {
-        shouldHit = true;
-        break;
-      }
-    } else {
-      // 1胆、2胆等：只命中指定个数
-      if (hitInSelectedNumbers === hitCount) {
-        shouldHit = true;
-        break;
-      }
-    }
-  }
-} else {
-  // 没有选择命中数字，使用原来的逻辑（组合在前五位中的命中数）
-  shouldHit = c.includes(r);
-}
+r = comboNumbers.filter(num => frontFiveSorted.includes(num)).length;}// 修复筛选逻辑：当没有选择命中码数时，显示所有组合
+const shouldHit = c.length === 0 || c.includes(r);
 if(shouldHit){
   s[n].cells[t]={txt:t,hit:!0};
   e=0;
