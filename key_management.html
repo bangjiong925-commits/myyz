@@ -676,7 +676,26 @@
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:3002/api';
+        // 自动检测API基础URL
+        function getApiBase() {
+            const hostname = window.location.hostname;
+            const protocol = window.location.protocol;
+            
+            // 如果是本地开发环境
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                return 'http://localhost:3002/api';
+            }
+            
+            // 如果是Vercel部署环境，使用相对路径的API
+            if (hostname.includes('vercel.app')) {
+                return '/api';
+            }
+            
+            // 其他环境，使用当前域名的API
+            return `${protocol}//${hostname}/api`;
+        }
+        
+        const API_BASE = getApiBase();
         let currentPage = 1;
         const pageSize = 10;
         let isAuthenticated = true; // 移除登录功能后，直接设置为true
@@ -719,7 +738,7 @@
         // 加载统计数据
         async function loadStats() {
             try {
-                const response = await fetch(`${API_BASE}/keys/stats/summary`);
+                const response = await fetch(`${API_BASE}/keys?path=stats`);
                 const result = await response.json();
 
                 if (result.success) {
@@ -808,7 +827,7 @@
             }
 
             try {
-                const response = await fetch(`${API_BASE}/keys`, {
+                const response = await fetch(`${API_BASE}/keys?path=create`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -853,7 +872,7 @@
             const key = document.getElementById('validate-key').value.trim();
 
             try {
-                const response = await fetch(`${API_BASE}/keys/validate`, {
+                const response = await fetch(`${API_BASE}/keys?path=validate`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -909,7 +928,7 @@
                 
                 if (status) params.append('status', status);
 
-                const response = await fetch(`${API_BASE}/keys?${params}`);
+                const response = await fetch(`${API_BASE}/keys?path=list&${params}`);
                 const result = await response.json();
 
                 if (result.success) {
@@ -985,7 +1004,7 @@
         // 查看密钥详情
         async function viewKeyDetails(key) {
             try {
-                const response = await fetch(`${API_BASE}/keys/${key}`);
+                const response = await fetch(`${API_BASE}/keys?path=details&key=${key}`);
                 const result = await response.json();
 
                 if (result.success) {
@@ -1103,9 +1122,8 @@
             if (!confirm('确定要删除这个密钥吗？此操作不可恢复！')) return;
 
             try {
-                const response = await fetch(`${API_BASE}/keys/${key}`, {
-                    method: 'DELETE',
-                    credentials: 'include'
+                const response = await fetch(`${API_BASE}/keys?path=delete&key=${encodeURIComponent(key)}`, {
+                    method: 'DELETE'
                 });
 
                 const result = await response.json();
