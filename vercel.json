@@ -4,12 +4,6 @@
       "runtime": "@vercel/node"
     }
   },
-  "rewrites": [
-    {
-      "source": "/api/keys/(.*)",
-      "destination": "/api/keys?path=$1"
-    }
-  ],
   "headers": [
     {
       "source": "/api/(.*)",
