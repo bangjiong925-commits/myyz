@@ -6,7 +6,7 @@ key generator.html
 *.key
 *.secret
 
-# 密钥管理系统
-key-management.html
-admin-panel.html
-backend-example.js
+# 敏感配置文件（保留这些以确保安全）
+.env
+.env.local
+.env.production
