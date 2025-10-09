@@ -1,5 +1,5 @@
 // Vercel Serverless Function for Key Management
-import { MongoClient } from 'mongodb';
+const { MongoClient } = require('mongodb');
 
 // MongoDB连接配置
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
@@ -51,7 +51,7 @@ function parseExpiration(expiration) {
     }
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
     // 设置CORS头
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
