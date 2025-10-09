@@ -2,7 +2,7 @@
 const { MongoClient } = require('mongodb');
 
 // MongoDB连接配置
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://Vercel-Admin-myyz-d:OyFOhcDOC2M6hGxp@myyz-d.amcwwek.mongodb.net/?retryWrites=true&w=majority';
 const DB_NAME = process.env.MONGODB_DB_NAME || 'key_management';
 
 let cachedClient = null;
@@ -12,10 +12,22 @@ async function connectToDatabase() {
         return cachedClient;
     }
     
-    const client = new MongoClient(MONGODB_URI);
-    await client.connect();
-    cachedClient = client;
-    return client;
+    try {
+        const client = new MongoClient(MONGODB_URI, {
+            appName: "vercel-key-management",
+            maxPoolSize: 10,
+            serverSelectionTimeoutMS: 5000,
+            socketTimeoutMS: 45000,
+        });
+        
+        await client.connect();
+        cachedClient = client;
+        console.log('Connected to MongoDB successfully');
+        return client;
+    } catch (error) {
+        console.error('MongoDB connection error:', error);
+        throw error;
+    }
 }
 
 // 生成随机密钥
