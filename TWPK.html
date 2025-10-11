@@ -7784,9 +7784,20 @@ async function fetchApiData() {
         let apiUrl, response, data;
         
         if (currentLotteryType === 'twpk10') {
-            // 台湾PK10 API
-            apiUrl = 'http://47.242.214.89/api/latest?limit=200';
-            console.log('使用台湾PK10 API:', apiUrl);
+            // 台湾PK10 API - 根据环境选择API端点
+            const isVercel = window.location.hostname.includes('vercel.app') || 
+                           window.location.hostname.includes('netlify.app') || 
+                           window.location.protocol === 'https:';
+            
+            if (isVercel) {
+                // Vercel环境使用代理API
+                apiUrl = '/api/taiwan-pk10-latest?limit=200';
+                console.log('使用Vercel代理API:', apiUrl);
+            } else {
+                // 本地环境直接调用原始API
+                apiUrl = 'http://47.242.214.89/api/latest?limit=200';
+                console.log('使用原始台湾PK10 API:', apiUrl);
+            }
             
             response = await fetch(apiUrl, {
                 method: 'GET',
@@ -8029,8 +8040,19 @@ window.fetchHistoryData = async function fetchHistoryData() {
         let allHistoryItems = [];
         
         for (const dateStr of dates) {
-            const historyApiUrl = `https://api.api68.com/pks/getPksHistoryList.do?lotCode=10057&date=${dateStr}`;
-            console.log(`步骤2.${dates.indexOf(dateStr) + 1}: 请求URL:`, historyApiUrl);
+            // 检测是否在Vercel环境下，使用相应的API端点
+            const isVercel = window.location.hostname.includes('vercel.app') || window.location.hostname.includes('myyz.vercel.app');
+            let historyApiUrl;
+            
+            if (isVercel) {
+                // Vercel环境下使用代理API
+                historyApiUrl = `/api/taiwan-pk10-data?date=${dateStr}`;
+                console.log(`步骤2.${dates.indexOf(dateStr) + 1}: Vercel环境，使用代理API:`, historyApiUrl);
+            } else {
+                // 本地环境直接调用外部API
+                historyApiUrl = `https://api.api68.com/pks/getPksHistoryList.do?lotCode=10057&date=${dateStr}`;
+                console.log(`步骤2.${dates.indexOf(dateStr) + 1}: 本地环境，直接调用API:`, historyApiUrl);
+            }
         
             let response;
             try {
@@ -8043,15 +8065,20 @@ window.fetchHistoryData = async function fetchHistoryData() {
                     }
                 });
             } catch (corsError) {
-                console.log(`CORS错误，尝试no-cors模式 (${dateStr}):`, corsError);
-                // 如果CORS失败，尝试no-cors模式
-                response = await fetch(historyApiUrl, {
-                    method: 'GET',
-                    mode: 'no-cors',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
+                console.log(`请求错误 (${dateStr}):`, corsError);
+                if (!isVercel) {
+                    // 本地环境尝试no-cors模式
+                    console.log(`CORS错误，尝试no-cors模式 (${dateStr}):`, corsError);
+                    response = await fetch(historyApiUrl, {
+                        method: 'GET',
+                        mode: 'no-cors',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                } else {
+                    throw corsError; // Vercel环境下直接抛出错误
+                }
             }
             
             if (!response.ok) {
@@ -8062,20 +8089,43 @@ window.fetchHistoryData = async function fetchHistoryData() {
             const data = await response.json();
             console.log(`步骤3.${dates.indexOf(dateStr) + 1}: ${dateStr} 历史数据API返回:`, data);
             
-            // 检查API返回的错误码
-            if (data.errorCode !== 0) {
-                console.warn(`API返回错误 (${dateStr}):`, data.message || '未知错误');
-                continue; // 跳过这个日期，继续下一个
+            let historyItems = [];
+            
+            if (isVercel) {
+                // Vercel API返回格式处理
+                if (data.success && data.data && Array.isArray(data.data)) {
+                    // 转换Vercel API格式到原始格式
+                    historyItems = data.data.map(item => ({
+                        preDrawIssue: item.issue || item.period,
+                        preDrawCode: item.numbersString,
+                        preDrawTime: item.drawTime || item.time
+                    }));
+                    console.log(`步骤4.${dates.indexOf(dateStr) + 1}: Vercel API ${dateStr} 获取到 ${historyItems.length} 条历史数据`);
+                } else if (!data.success) {
+                    console.warn(`Vercel API返回错误 (${dateStr}):`, data.error || '未知错误');
+                    continue; // 跳过这个日期，继续下一个
+                } else {
+                    console.warn(`${dateStr} Vercel API返回格式不正确`);
+                    continue;
+                }
+            } else {
+                // 原始API返回格式处理
+                if (data.errorCode !== 0) {
+                    console.warn(`API返回错误 (${dateStr}):`, data.message || '未知错误');
+                    continue; // 跳过这个日期，继续下一个
+                }
+                
+                // 解析历史数据
+                if (data && data.result && data.result.data && Array.isArray(data.result.data)) {
+                    historyItems = data.result.data;
+                    console.log(`步骤4.${dates.indexOf(dateStr) + 1}: 原始API ${dateStr} 获取到 ${historyItems.length} 条历史数据`);
+                } else {
+                    console.warn(`${dateStr} 原始API返回格式不正确`);
+                    continue;
+                }
             }
             
-            // 解析历史数据
-            if (data && data.result && data.result.data && Array.isArray(data.result.data)) {
-                const historyItems = data.result.data;
-                console.log(`步骤4.${dates.indexOf(dateStr) + 1}: ${dateStr} 获取到 ${historyItems.length} 条历史数据`);
-                allHistoryItems.push(...historyItems);
-            } else {
-                console.warn(`${dateStr} 历史数据API返回格式不正确`);
-            }
+            allHistoryItems.push(...historyItems);
         }
         
         console.log(`步骤3: 总共获取到 ${allHistoryItems.length} 条历史数据`);
