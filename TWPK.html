@@ -883,6 +883,9 @@
         width: 120px;
         transition: opacity 0.3s ease;
       }
+      .fixed-width-period.twpk10 {
+        width: 90px;
+      }
       .fixed-width-data {
         width: 150px;
         transition: left 0.3s ease;
@@ -968,22 +971,15 @@
       }
       .slider-thumb {
         @apply absolute w-5 h-5 bg-primary rounded-full cursor-pointer -mt-1.5 -ml-2.5;
+        transition: background-color 0.2s ease;
+      }
+      .slider-thumb:hover {
+        background-color: #3b82f6;
       }
       .slider-fill {
         @apply absolute h-2 bg-primary rounded-full;
       }
-      .vertical-slider-container {
-        @apply absolute right-0 top-0 h-full w-4 flex items-center justify-center z-10;
-      }
-      .vertical-slider-track {
-        @apply absolute h-full w-1 bg-gray-200 rounded-full;
-      }
-      .vertical-slider-thumb {
-        @apply absolute w-4 h-6 bg-primary rounded-md cursor-pointer -ml-1.5;
-      }
-      .vertical-slider-fill {
-        @apply absolute w-1 bg-primary rounded-full;
-      }
+
       /* 限制表格容器高度，最多显示50行 */
       .table-container {
         max-height: calc(100vh - 400px); /* 页面一屏高度减去其他元素高度 */
@@ -1152,11 +1148,6 @@
           <button id="goldenRatioBtn" class="px-4 py-1 rounded bg-gray-600 text-white font-medium hover:bg-primary transition-colors">黄金切割</button>
           <button id="intersectionCutBtn" class="px-4 py-1 rounded bg-gray-600 text-white font-medium hover:bg-primary transition-colors">号码交集</button>
         </div>
-        <!-- 数据源指示器 -->
-        <div id="dataSourceIndicator" class="flex items-center space-x-2 text-sm">
-          <span class="text-gray-300">数据源:</span>
-          <span id="dataSourceStatus" class="px-2 py-1 rounded text-xs font-medium bg-green-600 text-white">自动获取</span>
-        </div>
       </div>
     </div>
   </nav>
@@ -1167,6 +1158,18 @@
     <div id="dataAnalysisPage">
       <!-- 数据输入区域 -->
       <section class="bg-white rounded-lg shadow-md p-5 mb-6">
+        <!-- 彩种选择区域 -->
+        <div class="mb-4 pb-4 border-b border-gray-200">
+          <div class="flex items-center gap-4">
+            <label for="lotteryType" class="text-sm font-medium text-gray-700">彩种选择:</label>
+            <select id="lotteryType" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200 bg-white">
+              <option value="xyft">幸运飞艇</option>
+              <option value="twpk10" selected>台湾PK10</option>
+            </select>
+            <span id="currentLotteryStatus" class="text-sm text-gray-500">当前: 台湾PK10</span>
+          </div>
+        </div>
+        
         <div class="flex flex-col md:flex-row md:items-center gap-4">
           <div class="flex-1">
             <label for="numbersInput" class="block text-sm font-medium text-gray-700 mb-1">手动输入数据（支持格式：期数 数据，如：202504181232 02,05,01,04,07,10,09,03,06,08 ）</label>
@@ -1314,14 +1317,14 @@
           </div>
         </div>
         
-        <!-- 水平滑块 -->
-        <div class="slider-container">
-          <div class="slider-track"></div>
-          <div class="slider-fill" id="horizontalFill"></div>
-          <div class="slider-thumb" id="horizontalThumb"></div>
-        </div>
-        
         <div class="relative">
+          <!-- 水平滑块 -->
+          <div class="slider-container mb-2">
+            <div class="slider-track"></div>
+            <div class="slider-fill" id="horizontalFill"></div>
+            <div class="slider-thumb" id="horizontalThumb"></div>
+          </div>
+          
           <div class="overflow-x-auto table-container scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" id="tableContainer">
             <table id="resultTable" class="min-w-full divide-y divide-gray-200">
               <thead></thead>
@@ -1329,12 +1332,7 @@
             </table>
           </div>
           
-          <!-- 垂直滑块 -->
-          <div class="vertical-slider-container" id="verticalSlider">
-            <div class="vertical-slider-track"></div>
-            <div class="vertical-slider-fill" id="verticalFill"></div>
-            <div class="vertical-slider-thumb" id="verticalThumb"></div>
-          </div>
+
         </div>
         
         <!-- 统计摘要 -->
@@ -5373,6 +5371,98 @@ tailwind.config = {
   }
 };
 
+// 台湾PK10数据转换逻辑函数 - 移到全局作用域
+function calcResult(nums) {
+  if (nums.length !== 20) {
+    throw new Error("必须输入20个数字");
+  }
+  
+  // 计算配对和值
+  let sums = [];
+  for (let i = 0; i < 10; i++) {
+    sums.push(nums[i] + nums[19 - i]);
+  }
+  
+  // 排序得到索引顺序（从大到小）
+  let indexed = sums.map((v, i) => ({v, i: i + 1}));
+  indexed.sort((a, b) => b.v - a.v);
+  
+  // 输出10位排序结果
+  return indexed.map(obj => obj.i);
+}
+
+// 全局变量存储当前彩种类型
+let currentLotteryType = 'twpk10'; // 默认为台湾PK10
+
+// 为不同彩票类型创建独立的数据存储
+const lotteryDataStorage = {
+    xyft: {
+        data: [],
+        periodSet: new Set()
+    },
+    twpk10: {
+        data: [],
+        periodSet: new Set()
+    }
+};
+
+// 获取当前彩票类型的数据
+function getCurrentLotteryData() {
+    if (!currentLotteryType || !lotteryDataStorage[currentLotteryType]) {
+        console.warn('currentLotteryType未正确设置，使用默认值xyft');
+        return lotteryDataStorage['xyft'];
+    }
+    return lotteryDataStorage[currentLotteryType];
+}
+
+// 设置当前彩票类型的数据
+function setCurrentLotteryData(data) {
+    const type = currentLotteryType || 'xyft';
+    if (!lotteryDataStorage[type]) {
+        console.warn('彩票类型不存在，使用默认值xyft');
+        lotteryDataStorage['xyft'].data = data;
+    } else {
+        lotteryDataStorage[type].data = data;
+    }
+    // 同步到全局变量
+    r = data;
+    window.r = data;
+}
+
+// 添加数据到当前彩票类型
+function addToCurrentLotteryData(newData) {
+    const storage = getCurrentLotteryData();
+    if (Array.isArray(newData)) {
+        storage.data.unshift(...newData);
+    } else {
+        storage.data.unshift(newData);
+    }
+    // 同步到全局变量
+    r = storage.data;
+    window.r = storage.data;
+}
+
+// 检查期号是否已存在
+function isPeriodExists(period) {
+    const type = currentLotteryType || 'xyft';
+    if (!lotteryDataStorage[type]) {
+        console.warn('彩票类型不存在，使用默认值xyft');
+        return lotteryDataStorage['xyft'].periodSet.has(period);
+    }
+    return lotteryDataStorage[type].periodSet.has(period);
+}
+
+// 添加期号到集合
+function addPeriodToSet(period) {
+    const type = currentLotteryType || 'xyft';
+    if (!lotteryDataStorage[type]) {
+        console.warn('彩票类型不存在，使用默认值xyft');
+        lotteryDataStorage['xyft'].periodSet.add(period);
+    } else {
+        lotteryDataStorage[type].periodSet.add(period);
+    }
+}
+
 // 页面切换功能
 document.addEventListener('DOMContentLoaded', function() {
   // 云端数据库功能已禁用
@@ -5945,6 +6035,100 @@ console.log('*** 当前时间戳:', Date.now(), '***');
 // 初始化命中码数按钮
 document.addEventListener('DOMContentLoaded', function() {
     console.log('*** DOMContentLoaded事件触发 ***');
+    
+    // 初始化彩种切换功能
+    const lotteryTypeSelect = document.getElementById('lotteryType');
+    const currentLotteryStatus = document.getElementById('currentLotteryStatus');
+    
+    // 确保currentLotteryType正确初始化
+    if (lotteryTypeSelect) {
+        currentLotteryType = lotteryTypeSelect.value || 'twpk10';
+        console.log('初始化currentLotteryType为:', currentLotteryType);
+    }
+    
+    if (lotteryTypeSelect && currentLotteryStatus) {
+        // 彩种切换事件监听器
+        lotteryTypeSelect.addEventListener('change', function() {
+            currentLotteryType = this.value;
+            const lotteryName = this.value === 'xyft' ? '幸运飞艇' : '台湾PK10';
+            currentLotteryStatus.textContent = `当前: ${lotteryName}`;
+            console.log(`彩种切换为: ${lotteryName} (${this.value})`);
+            
+            // 切换彩种时加载对应彩种的数据
+            const currentData = getCurrentLotteryData();
+            r = currentData.data;
+            window.r = currentData.data;
+            d = currentData.periodSet;
+            document.getElementById("periodCount").textContent = currentData.data.length;
+            
+            console.log(`已切换到${lotteryName}数据，当前数据量: ${currentData.data.length}期`);
+            
+            // 更新数据源显示
+            const dataSourceElement = document.querySelector('.data-source');
+            if (dataSourceElement) {
+                if (this.value === 'twpk10') {
+                    dataSourceElement.textContent = '数据源: 台湾PK10 (阿里云服务器)';
+                } else {
+                    dataSourceElement.textContent = '数据源: 幸运飞艇 (手动输入)';
+                }
+            }
+            
+            // 自动获取对应彩种的数据
+            if (this.value === 'twpk10') {
+                // 检查是否已有台湾PK10的缓存数据
+                const cachedData = localStorage.getItem('twpk10_cached_data');
+                const cacheTime = localStorage.getItem('twpk10_cache_time');
+                const currentTime = Date.now();
+                const cacheExpiry = 5 * 60 * 1000; // 5分钟缓存过期时间
+                
+                if (cachedData && cacheTime && (currentTime - parseInt(cacheTime)) < cacheExpiry) {
+                    console.log('📋 使用缓存的台湾PK10数据...');
+                    try {
+                        const parsedData = JSON.parse(cachedData);
+                        if (parsedData && parsedData.length > 0) {
+                            // 将缓存数据设置到台湾PK10的独立存储中
+                            setCurrentLotteryData(parsedData);
+                            document.getElementById("periodCount").textContent = parsedData.length;
+                            L(); // 更新表格显示
+                            console.log('✅ 成功加载缓存数据，共', parsedData.length, '条记录');
+                            return;
+                        }
+                    } catch (e) {
+                        console.warn('⚠️ 缓存数据解析失败，将重新获取:', e);
+                        localStorage.removeItem('twpk10_cached_data');
+                        localStorage.removeItem('twpk10_cache_time');
+                    }
+                }
+                
+                console.log('🔄 自动获取台湾PK10数据...');
+                // 自动触发台湾PK10数据获取
+                if (typeof fetchApiData === 'function') {
+                    fetchApiData();
+                } else {
+                    console.error('❌ fetchApiData 函数未定义');
+                }
+            } else if (this.value === 'xyft') {
+                console.log('🔄 自动获取幸运飞艇历史数据...');
+                // 对于幸运飞艇，自动获取历史数据
+                if (typeof fetchHistoryData === 'function') {
+                    fetchHistoryData().then(result => {
+                        if (result && result.totalCount > 0) {
+                            console.log('✅ 成功加载幸运飞艇历史数据，共', result.totalCount, '条记录');
+                        } else {
+                            console.log('ℹ️ 未获取到幸运飞艇历史数据，显示空表格');
+                            L(); // 调用表格渲染函数显示空表格
+                        }
+                    }).catch(error => {
+                        console.error('❌ 获取幸运飞艇历史数据失败:', error);
+                        L(); // 调用表格渲染函数显示空表格
+                    });
+                } else {
+                    console.error('❌ fetchHistoryData 函数未定义');
+                    L(); // 调用表格渲染函数显示空表格
+                }
+            }
+        });
+    }
     
     // 自动加载计划验证历史（但不触发验证表格更新）
     if (window.PlanStorageManager && typeof window.PlanStorageManager.loadFromLocalStorage === 'function') {
@@ -6876,7 +7060,10 @@ const{maxHit:n,maxMiss:o}=d[t],{maxHit:c,maxMiss:r}=d[e];return m?c-n||o-r:o-r||
 window.lastProcessedData = s;
 window.lastSortedCombinations = b;
 console.log('已保存处理后的数据到全局变量');document.getElementById("sortText").textContent=hitRateSort?"按命中率排序":m?"按遗漏次数排序":"按连中次数排序";const startIndex=(currentPage-1)*pageSize,endIndex=Math.min(startIndex+pageSize,s.length),pageData=s.slice(startIndex,endIndex);document.getElementById("summary").innerHTML=`\n        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">\n          <div>共 ${b.length} 注分析组合</div>\n          <div>当前显示: ${displayData.length} 期 / 总计: ${r.length} 期</div>\n          <div>筛选条件: ${selectedNums.length>0?selectedNums.join("/"):"全部"}码组合，命中${c.length>0?c.join("/"):"全部"}胆${selectedPositions.length>0?`，位置${selectedPositions.join("/")}名`:""}${selectedHitNumbers.length>0?`，命中数字${selectedHitNumbers.join("/")}`:""}</div>\n          <div>第 ${currentPage}/${totalPages} 页 (${pageData.length}/${s.length} 行)</div>\n        </div>\n        <div class="flex justify-center items-center mt-4 space-x-2">\n          <button id="prevPage" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50" ${currentPage<=1?'disabled':''}>上一页</button>\n          <span class="text-sm text-gray-600">第 ${currentPage} 页，共 ${totalPages} 页</span>\n          <button id="nextPage" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50" ${currentPage>=totalPages?'disabled':''}>下一页</button>\n        </div>`;const h=document.createElement("tr");
-h.className="bg-gray-50 table-header-sticky",h.innerHTML='<th class="px-3 py-2 text-center sticky-col left-0 border-r border-gray-200 fixed-width-period sticky-bg-white" style="position: sticky; top: 0; z-index: 1001;">期数</th><th class="px-3 py-2 text-center sticky-col left-[120px] border-r border-gray-200 fixed-width-data sticky-bg-white" style="position: sticky; top: 0; z-index: 1001;">数据</th>';b.forEach(t=>{const{maxHit:e,maxMiss:n}=d[t],o=document.createElement("th");o.className="px-3 py-2 text-center border-r border-gray-200",o.innerHTML=y?m?`\n              <div class="font-medium">${t}</div>\n              <div class="text-xs text-gray-500 whitespace-nowrap">连:${u[t]} 漏${n} (${Math.round((s.filter(row=>row.cells[t]&&row.cells[t].hit).length/s.length)*100)||0}%)</div>\n            `:`\n              <div class="font-medium">${t}</div>\n              <div class="text-xs text-gray-500 whitespace-nowrap">漏:${l[t]} 史:${n} (${Math.round((s.filter(row=>row.cells[t]&&row.cells[t].hit).length/s.length)*100)||0}%)</div>\n            `:m?`\n              <div class="font-medium">${t}</div>\n              <div class="text-xs text-gray-500 whitespace-nowrap">连:${u[t]} 史:${e} (${Math.round((s.filter(row=>row.cells[t]&&row.cells[t].hit).length/s.length)*100)||0}%)</div>\n            `:`\n              <div class="font-medium">${t}</div>\n              <div class="text-xs text-gray-500 whitespace-nowrap">漏:${l[t]} 史:${n} (${Math.round((s.filter(row=>row.cells[t]&&row.cells[t].hit).length/s.length)*100)||0}%)</div>\n            `,h.appendChild(o)}),t.appendChild(h),pageData.forEach((t,n)=>{const o=document.createElement("tr");o.className=0===n?"bg-gray-100":1===n?"bg-gray-50":"",o.innerHTML=`\n          <td class="px-3 py-2 text-left sticky-col left-0 border-r border-gray-200 font-medium fixed-width-period ${0===n?"sticky-bg-gray-100":1===n?"sticky-bg-gray-50":"sticky-bg-white"}">${t.rec.period}</td>\n          <td class="px-3 py-2 text-left sticky-col left-[120px] border-r border-gray-200 fixed-width-data ${0===n?"sticky-bg-gray-100":1===n?"sticky-bg-gray-50":"sticky-bg-white"}">\n            <div class="number-row">${t.rec.data.slice(0,5).join(",")}</div>\n            <div class="number-row">${t.rec.data.slice(5).join(",")}</div>\n          </td>\n        `,b.forEach(e=>{const n=t.cells[e],c=document.createElement("td");c.className="px-3 py-2 text-center border-r border-gray-200 "+(n.hit?"hit-cell":"miss-cell"),c.textContent=n.txt,o.appendChild(c)}),e.appendChild(o)}),setTimeout(()=>{const t=document.getElementById("prevPage"),e=document.getElementById("nextPage");t&&t.addEventListener("click",(event)=>{event.preventDefault();if(currentPage>1){currentPage--;updateTablePage();}}),e&&e.addEventListener("click",(event)=>{event.preventDefault();if(currentPage<totalPages){currentPage++;updateTablePage();}});},100);
+h.className="bg-gray-50 table-header-sticky";
+const periodHeaderClass = currentLotteryType === 'twpk10' ? 'fixed-width-period twpk10' : 'fixed-width-period';
+const dataHeaderLeftPos = currentLotteryType === 'twpk10' ? 'left-[90px]' : 'left-[120px]';
+h.innerHTML=`<th class="px-3 py-2 text-center sticky-col left-0 border-r border-gray-200 ${periodHeaderClass} sticky-bg-white" style="position: sticky; top: 0; z-index: 1001;">期数</th><th class="px-3 py-2 text-center sticky-col ${dataHeaderLeftPos} border-r border-gray-200 fixed-width-data sticky-bg-white" style="position: sticky; top: 0; z-index: 1001;">数据</th>`;b.forEach(t=>{const{maxHit:e,maxMiss:n}=d[t],o=document.createElement("th");o.className="px-3 py-2 text-center border-r border-gray-200",o.innerHTML=y?m?`\n              <div class="font-medium">${t}</div>\n              <div class="text-xs text-gray-500 whitespace-nowrap">连:${u[t]} 漏${n} (${Math.round((s.filter(row=>row.cells[t]&&row.cells[t].hit).length/s.length)*100)||0}%)</div>\n            `:`\n              <div class="font-medium">${t}</div>\n              <div class="text-xs text-gray-500 whitespace-nowrap">漏:${l[t]} 史:${n} (${Math.round((s.filter(row=>row.cells[t]&&row.cells[t].hit).length/s.length)*100)||0}%)</div>\n            `:m?`\n              <div class="font-medium">${t}</div>\n              <div class="text-xs text-gray-500 whitespace-nowrap">连:${u[t]} 史:${e} (${Math.round((s.filter(row=>row.cells[t]&&row.cells[t].hit).length/s.length)*100)||0}%)</div>\n            `:`\n              <div class="font-medium">${t}</div>\n              <div class="text-xs text-gray-500 whitespace-nowrap">漏:${l[t]} 史:${n} (${Math.round((s.filter(row=>row.cells[t]&&row.cells[t].hit).length/s.length)*100)||0}%)</div>\n            `,h.appendChild(o)}),t.appendChild(h),pageData.forEach((t,n)=>{const o=document.createElement("tr");o.className=0===n?"bg-gray-100":1===n?"bg-gray-50":"",o.innerHTML=`\n          <td class="px-3 py-2 text-left sticky-col left-0 border-r border-gray-200 font-medium ${currentLotteryType === 'twpk10' ? 'fixed-width-period twpk10' : 'fixed-width-period'} ${0===n?"sticky-bg-gray-100":1===n?"sticky-bg-gray-50":"sticky-bg-white"}">${t.rec.period}</td>\n          <td class="px-3 py-2 text-left sticky-col ${currentLotteryType === 'twpk10' ? 'left-[90px]' : 'left-[120px]'} border-r border-gray-200 fixed-width-data ${0===n?"sticky-bg-gray-100":1===n?"sticky-bg-gray-50":"sticky-bg-white"}">\n            <div class="number-row">${t.rec.data.slice(0,5).join(",")}</div>\n            <div class="number-row">${t.rec.data.slice(5).join(",")}</div>\n          </td>\n        `,b.forEach(e=>{const n=t.cells[e],c=document.createElement("td");c.className="px-3 py-2 text-center border-r border-gray-200 "+(n.hit?"hit-cell":"miss-cell"),c.textContent=n.txt,o.appendChild(c)}),e.appendChild(o)}),setTimeout(()=>{const t=document.getElementById("prevPage"),e=document.getElementById("nextPage");t&&t.addEventListener("click",(event)=>{event.preventDefault();if(currentPage>1){currentPage--;updateTablePage();}}),e&&e.addEventListener("click",(event)=>{event.preventDefault();if(currentPage<totalPages){currentPage++;updateTablePage();}});},100);
     
     // 将处理后的数据赋值给window.r，供验证计划页面使用
     window.r = r;
@@ -6898,6 +7085,13 @@ h.className="bg-gray-50 table-header-sticky",h.innerHTML='<th class="px-3 py-2 t
         }
         console.log('L()函数: 延迟执行完成，数据同步结束');
     }, 10);
+    
+    // 初始化滑块功能
+    setTimeout(() => {
+        console.log('L()函数: 开始初始化滑块');
+        j();
+        console.log('L()函数: 滑块初始化完成');
+    }, 50);
 
 // 获取筛选后的数据
 function getFilteredData() {
@@ -7001,9 +7195,12 @@ function updateTablePage() {
     pageData.forEach((t, n) => {
         const o = document.createElement("tr");
         o.className = 0 === n ? "bg-gray-100" : 1 === n ? "bg-gray-50" : "";
+        const periodClass = currentLotteryType === 'twpk10' ? 'fixed-width-period twpk10' : 'fixed-width-period';
+        const dataLeftPos = currentLotteryType === 'twpk10' ? 'left-[90px]' : 'left-[120px]';
+        
         o.innerHTML = `
-            <td class="px-3 py-2 text-left sticky-col left-0 border-r border-gray-200 font-medium fixed-width-period ${0 === n ? "sticky-bg-gray-100" : 1 === n ? "sticky-bg-gray-50" : "sticky-bg-white"}">${t.rec.period}</td>
-            <td class="px-3 py-2 text-left sticky-col left-[120px] border-r border-gray-200 fixed-width-data ${0 === n ? "sticky-bg-gray-100" : 1 === n ? "sticky-bg-gray-50" : "sticky-bg-white"}">
+            <td class="px-3 py-2 text-left sticky-col left-0 border-r border-gray-200 font-medium ${periodClass} ${0 === n ? "sticky-bg-gray-100" : 1 === n ? "sticky-bg-gray-50" : "sticky-bg-white"}">${t.rec.period}</td>
+            <td class="px-3 py-2 text-left sticky-col ${dataLeftPos} border-r border-gray-200 fixed-width-data ${0 === n ? "sticky-bg-gray-100" : 1 === n ? "sticky-bg-gray-50" : "sticky-bg-white"}">
                 <div class="number-row">${t.rec.data.slice(0,5).join(",")}</div>
                 <div class="number-row">${t.rec.data.slice(5).join(",")}</div>
             </td>
@@ -7065,7 +7262,139 @@ function updateTablePage() {
     }, 10);
 }
 // j(); // 移除可能导致无限递归的调用
-}function j(){const t=document.getElementById("resultTable"),e=document.getElementById("tableContainer"),n=t.offsetWidth,o=e.offsetWidth;if(n>o){document.querySelector(".slider-container").style.display="block";const u=o/n,l=Math.max(20,u*o);k.style.width=e.scrollLeft/(n-o)*100+"%",w.style.left=e.scrollLeft/(n-o)*(o-l)+"px",w.style.width=`${l}px`,k.style.width=e.scrollLeft/(n-o)*100+"%";let m=!1;function c(t){if(!m)return;const c=e.getBoundingClientRect(),r=t.clientX-c.left-l/2,i=o-l,a=Math.max(0,Math.min(r,i)),s=a/i,d=s*(n-o);e.scrollLeft=d,w.style.left=`${a}px`,k.style.width=100*s+"%"}function r(){m=!1,document.removeEventListener("mousemove",c),document.removeEventListener("mouseup",r)}w.addEventListener("mousedown",t=>{m=!0,document.addEventListener("mousemove",c),document.addEventListener("mouseup",r),t.preventDefault()}),document.querySelector(".slider-track").addEventListener("click",t=>{const c=e.getBoundingClientRect(),r=t.clientX-c.left-l/2,i=o-l,a=Math.max(0,Math.min(r,i)),s=a/i,d=s*(n-o);e.scrollLeft=d,w.style.left=`${a}px`,k.style.width=100*s+"%"})}else document.querySelector(".slider-container").style.display="none";const i=t.offsetHeight,a=e.offsetHeight;if(i>a){$.style.display="none";const f=a/i,y=Math.max(20,f*a);I.style.height=e.scrollTop/(i-a)*100+"%",B.style.top=e.scrollTop/(i-a)*(a-y)+"px",B.style.height=`${y}px`,I.style.height=e.scrollTop/(i-a)*100+"%";let b=!1;function s(t){if(!b)return;const n=e.getBoundingClientRect(),o=t.clientY-n.top-y/2,c=a-y,r=Math.max(0,Math.min(o,c)),s=r/c,d=s*(i-a);e.scrollTop=d,B.style.top=`${r}px`,I.style.height=100*s+"%"}function d(){b=!1,document.removeEventListener("mousemove",s),document.removeEventListener("mouseup",d)}B.addEventListener("mousedown",t=>{b=!0,document.addEventListener("mousemove",s),document.addEventListener("mouseup",d),t.preventDefault()}),document.querySelector(".vertical-slider-track").addEventListener("click",t=>{const n=e.getBoundingClientRect(),o=t.clientY-n.top-y/2,c=a-y,r=Math.max(0,Math.min(o,c)),s=r/c,d=s*(i-a);e.scrollTop=d,B.style.top=`${r}px`,I.style.height=100*s+"%"})}else $.style.display="none";e.addEventListener("scroll",()=>{if(n>o){const t=e.scrollLeft/(n-o);w.style.left=t*(o-parseInt(getComputedStyle(w).width))+"px",k.style.width=100*t+"%";const periodCols=document.querySelectorAll(".fixed-width-period");const dataCols=document.querySelectorAll(".fixed-width-data");if(e.scrollLeft>10){periodCols.forEach(col=>col.style.opacity="0");dataCols.forEach(col=>col.style.left="0px")}else{periodCols.forEach(col=>col.style.opacity="1");dataCols.forEach(col=>col.style.left="120px")}}if(i>a){const t=e.scrollTop/(i-a);const thumbHeight=Math.max(20,f*a);B.style.top=Math.min(t*(a-thumbHeight),a-thumbHeight)+"px",I.style.height=Math.min(100*t,100)+"%"}})}async function V(){if(s)try{const t=await s.getFile(),e=(await t.text()).trim().split("\n").filter(Boolean);console.log(`V()函数: 从文件读取到 ${e.length} 行数据`);for(const t of e)q(t);r.sort((t,e)=>{const n=t.period.toString();return e.period.toString().localeCompare(n)});console.log(`V()函数: 处理后数据数组长度为 ${r.length}`);document.getElementById("periodCount").textContent=r.length;console.log(`V()函数: 期数统计已更新为 ${r.length}`);L(); /* 自动渲染表格 */}catch(t){v.textContent=`读取文件错误: ${t.message}`}}async function W(){if(s)try{const t=await s.getFile(),e=(await t.text()).trim().split("\n")[0],n=e.trim().split(/\t+/);if(2!==n.length)return;const o=n[0].trim();if(o===u)return;u=o,q(e);// 重新排序数据，确保最新期号在第一行
+}
+
+// 重新实现滑块功能
+function j() {
+    const resultTable = document.getElementById("resultTable");
+    const tableContainer = document.getElementById("tableContainer");
+    const horizontalSlider = document.querySelector(".slider-container");
+    const horizontalTrack = document.querySelector(".slider-track");
+    const horizontalThumb = document.getElementById("horizontalThumb");
+    const horizontalFill = document.getElementById("horizontalFill");
+
+    
+    if (!resultTable || !tableContainer) return;
+    
+    const tableWidth = resultTable.offsetWidth;
+    const containerWidth = tableContainer.offsetWidth;
+    const tableHeight = resultTable.offsetHeight;
+    const containerHeight = tableContainer.offsetHeight;
+    
+    // 调试信息
+    console.log('滑块调试信息:', {
+        tableWidth,
+        containerWidth,
+        tableHeight,
+        containerHeight,
+        canScrollHorizontally: tableWidth > containerWidth
+    });
+    
+    // 处理水平滑块
+    if (tableWidth > containerWidth) {
+        horizontalSlider.style.display = "block";
+        
+        const scrollRatio = containerWidth / tableWidth;
+        const thumbWidth = Math.max(20, scrollRatio * containerWidth);
+        
+        // 更新滑块位置和大小
+        function updateHorizontalSlider() {
+            const scrollPercent = tableContainer.scrollLeft / (tableWidth - containerWidth);
+            const thumbPosition = scrollPercent * (containerWidth - thumbWidth);
+            
+            horizontalThumb.style.left = `${thumbPosition}px`;
+            horizontalThumb.style.width = `${thumbWidth}px`;
+            horizontalFill.style.width = `${scrollPercent * 100}%`;
+        }
+        
+        // 拖拽功能
+        let isDragging = false;
+        let startX = 0;
+        let startScrollLeft = 0;
+        
+        function handleMouseMove(e) {
+            if (!isDragging) return;
+            
+            const deltaX = e.clientX - startX;
+            const scrollDelta = deltaX * (tableWidth - containerWidth) / (containerWidth - thumbWidth);
+            const newScrollLeft = Math.max(0, Math.min(startScrollLeft + scrollDelta, tableWidth - containerWidth));
+            
+            // 调试拖拽信息
+            console.log('拖拽调试:', {
+                deltaX,
+                scrollDelta,
+                startScrollLeft,
+                newScrollLeft,
+                maxScrollLeft: tableWidth - containerWidth,
+                currentScrollLeft: tableContainer.scrollLeft
+            });
+            
+            tableContainer.scrollLeft = newScrollLeft;
+            updateHorizontalSlider();
+        }
+        
+        function handleMouseUp() {
+            isDragging = false;
+            document.removeEventListener("mousemove", handleMouseMove);
+            document.removeEventListener("mouseup", handleMouseUp);
+            horizontalThumb.style.cursor = "pointer";
+        }
+        
+        horizontalThumb.addEventListener("mousedown", (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            startScrollLeft = tableContainer.scrollLeft;
+            horizontalThumb.style.cursor = "grabbing";
+            
+            document.addEventListener("mousemove", handleMouseMove);
+            document.addEventListener("mouseup", handleMouseUp);
+            e.preventDefault();
+        });
+        
+        // 点击轨道跳转
+        horizontalTrack.addEventListener("click", (e) => {
+            const rect = horizontalTrack.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickPercent = clickX / containerWidth;
+            const newScrollLeft = clickPercent * (tableWidth - containerWidth);
+            
+            tableContainer.scrollLeft = Math.max(0, Math.min(newScrollLeft, tableWidth - containerWidth));
+            updateHorizontalSlider();
+        });
+        
+        updateHorizontalSlider();
+    } else {
+        horizontalSlider.style.display = "none";
+    }
+    
+
+    
+    // 监听容器滚动事件
+    tableContainer.addEventListener("scroll", () => {
+        if (tableWidth > containerWidth) {
+            const scrollPercent = tableContainer.scrollLeft / (tableWidth - containerWidth);
+            const thumbWidth = Math.max(20, (containerWidth / tableWidth) * containerWidth);
+            const thumbPosition = scrollPercent * (containerWidth - thumbWidth);
+            
+            horizontalThumb.style.left = `${thumbPosition}px`;
+            horizontalFill.style.width = `${scrollPercent * 100}%`;
+            
+            // 处理固定列的显示/隐藏
+            const periodCols = document.querySelectorAll(".fixed-width-period");
+            const dataCols = document.querySelectorAll(".fixed-width-data");
+            const dataLeftPosition = currentLotteryType === 'twpk10' ? '90px' : '120px';
+            if (tableContainer.scrollLeft > 10) {
+                periodCols.forEach(col => col.style.opacity = "0");
+                dataCols.forEach(col => col.style.left = "0px");
+            } else {
+                periodCols.forEach(col => col.style.opacity = "1");
+                dataCols.forEach(col => col.style.left = dataLeftPosition);
+            }
+        }
+        
+
+    });
+}async function V(){if(s)try{const t=await s.getFile(),e=(await t.text()).trim().split("\n").filter(Boolean);console.log(`V()函数: 从文件读取到 ${e.length} 行数据`);for(const t of e)q(t);r.sort((t,e)=>{const n=t.period.toString();return e.period.toString().localeCompare(n)});console.log(`V()函数: 处理后数据数组长度为 ${r.length}`);document.getElementById("periodCount").textContent=r.length;console.log(`V()函数: 期数统计已更新为 ${r.length}`);L(); /* 自动渲染表格 */}catch(t){v.textContent=`读取文件错误: ${t.message}`}}async function W(){if(s)try{const t=await s.getFile(),e=(await t.text()).trim().split("\n")[0],n=e.trim().split(/\t+/);if(2!==n.length)return;const o=n[0].trim();if(o===u)return;u=o,q(e);// 重新排序数据，确保最新期号在第一行
 r.sort((t,e)=>{const n=t.period.toString();return e.period.toString().localeCompare(n)});console.log(`W()函数: 新增数据后，数据数组长度为 ${r.length}`);document.getElementById("periodCount").textContent=r.length;console.log(`W()函数: 期数统计已更新为 ${r.length}`);// 自动刷新表格显示最新数据
 L();}catch(t){}}function q(t){let e;if(t.includes("\t"))e=t.trim().split(/\t+/);else{if(!t.includes(" "))return;e=t.trim().split(/\s+/)}if(e.length<2)return;const n=e[0].trim();if(d.has(n))return;let o;if(e[1].includes(","))o=e[1].split(",").map(t=>parseInt(t.trim(),10));else{if(!e[1].includes(" "))return;o=e[1].split(" ").map(t=>parseInt(t.trim(),10))}10!==o.length||o.some(isNaN)||(d.add(n),r.unshift({period:n,data:o,input:o.join(",")}))}// Y函数定义 - 生成文件标识符
 function Y(){try{const t=document.documentElement.outerHTML.substring(0,1e3)+window.location.href.split("/").slice(-2).join("/");let e=0;for(let n=0;n<t.length;n++)e=(e<<5)-e+t.charCodeAt(n),e&=e;return"file_"+Math.abs(e).toString(36)}catch(t){return console.error("Failed to generate file identifier:",t),"fallback_"+Date.now()}}
@@ -7347,7 +7676,6 @@ document.getElementById("summary").textContent="";
 v.textContent="数据已清空";
 // 重置为自动获取模式
 window.isUsingFileData = false;
-updateDataSourceIndicator(false);
 // 重新渲染表格以清空显示
 L();
 // 清空验证计划表格
@@ -7405,8 +7733,7 @@ if (verifyPlanDataTimer) {
 // 设置数据源标识
 window.isUsingFileData = true;
 console.log('数据源已切换为文件获取模式');
-// 更新数据源指示器
-updateDataSourceIndicator(true);
+// 数据源指示器已移除
 d.clear();u=null;r=[];i=1;await V();l&&clearInterval(l);l=setInterval(W,2e3);v.textContent=`已加载文件: ${s.name} (文件数据模式)`}catch(t){v.textContent=`文件选择错误: ${t.message}`}})});const X=document.querySelectorAll(".period-btn");X.forEach(t=>{t.addEventListener("click",()=>{X.forEach(t=>t.classList.remove("btn-active"));t.classList.add("btn-active");f=parseInt(t.dataset.period);document.getElementById("customPeriod").value=f;currentPage=1;console.log(`期数按钮被点击，设置期数为: ${f}`);L(); /* 添加表格刷新功能 */})});document.getElementById("customPeriodBtn").addEventListener("click",()=>{const t=parseInt(document.getElementById("customPeriod").value);!isNaN(t)&&t>=1&&t<=1e4?(f=t,X.forEach(t=>t.classList.remove("btn-active")),currentPage=1,console.log(`自定义期数被设置为: ${f}`),L() /* 添加表格刷新功能 */):alert("请输入1-10000之间的数字")});window.addEventListener("resize",j);
 
 
@@ -7440,19 +7767,7 @@ function generateMockNumbers() {
     return numbers.join(',');
 }
 
-// 更新数据源指示器
-function updateDataSourceIndicator(isFileMode) {
-    const statusElement = document.getElementById('dataSourceStatus');
-    if (statusElement) {
-        if (isFileMode) {
-            statusElement.textContent = '文件获取';
-            statusElement.className = 'px-2 py-1 rounded text-xs font-medium bg-blue-600 text-white';
-        } else {
-            statusElement.textContent = '自动获取';
-            statusElement.className = 'px-2 py-1 rounded text-xs font-medium bg-green-600 text-white';
-        }
-    }
-}
+// 数据源指示器已移除
 
 // API数据获取功能 - 直接从原始API获取
 async function fetchApiData() {
@@ -7464,13 +7779,15 @@ async function fetchApiData() {
     
     try {
         console.log('步骤1: 开始从API获取数据...');
+        console.log('当前彩种:', currentLotteryType);
         
-        // 直接调用原始API
-        const apiUrl = 'https://api.api68.com/pks/getLotteryPksInfo.do?lotCode=10057';
+        let apiUrl, response, data;
         
-        let response;
-        try {
-            // 尝试正常fetch
+        if (currentLotteryType === 'twpk10') {
+            // 台湾PK10 API
+            apiUrl = 'http://47.242.214.89/api/latest?limit=200';
+            console.log('使用台湾PK10 API:', apiUrl);
+            
             response = await fetch(apiUrl, {
                 method: 'GET',
                 headers: {
@@ -7478,70 +7795,174 @@ async function fetchApiData() {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
                 }
             });
-        } catch (corsError) {
-            console.log('CORS错误，尝试no-cors模式:', corsError);
-            // 如果CORS失败，尝试no-cors模式
-            response = await fetch(apiUrl, {
-                method: 'GET',
-                mode: 'no-cors',
-                headers: {
-                    'Accept': 'application/json'
+            
+            if (!response.ok) {
+                throw new Error(`HTTP错误! 状态: ${response.status}`);
+            }
+            
+            data = await response.json();
+            console.log('步骤2: 台湾PK10 API返回数据:', data);
+            
+            // 处理台湾PK10数据格式
+            if (data && data.success && Array.isArray(data.data) && data.data.length > 0) {
+                console.log('步骤3: 开始处理台湾PK10数据，共', data.data.length, '条');
+                
+                // 获取当前彩票类型的数据存储
+                const currentStorage = getCurrentLotteryData();
+                let newDataCount = 0;
+                let newDataItems = []; // 临时存储新数据
+                
+                for (const item of data.data) {
+                    try {
+                        // 解析opencode，去掉最后的+数字部分
+                        const opencode = item.opencode.split('+')[0]; // 去掉+33部分
+                        const numbers = opencode.split(',').map(num => parseInt(num.trim()));
+                        
+                        if (numbers.length === 20) {
+                            // 使用calcResult函数转换为10位数字
+                            const convertedNumbers = calcResult(numbers);
+                            
+                            // 检查是否已存在该期数据
+                            const period = item.expect;
+                            const dataExists = isPeriodExists(period);
+                            
+                            if (!dataExists) {
+                                // 添加到期号集合
+                                addPeriodToSet(period);
+                                
+                                // 添加到临时数组，格式与幸运飞艇保持一致
+                                newDataItems.push({
+                                    period: period,
+                                    data: convertedNumbers,
+                                    input: convertedNumbers.map(num => num.toString().padStart(2, '0')).join(','),
+                                    期号: period,
+                                    开奖号码: convertedNumbers.map(num => num.toString().padStart(2, '0')),
+                                    开奖时间: item.opentime
+                                });
+                                
+                                newDataCount++;
+                            }
+                        }
+                    } catch (error) {
+                        console.error('处理台湾PK10数据项时出错:', error, item);
+                    }
                 }
-            });
-        }
-        
-        if (!response.ok) {
-            throw new Error(`HTTP错误! 状态: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('步骤2: API返回数据:', data);
-        
-        // 检查API返回的错误码
-        if (data.errorCode !== 0) {
-            throw new Error(data.message || 'API返回错误');
-        }
-        
-        // 解析API数据
-        let period, numbersStr, drawTime;
-        
-        if (data && data.result && data.result.data) {
-            const apiData = data.result.data;
-            period = apiData.preDrawIssue;
-            numbersStr = apiData.preDrawCode;
-            drawTime = apiData.preDrawTime;
+                
+                // 按期号排序新数据，确保最新期号在前
+                newDataItems.sort((a, b) => {
+                    const periodA = parseInt(a.period);
+                    const periodB = parseInt(b.period);
+                    return periodB - periodA; // 降序排列，最新期号在前
+                });
+                
+                // 将新数据添加到当前彩票类型的数据存储
+                addToCurrentLotteryData(newDataItems);
+                
+                console.log('步骤4: 台湾PK10数据处理完成，新增', newDataCount, '条数据');
+                console.log('步骤5: 已将数据同步到window.r和全局r，总长度:', window.r.length);
+                
+                // 更新期数统计
+                document.getElementById('periodCount').textContent = r.length;
+                
+                // 调用L()函数更新表格显示
+                console.log('步骤6: 开始更新表格显示');
+                L();
+                
+                // 保存数据到缓存
+                try {
+                    const currentData = getCurrentLotteryData();
+                    localStorage.setItem('twpk10_cached_data', JSON.stringify(currentData.data));
+                    localStorage.setItem('twpk10_cache_time', Date.now().toString());
+                    console.log('✅ 台湾PK10数据已保存到缓存');
+                } catch (e) {
+                    console.warn('⚠️ 保存缓存失败:', e);
+                }
+                
+                console.log('步骤7: 台湾PK10数据处理和显示更新完成');
+                
+                return { newDataCount, totalCount: r.length };
+            } else {
+                throw new Error('台湾PK10 API返回数据格式错误');
+            }
+            
         } else {
-            throw new Error('API返回数据格式不正确');
+            // 幸运飞艇 API (原有逻辑)
+            apiUrl = 'https://api.api68.com/pks/getLotteryPksInfo.do?lotCode=10057';
+            
+            try {
+                // 尝试正常fetch
+                response = await fetch(apiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                    }
+                });
+            } catch (corsError) {
+                console.log('CORS错误，尝试no-cors模式:', corsError);
+                // 如果CORS失败，尝试no-cors模式
+                response = await fetch(apiUrl, {
+                    method: 'GET',
+                    mode: 'no-cors',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+            }
+            
+            if (!response.ok) {
+                throw new Error(`HTTP错误! 状态: ${response.status}`);
+            }
+            
+            data = await response.json();
+            console.log('步骤2: 幸运飞艇 API返回数据:', data);
+            
+            // 检查API返回的错误码
+            if (data.errorCode !== 0) {
+                throw new Error(data.message || 'API返回错误');
+            }
         }
         
-        console.log('步骤3: 解析数据:', { period, numbersStr, drawTime });
-        
-        // 检查是否已存在该期数据
-        const dataExists = d.has(period);
-        if (dataExists) {
-            console.log('步骤4: 数据已存在，但仍需触发状态更新');
-        } else {
-            console.log('步骤4: 数据不存在，准备添加新数据');
-        }
-        
-        // 处理数据
-        const numbers = numbersStr.split(',').map(n => parseInt(n.trim(), 10));
-        if (numbers.length === 10 && !numbers.some(isNaN)) {
+        // 解析API数据 (仅幸运飞艇的原有逻辑)
+        if (currentLotteryType === 'xyft') {
+            let period, numbersStr, drawTime;
+            
+            if (data && data.result && data.result.data) {
+                const apiData = data.result.data;
+                period = apiData.preDrawIssue;
+                numbersStr = apiData.preDrawCode;
+                drawTime = apiData.preDrawTime;
+            } else {
+                throw new Error('API返回数据格式不正确');
+            }
+            
+            console.log('步骤3: 解析数据:', { period, numbersStr, drawTime });
+            
+            // 检查是否已存在该期数据
+            const dataExists = isPeriodExists(period);
+            if (dataExists) {
+                console.log('步骤4: 数据已存在，但仍需触发状态更新');
+            } else {
+                console.log('步骤4: 数据不存在，准备添加新数据');
+            }
+            
+            // 处理数据
+            const numbers = numbersStr.split(',').map(n => parseInt(n.trim(), 10));
+            if (numbers.length === 10 && !numbers.some(isNaN)) {
             // 只有当数据不存在时才添加到数组
             if (!dataExists) {
-                d.add(period);
-                r.unshift({
+                addPeriodToSet(period);
+                const newData = {
                     period: period,
                     data: numbers,
                     input: numbersStr
-                });
+                };
+                addToCurrentLotteryData([newData]);
                 console.log('步骤5: 新数据已添加到数组，当前数组长度:', r.length);
             } else {
                 console.log('步骤5: 数据已存在，跳过添加到数组');
             }
             
-            // 将r数组赋值给window.r，供验证计划页面使用
-            window.r = r;
             console.log('步骤6: 已将数据同步到window.r，长度:', window.r.length);
             
             // 触发计划自动验证（仅在有新数据时）
@@ -7563,12 +7984,13 @@ async function fetchApiData() {
             L();
             console.log('步骤8: L()函数已调用，将通过延迟机制自动更新单期验证状态');
             
-            console.log('步骤9: 数据处理完成，状态更新已触发');
-        } else {
-            throw new Error('数据格式不正确');
+                console.log('步骤9: 数据处理完成，状态更新已触发');
+            } else {
+                throw new Error('数据格式不正确');
+            }
+            
+            return { period, numbersStr, drawTime, dataExists };
         }
-        
-        return { period, numbersStr, drawTime, dataExists };
     } catch (error) {
         console.error('获取API数据失败:', error);
         console.log('获取数据失败: ' + error.message);
@@ -7675,12 +8097,18 @@ window.fetchHistoryData = async function fetchHistoryData() {
                 const numbersStr = item.preDrawCode;
                 const drawTime = item.preDrawTime;
                 
-                // 检查是否已存在该期数据
-                if (!d.has(period)) {
+                // 使用新的数据存储结构检查是否已存在该期数据
+                if (!isPeriodExists(period)) {
                     // 解析号码
                     const numbers = numbersStr.split(',').map(n => parseInt(n.trim(), 10));
                     if (numbers.length === 10 && !numbers.some(isNaN)) {
-                        d.add(period);
+                        // 使用新的数据管理函数添加数据
+                        addToCurrentLotteryData({
+                            period: period,
+                            data: numbers,
+                            input: numbersStr
+                        });
+                        addPeriodToSet(period);
                         newDataItems.push({
                             period: period,
                             data: numbers,
@@ -7691,14 +8119,14 @@ window.fetchHistoryData = async function fetchHistoryData() {
                 }
             }
             
-            // 将新数据添加到数组开头（保持最新数据在前的顺序）
-            r.unshift(...newDataItems);
-            
             if (addedCount > 0) {
                 console.log(`步骤5: 新增 ${addedCount} 条数据到表格`);
                 
-                // 将r数组赋值给window.r，供验证计划页面使用
-                window.r = r;
+                // 同步当前彩种数据到全局变量
+                const currentData = getCurrentLotteryData();
+                r = currentData.data;
+                window.r = currentData.data;
+                d = currentData.periodSet;
                 console.log('步骤5.1: 已将历史数据同步到window.r，长度:', window.r.length);
                 
                 // 触发计划自动验证
