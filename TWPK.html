@@ -1144,13 +1144,19 @@
   <!-- 工具栏区域 - 独立粘性模块 -->
   <nav class="bg-gray-800 text-white py-2 sticky-header toolbar-sticky" style="top: 0; z-index: 100;">
     <div class="container mx-auto px-4">
-      <div class="flex space-x-4">
-        <button id="dataAnalysisBtn" class="px-4 py-1 rounded bg-primary text-white font-medium">数据分析</button>
-        <button id="fiveStarBtn" class="px-4 py-1 rounded bg-gray-600 text-white font-medium hover:bg-primary transition-colors">做号拼接</button>
-        <button id="verifyPlanBtn" class="px-4 py-1 rounded bg-gray-600 text-white font-medium hover:bg-primary transition-colors">验证计划</button>
-        <button id="goldenRatioBtn" class="px-4 py-1 rounded bg-gray-600 text-white font-medium hover:bg-primary transition-colors">黄金切割</button>
-        <button id="intersectionCutBtn" class="px-4 py-1 rounded bg-gray-600 text-white font-medium hover:bg-primary transition-colors">号码交集</button>
-
+      <div class="flex justify-between items-center">
+        <div class="flex space-x-4">
+          <button id="dataAnalysisBtn" class="px-4 py-1 rounded bg-primary text-white font-medium">数据分析</button>
+          <button id="fiveStarBtn" class="px-4 py-1 rounded bg-gray-600 text-white font-medium hover:bg-primary transition-colors">做号拼接</button>
+          <button id="verifyPlanBtn" class="px-4 py-1 rounded bg-gray-600 text-white font-medium hover:bg-primary transition-colors">验证计划</button>
+          <button id="goldenRatioBtn" class="px-4 py-1 rounded bg-gray-600 text-white font-medium hover:bg-primary transition-colors">黄金切割</button>
+          <button id="intersectionCutBtn" class="px-4 py-1 rounded bg-gray-600 text-white font-medium hover:bg-primary transition-colors">号码交集</button>
+        </div>
+        <!-- 数据源指示器 -->
+        <div id="dataSourceIndicator" class="flex items-center space-x-2 text-sm">
+          <span class="text-gray-300">数据源:</span>
+          <span id="dataSourceStatus" class="px-2 py-1 rounded text-xs font-medium bg-green-600 text-white">自动获取</span>
+        </div>
       </div>
     </div>
   </nav>
@@ -7262,7 +7268,76 @@ document.getElementById("currentHitBtn").classList.add("btn-active","bg-blue-600
 
 // 命中率排序按钮事件
 document.getElementById("hitRateSortBtn").addEventListener("click",()=>{const tableContainer=document.getElementById("tableContainer");const wasHidden=tableContainer&&tableContainer.scrollLeft>10;y=!0;hitRateSort=!0; // 设置为当前模式和命中率排序模式
-document.getElementById("hitRateSortBtn").classList.add("btn-active","bg-orange-600","text-white");document.getElementById("hitRateSortBtn").classList.remove("bg-gray-200","text-gray-700");document.getElementById("currentMissBtn").classList.remove("btn-active","bg-blue-600","text-white");document.getElementById("currentMissBtn").classList.add("bg-gray-200","text-gray-700");document.getElementById("currentHitBtn").classList.remove("btn-active","bg-blue-600","text-white");document.getElementById("currentHitBtn").classList.add("bg-gray-200","text-gray-700"); console.log('命中率排序按钮被点击，开始刷新数据'); L(); /* 添加数据刷新功能 */ if(wasHidden){setTimeout(()=>{const periodCols=document.querySelectorAll(".fixed-width-period");const dataCols=document.querySelectorAll(".fixed-width-data");periodCols.forEach(col=>col.style.opacity="0");dataCols.forEach(col=>col.style.left="0px")},50)}}); document.getElementById("statBtn").addEventListener("click",() => { /* 移除立即筛选，等待确认按钮点击 */ });document.getElementById("clearBtn").addEventListener("click",()=>{confirm("确定要清空所有数据吗？此操作不可恢复。")&&(r=[],i=1,d.clear(),document.getElementById("periodCount").textContent="0",document.getElementById("summary").textContent="", /* 移除立即筛选，等待确认按钮点击 */ v.textContent="数据已清空")});document.addEventListener("DOMContentLoaded",()=>{document.getElementById("uploadDataBtn").addEventListener("click",async()=>{try{[s]=await window.showOpenFilePicker();d.clear();u=null;r=[];i=1;await V();l&&clearInterval(l);l=setInterval(W,2e3);v.textContent=`已加载文件: ${s.name}`}catch(t){v.textContent=`文件选择错误: ${t.message}`}})});const X=document.querySelectorAll(".period-btn");X.forEach(t=>{t.addEventListener("click",()=>{X.forEach(t=>t.classList.remove("btn-active"));t.classList.add("btn-active");f=parseInt(t.dataset.period);document.getElementById("customPeriod").value=f;currentPage=1;console.log(`期数按钮被点击，设置期数为: ${f}`);L(); /* 添加表格刷新功能 */})});document.getElementById("customPeriodBtn").addEventListener("click",()=>{const t=parseInt(document.getElementById("customPeriod").value);!isNaN(t)&&t>=1&&t<=1e4?(f=t,X.forEach(t=>t.classList.remove("btn-active")),currentPage=1,console.log(`自定义期数被设置为: ${f}`),L() /* 添加表格刷新功能 */):alert("请输入1-10000之间的数字")});window.addEventListener("resize",j);
+document.getElementById("hitRateSortBtn").classList.add("btn-active","bg-orange-600","text-white");document.getElementById("hitRateSortBtn").classList.remove("bg-gray-200","text-gray-700");document.getElementById("currentMissBtn").classList.remove("btn-active","bg-blue-600","text-white");document.getElementById("currentMissBtn").classList.add("bg-gray-200","text-gray-700");document.getElementById("currentHitBtn").classList.remove("btn-active","bg-blue-600","text-white");document.getElementById("currentHitBtn").classList.add("bg-gray-200","text-gray-700"); console.log('命中率排序按钮被点击，开始刷新数据'); L(); /* 添加数据刷新功能 */ if(wasHidden){setTimeout(()=>{const periodCols=document.querySelectorAll(".fixed-width-period");const dataCols=document.querySelectorAll(".fixed-width-data");periodCols.forEach(col=>col.style.opacity="0");dataCols.forEach(col=>col.style.left="0px")},50)}}); document.getElementById("statBtn").addEventListener("click",() => { /* 移除立即筛选，等待确认按钮点击 */ });document.getElementById("clearBtn").addEventListener("click",()=>{if(confirm("确定要清空所有数据吗？此操作不可恢复。")){
+r=[];
+i=1;
+d.clear();
+document.getElementById("periodCount").textContent="0";
+document.getElementById("summary").textContent="";
+v.textContent="数据已清空";
+// 重置为自动获取模式
+window.isUsingFileData = false;
+updateDataSourceIndicator(false);
+// 重新渲染表格以清空显示
+L();
+// 清空验证计划表格
+if (typeof window.updateVerifyPlanTable === 'function') {
+    window.updateVerifyPlanTable();
+}
+if (typeof window.updateSinglePeriodTable === 'function') {
+    window.updateSinglePeriodTable();
+}
+// 重新启动API数据获取定时器
+console.log('重新启动API数据获取定时器...');
+if (typeof window.startHistoryDataFetch === 'function') {
+    window.startHistoryDataFetch();
+    console.log('历史数据获取定时器已重新启动');
+}
+if (typeof window.startVerifyPlanDataFetch === 'function') {
+    window.startVerifyPlanDataFetch();
+    console.log('验证计划数据获取定时器已重新启动');
+}
+console.log('数据已清空，已切换回自动获取模式，所有表格已重新渲染，API数据获取已重新启动');
+}});document.addEventListener("DOMContentLoaded",()=>{document.getElementById("uploadDataBtn").addEventListener("click",async()=>{try{[s]=await window.showOpenFilePicker();
+// 停止所有API数据获取定时器
+console.log('文件导入开始，停止所有API数据获取...');
+// 停止自动抓取
+if (typeof stopAutoScrape === 'function') {
+    stopAutoScrape();
+    console.log('已停止自动抓取功能');
+}
+// 停止历史数据获取
+if (typeof window.stopHistoryDataFetch === 'function') {
+    window.stopHistoryDataFetch();
+    console.log('已停止历史数据获取');
+}
+// 停止验证计划数据获取
+if (typeof window.stopVerifyPlanDataFetch === 'function') {
+    window.stopVerifyPlanDataFetch();
+    console.log('已停止验证计划数据获取');
+}
+// 停止其他可能的定时器
+if (autoScrapeInterval) {
+    clearInterval(autoScrapeInterval);
+    autoScrapeInterval = null;
+    console.log('已清除自动抓取定时器');
+}
+if (historyDataTimer) {
+    clearInterval(historyDataTimer);
+    historyDataTimer = null;
+    console.log('已清除历史数据定时器');
+}
+if (verifyPlanDataTimer) {
+    clearInterval(verifyPlanDataTimer);
+    verifyPlanDataTimer = null;
+    console.log('已清除验证计划数据定时器');
+}
+// 设置数据源标识
+window.isUsingFileData = true;
+console.log('数据源已切换为文件获取模式');
+// 更新数据源指示器
+updateDataSourceIndicator(true);
+d.clear();u=null;r=[];i=1;await V();l&&clearInterval(l);l=setInterval(W,2e3);v.textContent=`已加载文件: ${s.name} (文件数据模式)`}catch(t){v.textContent=`文件选择错误: ${t.message}`}})});const X=document.querySelectorAll(".period-btn");X.forEach(t=>{t.addEventListener("click",()=>{X.forEach(t=>t.classList.remove("btn-active"));t.classList.add("btn-active");f=parseInt(t.dataset.period);document.getElementById("customPeriod").value=f;currentPage=1;console.log(`期数按钮被点击，设置期数为: ${f}`);L(); /* 添加表格刷新功能 */})});document.getElementById("customPeriodBtn").addEventListener("click",()=>{const t=parseInt(document.getElementById("customPeriod").value);!isNaN(t)&&t>=1&&t<=1e4?(f=t,X.forEach(t=>t.classList.remove("btn-active")),currentPage=1,console.log(`自定义期数被设置为: ${f}`),L() /* 添加表格刷新功能 */):alert("请输入1-10000之间的数字")});window.addEventListener("resize",j);
 
 
 
@@ -7295,8 +7370,28 @@ function generateMockNumbers() {
     return numbers.join(',');
 }
 
+// 更新数据源指示器
+function updateDataSourceIndicator(isFileMode) {
+    const statusElement = document.getElementById('dataSourceStatus');
+    if (statusElement) {
+        if (isFileMode) {
+            statusElement.textContent = '文件获取';
+            statusElement.className = 'px-2 py-1 rounded text-xs font-medium bg-blue-600 text-white';
+        } else {
+            statusElement.textContent = '自动获取';
+            statusElement.className = 'px-2 py-1 rounded text-xs font-medium bg-green-600 text-white';
+        }
+    }
+}
+
 // API数据获取功能 - 直接从原始API获取
 async function fetchApiData() {
+    // 检查是否正在使用文件数据模式
+    if (window.isUsingFileData) {
+        console.log('当前为文件数据模式，跳过API数据获取');
+        return null;
+    }
+    
     try {
         console.log('步骤1: 开始从API获取数据...');
         
@@ -7413,6 +7508,12 @@ async function fetchApiData() {
 
 // 历史数据获取功能 - 获取指定日期的历史开奖数据
 window.fetchHistoryData = async function fetchHistoryData() {
+    // 检查是否正在使用文件数据模式
+    if (window.isUsingFileData) {
+        console.log('当前为文件数据模式，跳过历史数据获取');
+        return null;
+    }
+    
     try {
         console.log('步骤1: 开始获取历史数据（今天和昨天）...');
         
