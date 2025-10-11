@@ -2,7 +2,7 @@
 builder = "NIXPACKS"
 
 [build.nixpacksConfig]
-providers = ["python"]
+providers = ["python", "node"]
 
 [deploy]
 startCommand = "python simple_server.py"
@@ -11,6 +11,14 @@ healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
 
+# Key Management Service
+[[services]]
+name = "key-management"
+startCommand = "node key_management_server.js"
+port = 3002
+
 [environments.production.variables]
 PYTHON_VERSION = "3.11"
 NIXPACKS_PYTHON_VERSION = "3.11"
+NODE_VERSION = "18"
+KEY_MANAGEMENT_PORT = "3002"

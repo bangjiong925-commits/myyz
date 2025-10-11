@@ -29,15 +29,15 @@
           // 添加其他允许的域名
         ];
         
-        // 检查协议（必须是https或http）
-        if (currentProtocol !== 'https:' && currentProtocol !== 'http:') {
+        // 检查协议（允许https、http和file协议）
+        if (currentProtocol !== 'https:' && currentProtocol !== 'http:' && currentProtocol !== 'file:') {
           console.error('非法协议访问:', currentProtocol);
           document.body.innerHTML = '<div style="text-align:center;margin-top:50px;font-size:24px;color:red;">访问协议不正确</div>';
           return false;
         }
         
-        // 检查域名
-        const isDomainAllowed = allowedDomains.some(domain => 
+        // 检查域名（file协议允许空hostname）
+        const isDomainAllowed = currentProtocol === 'file:' || allowedDomains.some(domain => 
           currentDomain === domain || currentDomain.endsWith('.' + domain)
         );
         
@@ -54,9 +54,9 @@
       function checkEnvironment() {
         // 检查是否为file协议（本地文件）
         if (window.location.protocol === 'file:') {
-          console.error('禁止本地文件访问');
-          document.body.innerHTML = '<div style="text-align:center;margin-top:50px;font-size:24px;color:red;">请通过正确的网址访问</div>';
-          return false;
+          console.log('本地文件访问模式 - 开发测试环境');
+          // 在开发环境中允许本地文件访问
+          return true;
         }
         
         // 检查Referer（防止直接访问）
@@ -6268,21 +6268,81 @@ if(checksum !== expectedChecksum) {
 return {valid: false, reason: "密钥校验失败"};
 }
 
-// 纯本地验证（短密钥）
+// 使用服务器端验证（短密钥）
         const nonce = t; // 使用整个短密钥作为nonce
         
-        console.log('使用纯本地验证短密钥:', nonce);
+        console.log('使用服务器端验证短密钥:', nonce);
         
-        // 检查是否已被使用
-        const usedNonces = JSON.parse(localStorage.getItem('usedNonces') || '[]');
-        if (usedNonces.includes(nonce)) {
-            return {valid: false, reason: "密钥已被使用，每个密钥只能使用一次"};
+        // 首先调用服务器端API检查密钥使用状态并自动注册
+        try {
+            const checkResponse = await fetch('http://localhost:3002/api/keys/validate-and-register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ key: nonce }),
+                credentials: 'include'
+            });
+            
+            const checkResult = await checkResponse.json();
+            
+            if (checkResult.success) {
+                console.log('服务器端验证成功:', checkResult.message);
+                
+                // 同时更新本地记录
+                const usedNonces = JSON.parse(localStorage.getItem('usedNonces') || '[]');
+                if (!usedNonces.includes(nonce)) {
+                    usedNonces.push(nonce);
+                    localStorage.setItem('usedNonces', JSON.stringify(usedNonces));
+                    console.log('本地同步标记密钥为已使用:', nonce);
+                }
+                
+                // 直接返回成功结果，跳过后续的API调用
+                return {
+                    valid: true, 
+                    reason: checkResult.message,
+                    autoRegistered: checkResult.data.autoRegistered,
+                    keyData: checkResult.data,
+                    data: {nonce: nonce, expiry: expiry, deviceFingerprint: "universal"}
+                };
+            } else {
+                console.log('服务器端验证失败:', checkResult.message);
+                return {valid: false, reason: checkResult.message};
+            }
+        } catch (error) {
+            console.log('服务器端API调用失败，回退到本地验证:', error);
+            
+            // 服务器端验证失败时，回退到本地验证
+            const usedNonces = JSON.parse(localStorage.getItem('usedNonces') || '[]');
+            if (usedNonces.includes(nonce)) {
+                return {valid: false, reason: "密钥已被使用，每个密钥只能使用一次（本地验证）"};
+            }
+            
+            // 本地标记为已使用
+            usedNonces.push(nonce);
+            localStorage.setItem('usedNonces', JSON.stringify(usedNonces));
+            console.log('本地标记短密钥为已使用:', nonce);
         }
         
-        // 本地标记为已使用
-        usedNonces.push(nonce);
-        localStorage.setItem('usedNonces', JSON.stringify(usedNonces));
-        console.log('本地标记短密钥为已使用:', nonce);
+        // 同时向后台API发送验证记录（不影响本地验证结果）
+        try {
+            const response = await fetch('http://localhost:3002/api/keys/validate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ key: nonce }),
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                console.log('后台API验证记录成功');
+            } else {
+                console.log('后台API验证记录失败，但不影响本地验证');
+            }
+        } catch (error) {
+            console.log('后台API调用失败，但不影响本地验证:', error);
+        }
         
         return {valid: true, data: {nonce: nonce, expiry: expiry, deviceFingerprint: "universal"}};
 }
@@ -6292,8 +6352,16 @@ const e=atob(t),n=decodeURIComponent(escape(e)),o=JSON.parse(n);if(!o.expiry||!o
 
 // 纯本地检查密钥是否已被使用
 function checkKeyOnlineUsage(nonce) {
-    console.log('使用纯本地验证检查密钥:', nonce);
-    return { used: JSON.parse(localStorage.getItem('usedNonces') || '[]').includes(nonce) };
+    try {
+        console.log('使用纯本地验证检查密钥:', nonce);
+        const usedNonces = JSON.parse(localStorage.getItem('usedNonces') || '[]');
+        const isUsed = usedNonces.includes(nonce);
+        console.log('密钥使用状态:', isUsed);
+        return { used: isUsed };
+    } catch (error) {
+        console.error('检查密钥使用状态时出错:', error);
+        return { used: false };
+    }
 }
 
 // 纯本地标记密钥为已使用
@@ -6995,7 +7063,9 @@ function updateTablePage() {
             });
         }
     }, 10);
-}j();}function j(){const t=document.getElementById("resultTable"),e=document.getElementById("tableContainer"),n=t.offsetWidth,o=e.offsetWidth;if(n>o){document.querySelector(".slider-container").style.display="block";const u=o/n,l=Math.max(20,u*o);k.style.width=e.scrollLeft/(n-o)*100+"%",w.style.left=e.scrollLeft/(n-o)*(o-l)+"px",w.style.width=`${l}px`,k.style.width=e.scrollLeft/(n-o)*100+"%";let m=!1;function c(t){if(!m)return;const c=e.getBoundingClientRect(),r=t.clientX-c.left-l/2,i=o-l,a=Math.max(0,Math.min(r,i)),s=a/i,d=s*(n-o);e.scrollLeft=d,w.style.left=`${a}px`,k.style.width=100*s+"%"}function r(){m=!1,document.removeEventListener("mousemove",c),document.removeEventListener("mouseup",r)}w.addEventListener("mousedown",t=>{m=!0,document.addEventListener("mousemove",c),document.addEventListener("mouseup",r),t.preventDefault()}),document.querySelector(".slider-track").addEventListener("click",t=>{const c=e.getBoundingClientRect(),r=t.clientX-c.left-l/2,i=o-l,a=Math.max(0,Math.min(r,i)),s=a/i,d=s*(n-o);e.scrollLeft=d,w.style.left=`${a}px`,k.style.width=100*s+"%"})}else document.querySelector(".slider-container").style.display="none";const i=t.offsetHeight,a=e.offsetHeight;if(i>a){$.style.display="none";const f=a/i,y=Math.max(20,f*a);I.style.height=e.scrollTop/(i-a)*100+"%",B.style.top=e.scrollTop/(i-a)*(a-y)+"px",B.style.height=`${y}px`,I.style.height=e.scrollTop/(i-a)*100+"%";let b=!1;function s(t){if(!b)return;const n=e.getBoundingClientRect(),o=t.clientY-n.top-y/2,c=a-y,r=Math.max(0,Math.min(o,c)),s=r/c,d=s*(i-a);e.scrollTop=d,B.style.top=`${r}px`,I.style.height=100*s+"%"}function d(){b=!1,document.removeEventListener("mousemove",s),document.removeEventListener("mouseup",d)}B.addEventListener("mousedown",t=>{b=!0,document.addEventListener("mousemove",s),document.addEventListener("mouseup",d),t.preventDefault()}),document.querySelector(".vertical-slider-track").addEventListener("click",t=>{const n=e.getBoundingClientRect(),o=t.clientY-n.top-y/2,c=a-y,r=Math.max(0,Math.min(o,c)),s=r/c,d=s*(i-a);e.scrollTop=d,B.style.top=`${r}px`,I.style.height=100*s+"%"})}else $.style.display="none";e.addEventListener("scroll",()=>{if(n>o){const t=e.scrollLeft/(n-o);w.style.left=t*(o-parseInt(getComputedStyle(w).width))+"px",k.style.width=100*t+"%";const periodCols=document.querySelectorAll(".fixed-width-period");const dataCols=document.querySelectorAll(".fixed-width-data");if(e.scrollLeft>10){periodCols.forEach(col=>col.style.opacity="0");dataCols.forEach(col=>col.style.left="0px")}else{periodCols.forEach(col=>col.style.opacity="1");dataCols.forEach(col=>col.style.left="120px")}}if(i>a){const t=e.scrollTop/(i-a);const thumbHeight=Math.max(20,f*a);B.style.top=Math.min(t*(a-thumbHeight),a-thumbHeight)+"px",I.style.height=Math.min(100*t,100)+"%"}})}async function V(){if(s)try{const t=await s.getFile(),e=(await t.text()).trim().split("\n").filter(Boolean);console.log(`V()函数: 从文件读取到 ${e.length} 行数据`);for(const t of e)q(t);r.sort((t,e)=>{const n=t.period.toString();return e.period.toString().localeCompare(n)});console.log(`V()函数: 处理后数据数组长度为 ${r.length}`);document.getElementById("periodCount").textContent=r.length;console.log(`V()函数: 期数统计已更新为 ${r.length}`);L(); /* 自动渲染表格 */}catch(t){v.textContent=`读取文件错误: ${t.message}`}}async function W(){if(s)try{const t=await s.getFile(),e=(await t.text()).trim().split("\n")[0],n=e.trim().split(/\t+/);if(2!==n.length)return;const o=n[0].trim();if(o===u)return;u=o,q(e);// 重新排序数据，确保最新期号在第一行
+}
+// j(); // 移除可能导致无限递归的调用
+}function j(){const t=document.getElementById("resultTable"),e=document.getElementById("tableContainer"),n=t.offsetWidth,o=e.offsetWidth;if(n>o){document.querySelector(".slider-container").style.display="block";const u=o/n,l=Math.max(20,u*o);k.style.width=e.scrollLeft/(n-o)*100+"%",w.style.left=e.scrollLeft/(n-o)*(o-l)+"px",w.style.width=`${l}px`,k.style.width=e.scrollLeft/(n-o)*100+"%";let m=!1;function c(t){if(!m)return;const c=e.getBoundingClientRect(),r=t.clientX-c.left-l/2,i=o-l,a=Math.max(0,Math.min(r,i)),s=a/i,d=s*(n-o);e.scrollLeft=d,w.style.left=`${a}px`,k.style.width=100*s+"%"}function r(){m=!1,document.removeEventListener("mousemove",c),document.removeEventListener("mouseup",r)}w.addEventListener("mousedown",t=>{m=!0,document.addEventListener("mousemove",c),document.addEventListener("mouseup",r),t.preventDefault()}),document.querySelector(".slider-track").addEventListener("click",t=>{const c=e.getBoundingClientRect(),r=t.clientX-c.left-l/2,i=o-l,a=Math.max(0,Math.min(r,i)),s=a/i,d=s*(n-o);e.scrollLeft=d,w.style.left=`${a}px`,k.style.width=100*s+"%"})}else document.querySelector(".slider-container").style.display="none";const i=t.offsetHeight,a=e.offsetHeight;if(i>a){$.style.display="none";const f=a/i,y=Math.max(20,f*a);I.style.height=e.scrollTop/(i-a)*100+"%",B.style.top=e.scrollTop/(i-a)*(a-y)+"px",B.style.height=`${y}px`,I.style.height=e.scrollTop/(i-a)*100+"%";let b=!1;function s(t){if(!b)return;const n=e.getBoundingClientRect(),o=t.clientY-n.top-y/2,c=a-y,r=Math.max(0,Math.min(o,c)),s=r/c,d=s*(i-a);e.scrollTop=d,B.style.top=`${r}px`,I.style.height=100*s+"%"}function d(){b=!1,document.removeEventListener("mousemove",s),document.removeEventListener("mouseup",d)}B.addEventListener("mousedown",t=>{b=!0,document.addEventListener("mousemove",s),document.addEventListener("mouseup",d),t.preventDefault()}),document.querySelector(".vertical-slider-track").addEventListener("click",t=>{const n=e.getBoundingClientRect(),o=t.clientY-n.top-y/2,c=a-y,r=Math.max(0,Math.min(o,c)),s=r/c,d=s*(i-a);e.scrollTop=d,B.style.top=`${r}px`,I.style.height=100*s+"%"})}else $.style.display="none";e.addEventListener("scroll",()=>{if(n>o){const t=e.scrollLeft/(n-o);w.style.left=t*(o-parseInt(getComputedStyle(w).width))+"px",k.style.width=100*t+"%";const periodCols=document.querySelectorAll(".fixed-width-period");const dataCols=document.querySelectorAll(".fixed-width-data");if(e.scrollLeft>10){periodCols.forEach(col=>col.style.opacity="0");dataCols.forEach(col=>col.style.left="0px")}else{periodCols.forEach(col=>col.style.opacity="1");dataCols.forEach(col=>col.style.left="120px")}}if(i>a){const t=e.scrollTop/(i-a);const thumbHeight=Math.max(20,f*a);B.style.top=Math.min(t*(a-thumbHeight),a-thumbHeight)+"px",I.style.height=Math.min(100*t,100)+"%"}})}async function V(){if(s)try{const t=await s.getFile(),e=(await t.text()).trim().split("\n").filter(Boolean);console.log(`V()函数: 从文件读取到 ${e.length} 行数据`);for(const t of e)q(t);r.sort((t,e)=>{const n=t.period.toString();return e.period.toString().localeCompare(n)});console.log(`V()函数: 处理后数据数组长度为 ${r.length}`);document.getElementById("periodCount").textContent=r.length;console.log(`V()函数: 期数统计已更新为 ${r.length}`);L(); /* 自动渲染表格 */}catch(t){v.textContent=`读取文件错误: ${t.message}`}}async function W(){if(s)try{const t=await s.getFile(),e=(await t.text()).trim().split("\n")[0],n=e.trim().split(/\t+/);if(2!==n.length)return;const o=n[0].trim();if(o===u)return;u=o,q(e);// 重新排序数据，确保最新期号在第一行
 r.sort((t,e)=>{const n=t.period.toString();return e.period.toString().localeCompare(n)});console.log(`W()函数: 新增数据后，数据数组长度为 ${r.length}`);document.getElementById("periodCount").textContent=r.length;console.log(`W()函数: 期数统计已更新为 ${r.length}`);// 自动刷新表格显示最新数据
 L();}catch(t){}}function q(t){let e;if(t.includes("\t"))e=t.trim().split(/\t+/);else{if(!t.includes(" "))return;e=t.trim().split(/\s+/)}if(e.length<2)return;const n=e[0].trim();if(d.has(n))return;let o;if(e[1].includes(","))o=e[1].split(",").map(t=>parseInt(t.trim(),10));else{if(!e[1].includes(" "))return;o=e[1].split(" ").map(t=>parseInt(t.trim(),10))}10!==o.length||o.some(isNaN)||(d.add(n),r.unshift({period:n,data:o,input:o.join(",")}))}// Y函数定义 - 生成文件标识符
 function Y(){try{const t=document.documentElement.outerHTML.substring(0,1e3)+window.location.href.split("/").slice(-2).join("/");let e=0;for(let n=0;n<t.length;n++)e=(e<<5)-e+t.charCodeAt(n),e&=e;return"file_"+Math.abs(e).toString(36)}catch(t){return console.error("Failed to generate file identifier:",t),"fallback_"+Date.now()}}
@@ -8134,15 +8204,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // 页面完全加载后启动历史数据获取
 window.addEventListener('load', function() {
-    // 延迟启动历史数据获取，确保所有初始化完成
-    setTimeout(() => {
-        console.log('页面完全加载完成，启动历史数据获取功能...');
-        startHistoryDataFetch();
-        
-        // 同时为验证计划页面启动数据获取
-        console.log('为验证计划页面启动独立的数据获取机制...');
-        startVerifyPlanDataFetch();
-    }, 1000);
+    // 历史数据获取功能已禁用 - 防止页面卡死
+    console.log('页面完全加载完成，历史数据获取功能已禁用');
+    // setTimeout(() => {
+    //     console.log('页面完全加载完成，启动历史数据获取功能...');
+    //     startHistoryDataFetch();
+    //     
+    //     // 同时为验证计划页面启动数据获取
+    //     console.log('为验证计划页面启动独立的数据获取机制...');
+    //     startVerifyPlanDataFetch();
+    // }, 1000);
 });
 
 // 验证计划数据存储（全局变量）
