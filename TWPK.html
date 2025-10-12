@@ -5372,23 +5372,29 @@ tailwind.config = {
 };
 
 // 台湾PK10数据转换逻辑函数 - 移到全局作用域
-function calcResult(nums) {
-  if (nums.length !== 20) {
-    throw new Error("必须输入20个数字");
-  }
-  
-  // 计算配对和值
-  let sums = [];
-  for (let i = 0; i < 10; i++) {
-    sums.push(nums[i] + nums[19 - i]);
-  }
-  
-  // 排序得到索引顺序（从大到小）
-  let indexed = sums.map((v, i) => ({v, i: i + 1}));
-  indexed.sort((a, b) => b.v - a.v);
-  
-  // 输出10位排序结果
-  return indexed.map(obj => obj.i);
+/** 
+ * 核心开奖计算： 
+ * - 输入：长度为 20 的数组 nums 
+ * - 规则：S_i = nums[i] + nums[19 - i] (i = 0..9) 
+ * - 排序：按和值从大到小；若和值相同，序号较大(i+1)者优先 
+ * - 输出：长度为 10 的索引序列（1..10） 
+ */ 
+function calcResult(nums) { 
+  if (!Array.isArray(nums) || nums.length !== 20) { 
+    throw new Error("必须输入长度为 20 的数字数组"); 
+  } 
+
+  // 计算配对和值 
+  const sums = Array.from({ length: 10 }, (_, i) => nums[i] + nums[19 - i]); 
+
+  // 带索引打包：i 用 1..10 
+  const indexed = sums.map((v, i) => ({ v, i: i + 1 })); 
+
+  // 排序：先按和值降序；和值相同则索引降序（后者优先） 
+  indexed.sort((a, b) => (b.v - a.v) || (b.i - a.i)); 
+
+  // 返回索引序列 
+  return indexed.map(o => o.i); 
 }
 
 // 全局变量存储当前彩种类型
