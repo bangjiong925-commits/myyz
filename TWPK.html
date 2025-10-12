@@ -5379,22 +5379,32 @@ tailwind.config = {
  * - 排序：按和值从大到小；若和值相同，序号较大(i+1)者优先 
  * - 输出：长度为 10 的索引序列（1..10） 
  */ 
+/** 
+ * 输入：长度为20的数组 nums 
+ * 规则： 
+ *  1) S_i = nums[i] + nums[19 - i] (i = 0..9) 
+ *  2) 排序优先级： 
+ *     a. 和值 S_i 降序 
+ *     b. 若和值相同，比较左侧 nums[i] 降序（左侧大的优先） 
+ *     c. 若仍相同，比较右侧 nums[19 - i] 降序 
+ *     d. 若还相同，索引小者优先（稳定） 
+ * 输出：10位索引（1..10） 
+ */ 
 function calcResult(nums) { 
   if (!Array.isArray(nums) || nums.length !== 20) { 
     throw new Error("必须输入长度为 20 的数字数组"); 
   } 
-
-  // 计算配对和值 
-  const sums = Array.from({ length: 10 }, (_, i) => nums[i] + nums[19 - i]); 
-
-  // 带索引打包：i 用 1..10 
-  const indexed = sums.map((v, i) => ({ v, i: i + 1 })); 
-
-  // 排序：先按和值降序；和值相同则索引降序（后者优先） 
-  indexed.sort((a, b) => (b.v - a.v) || (b.i - a.i)); 
-
-  // 返回索引序列 
-  return indexed.map(o => o.i); 
+  const pairs = Array.from({ length: 10 }, (_, i) => { 
+    const L = nums[i], R = nums[19 - i]; 
+    return { idx: i + 1, sum: L + R, L, R }; 
+  }); 
+  pairs.sort((a, b) => { 
+    if (b.sum !== a.sum) return b.sum - a.sum;   // ① 和值降序 
+    if (b.L   !== a.L)   return b.L   - a.L;     // ② 左侧降序 
+    if (b.R   !== a.R)   return b.R   - a.R;     // ③ 右侧降序 
+    return a.idx - b.idx;                        // ④ 索引小者优先 
+  }); 
+  return pairs.map(p => p.idx); 
 }
 
 // 全局变量存储当前彩种类型
