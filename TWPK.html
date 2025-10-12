@@ -5418,6 +5418,14 @@ function getCurrentLotteryData() {
 // 设置当前彩票类型的数据
 function setCurrentLotteryData(data) {
     const type = currentLotteryType || 'xyft';
+    
+    // 限制数据量，确保不超过200期
+    const maxDataCount = 200;
+    if (Array.isArray(data) && data.length > maxDataCount) {
+        data = data.slice(0, maxDataCount);
+        console.log(`设置数据时发现数据量超过${maxDataCount}期，已自动截取最新${maxDataCount}期数据`);
+    }
+    
     if (!lotteryDataStorage[type]) {
         console.warn('彩票类型不存在，使用默认值xyft');
         lotteryDataStorage['xyft'].data = data;
@@ -5437,6 +5445,14 @@ function addToCurrentLotteryData(newData) {
     } else {
         storage.data.unshift(newData);
     }
+    
+    // 限制数据量，确保不超过200期
+    const maxDataCount = 200;
+    if (storage.data.length > maxDataCount) {
+        storage.data = storage.data.slice(0, maxDataCount);
+        console.log(`数据量超过${maxDataCount}期，已自动截取最新${maxDataCount}期数据`);
+    }
+    
     // 同步到全局变量
     r = storage.data;
     window.r = storage.data;
@@ -6044,6 +6060,58 @@ document.addEventListener('DOMContentLoaded', function() {
     if (lotteryTypeSelect) {
         currentLotteryType = lotteryTypeSelect.value || 'twpk10';
         console.log('初始化currentLotteryType为:', currentLotteryType);
+        
+        // 页面初始化时自动启动对应彩种的数据获取
+        setTimeout(() => {
+            if (currentLotteryType === 'twpk10') {
+                console.log('🚀 页面初始化：自动启动台湾PK10数据获取...');
+                
+                // 检查缓存数据
+                const cachedData = localStorage.getItem('twpk10Data');
+                const cacheTimestamp = localStorage.getItem('twpk10DataTimestamp');
+                const now = Date.now();
+                const cacheAge = now - (cacheTimestamp ? parseInt(cacheTimestamp) : 0);
+                const cacheValid = cacheAge < 5 * 60 * 1000; // 5分钟内有效
+                
+                if (cachedData && cacheValid) {
+                    console.log('✅ 使用缓存的台湾PK10数据');
+                    try {
+                        const data = JSON.parse(cachedData);
+                        if (data && data.length > 0) {
+                            window.twpk10Data = data;
+                            L(); // 更新表格显示
+                            console.log('✅ 缓存数据加载成功，共', data.length, '条记录');
+                        }
+                    } catch (error) {
+                        console.error('❌ 解析缓存数据失败:', error);
+                    }
+                }
+                
+                // 无论是否有缓存，都启动自动获取功能
+                setTimeout(() => {
+                    if (typeof startAutoScrape === 'function') {
+                        startAutoScrape();
+                        // console.log('🚀 页面初始化：已自动启动台湾PK10数据获取功能');
+                    }
+                }, 1000);
+                
+            } else if (currentLotteryType === 'xyft') {
+                console.log('🔄 页面初始化：自动获取幸运飞艇历史数据...');
+                if (typeof fetchHistoryData === 'function') {
+                    fetchHistoryData().then(result => {
+                        if (result && result.totalCount > 0) {
+                            console.log('✅ 页面初始化：成功加载幸运飞艇历史数据，共', result.totalCount, '条记录');
+                        } else {
+                            console.log('ℹ️ 页面初始化：未获取到幸运飞艇历史数据，显示空表格');
+                            L();
+                        }
+                    }).catch(error => {
+                        console.error('❌ 页面初始化：获取幸运飞艇历史数据失败:', error);
+                        L();
+                    });
+                }
+            }
+        }, 500); // 延迟500ms确保页面完全加载
     }
     
     if (lotteryTypeSelect && currentLotteryStatus) {
@@ -6053,6 +6121,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const lotteryName = this.value === 'xyft' ? '幸运飞艇' : '台湾PK10';
             currentLotteryStatus.textContent = `当前: ${lotteryName}`;
             console.log(`彩种切换为: ${lotteryName} (${this.value})`);
+            
+            // 先停止当前的自动获取功能
+            if (typeof stopAutoScrape === 'function') {
+                stopAutoScrape();
+                console.log('🛑 已停止之前的自动获取功能');
+            }
             
             // 切换彩种时加载对应彩种的数据
             const currentData = getCurrentLotteryData();
@@ -6073,7 +6147,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             
-            // 自动获取对应彩种的数据
+            // 自动获取对应彩种的数据并启动自动获取功能
             if (this.value === 'twpk10') {
                 // 检查是否已有台湾PK10的缓存数据
                 const cachedData = localStorage.getItem('twpk10_cached_data');
@@ -6091,6 +6165,14 @@ document.addEventListener('DOMContentLoaded', function() {
                             document.getElementById("periodCount").textContent = parsedData.length;
                             L(); // 更新表格显示
                             console.log('✅ 成功加载缓存数据，共', parsedData.length, '条记录');
+                            
+                            // 启动自动获取功能
+                            setTimeout(() => {
+                                if (typeof startAutoScrape === 'function') {
+                                    startAutoScrape();
+                                    // console.log('🚀 已自动启动台湾PK10数据获取功能');
+                                }
+                            }, 1000); // 延迟1秒启动，确保缓存数据加载完成
                             return;
                         }
                     } catch (e) {
@@ -6100,16 +6182,40 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
                 
-                console.log('🔄 自动获取台湾PK10数据...');
+                console.log('🔄 自动获取台湾PK10数据并启动自动获取功能...');
                 // 自动触发台湾PK10数据获取
                 if (typeof fetchApiData === 'function') {
-                    fetchApiData();
+                    fetchApiData().then(() => {
+                        // 数据获取完成后启动自动获取功能
+                        setTimeout(() => {
+                            if (typeof startAutoScrape === 'function') {
+                                startAutoScrape();
+                                // console.log('🚀 已自动启动台湾PK10数据获取功能');
+                            }
+                        }, 1000); // 延迟1秒启动
+                    }).catch(error => {
+                        console.error('❌ 初始数据获取失败:', error);
+                        // 即使初始获取失败，也启动自动获取功能
+                        setTimeout(() => {
+                            if (typeof startAutoScrape === 'function') {
+                                startAutoScrape();
+                                // console.log('🚀 已自动启动台湾PK10数据获取功能（初始获取失败）');
+                            }
+                        }, 1000);
+                    });
                 } else {
                     console.error('❌ fetchApiData 函数未定义');
+                    // 即使函数未定义，也尝试启动自动获取功能
+                    setTimeout(() => {
+                        if (typeof startAutoScrape === 'function') {
+                            startAutoScrape();
+                            // console.log('🚀 已自动启动台湾PK10数据获取功能（fetchApiData未定义）');
+                        }
+                    }, 1000);
                 }
             } else if (this.value === 'xyft') {
                 console.log('🔄 自动获取幸运飞艇历史数据...');
-                // 对于幸运飞艇，自动获取历史数据
+                // 对于幸运飞艇，自动获取历史数据但不启动自动获取功能
                 if (typeof fetchHistoryData === 'function') {
                     fetchHistoryData().then(result => {
                         if (result && result.totalCount > 0) {
@@ -6324,7 +6430,107 @@ if (numSelect) {
 
 // 位置选择按钮事件处理将在DOMContentLoaded中进行
 
-let T=null;function D(t){const e=document.getElementById("keyCountdown"),n=document.getElementById("timeRemaining");function o(){const o=new Date,c=new Date(1e3*t)-o;if(c<=0){n.textContent="已过期",e.classList.remove("bg-primary","bg-amber-500"),e.classList.add("bg-red-500"),clearInterval(T);const t=Y();return localStorage.removeItem(`validKey_${t}`),localStorage.removeItem(`keyExpiry_${t}`),b=!1,void setTimeout(()=>{window.location.reload()},3e3)}const r=Math.floor(c/864e5),i=Math.floor(c%864e5/36e5),a=Math.floor(c%36e5/6e4),s=Math.floor(c%6e4/1e3);n.textContent=`${r}天 ${i}小时 ${a}分钟 ${s}秒`;const d=24*r+i;d<=24?(e.classList.remove("bg-primary","bg-amber-500"),e.classList.add("bg-red-500")):d<=72?(e.classList.remove("bg-primary","bg-red-500"),e.classList.add("bg-amber-500")):(e.classList.remove("bg-amber-500","bg-red-500"),e.classList.add("bg-primary"))}T&&clearInterval(T),o(),e.classList.remove("hidden"),T=setInterval(o,1e3);}function generateDeviceFingerprint(){
+let T=null;function D(t){const e=document.getElementById("keyCountdown"),n=document.getElementById("timeRemaining");function o(){const o=new Date,c=new Date(1e3*t)-o;if(c<=0){n.textContent="已过期",e.classList.remove("bg-primary","bg-amber-500"),e.classList.add("bg-red-500"),clearInterval(T);const deviceId=Y();
+// 强制清除所有密钥相关数据
+localStorage.removeItem(`validKey_${deviceId}`);
+localStorage.removeItem(`keyExpiry_${deviceId}`);
+// 清除认证状态
+b=!1;
+// 静默显示密钥输入界面，不显示任何对话框
+const keyModal=document.getElementById('keyModal');
+if(keyModal){keyModal.classList.remove("hidden");keyModal.style.display="flex";}
+// 隐藏倒计时显示
+e.classList.add("hidden");
+return;}const r=Math.floor(c/864e5),i=Math.floor(c%864e5/36e5),a=Math.floor(c%36e5/6e4),s=Math.floor(c%6e4/1e3);n.textContent=`${r}天 ${i}小时 ${a}分钟 ${s}秒`;const d=24*r+i;d<=24?(e.classList.remove("bg-primary","bg-amber-500"),e.classList.add("bg-red-500")):d<=72?(e.classList.remove("bg-primary","bg-red-500"),e.classList.add("bg-amber-500")):(e.classList.remove("bg-amber-500","bg-red-500"),e.classList.add("bg-primary"))}T&&clearInterval(T),o(),e.classList.remove("hidden"),T=setInterval(o,1e3);}
+
+// 显示密钥过期对话框
+function showKeyExpiredDialog() {
+    // 创建过期提示对话框
+    const expiredDialog = document.createElement('div');
+    expiredDialog.id = 'keyExpiredDialog';
+    expiredDialog.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 10000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    `;
+    
+    expiredDialog.innerHTML = `
+        <div style="
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        ">
+            <div style="color: #ef4444; font-size: 48px; margin-bottom: 20px;">🔒</div>
+            <h2 style="color: #1f2937; margin-bottom: 15px; font-size: 24px;">密钥已过期</h2>
+            <p style="color: #6b7280; margin-bottom: 25px; line-height: 1.5;">
+                您的访问密钥已过期，为了继续使用，请输入新的有效密钥进行验证。
+            </p>
+            <button onclick="forceReAuthentication()" style="
+                background: #3b82f6;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-size: 16px;
+                cursor: pointer;
+                width: 100%;
+                transition: background 0.2s;
+            " onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
+                重新验证密钥
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(expiredDialog);
+}
+
+// 强制重新认证
+function forceReAuthentication() {
+    // 移除过期对话框
+    const expiredDialog = document.getElementById('keyExpiredDialog');
+    if (expiredDialog) {
+        expiredDialog.remove();
+    }
+    
+    // 清除所有认证相关数据
+    const deviceId = Y();
+    localStorage.removeItem(`validKey_${deviceId}`);
+    localStorage.removeItem(`keyExpiry_${deviceId}`);
+    
+    // 重置认证状态
+    b = false;
+    
+    // 显示密钥输入界面
+    const keyModal = document.getElementById('keyModal');
+    if (keyModal) {
+        keyModal.classList.remove("hidden");
+        keyModal.style.display = "flex";
+    }
+    
+    // 清空密钥输入框
+    const keyInput = document.getElementById('keyInput');
+    if (keyInput) {
+        keyInput.value = '';
+        keyInput.focus();
+    }
+    
+    // 隐藏倒计时显示
+    const keyCountdown = document.getElementById("keyCountdown");
+    if (keyCountdown) {
+        keyCountdown.classList.add("hidden");
+    }
+}function generateDeviceFingerprint(){
   // 使用固定的通用指纹，允许密钥在任何设备上使用
   // 这样可以确保密钥的跨设备兼容性
     return 'universal_device_2024';
@@ -6452,81 +6658,21 @@ if(checksum !== expectedChecksum) {
 return {valid: false, reason: "密钥校验失败"};
 }
 
-// 使用服务器端验证（短密钥）
+// 使用纯本地验证（短密钥）
         const nonce = t; // 使用整个短密钥作为nonce
         
-        console.log('使用服务器端验证短密钥:', nonce);
+        console.log('使用纯本地验证短密钥:', nonce);
         
-        // 首先调用服务器端API检查密钥使用状态并自动注册
-        try {
-            const checkResponse = await fetch('http://localhost:3002/api/keys/validate-and-register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ key: nonce }),
-                credentials: 'include'
-            });
-            
-            const checkResult = await checkResponse.json();
-            
-            if (checkResult.success) {
-                console.log('服务器端验证成功:', checkResult.message);
-                
-                // 同时更新本地记录
-                const usedNonces = JSON.parse(localStorage.getItem('usedNonces') || '[]');
-                if (!usedNonces.includes(nonce)) {
-                    usedNonces.push(nonce);
-                    localStorage.setItem('usedNonces', JSON.stringify(usedNonces));
-                    console.log('本地同步标记密钥为已使用:', nonce);
-                }
-                
-                // 直接返回成功结果，跳过后续的API调用
-                return {
-                    valid: true, 
-                    reason: checkResult.message,
-                    autoRegistered: checkResult.data.autoRegistered,
-                    keyData: checkResult.data,
-                    data: {nonce: nonce, expiry: expiry, deviceFingerprint: "universal"}
-                };
-            } else {
-                console.log('服务器端验证失败:', checkResult.message);
-                return {valid: false, reason: checkResult.message};
-            }
-        } catch (error) {
-            console.log('服务器端API调用失败，回退到本地验证:', error);
-            
-            // 服务器端验证失败时，回退到本地验证
-            const usedNonces = JSON.parse(localStorage.getItem('usedNonces') || '[]');
-            if (usedNonces.includes(nonce)) {
-                return {valid: false, reason: "密钥已被使用，每个密钥只能使用一次（本地验证）"};
-            }
-            
-            // 本地标记为已使用
-            usedNonces.push(nonce);
-            localStorage.setItem('usedNonces', JSON.stringify(usedNonces));
-            console.log('本地标记短密钥为已使用:', nonce);
+        // 检查密钥是否已被使用
+        const usedNonces = JSON.parse(localStorage.getItem('usedNonces') || '[]');
+        if (usedNonces.includes(nonce)) {
+            return {valid: false, reason: "密钥已被使用，每个密钥只能使用一次"};
         }
         
-        // 同时向后台API发送验证记录（不影响本地验证结果）
-        try {
-            const response = await fetch('http://localhost:3002/api/keys/validate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ key: nonce }),
-                credentials: 'include'
-            });
-            
-            if (response.ok) {
-                console.log('后台API验证记录成功');
-            } else {
-                console.log('后台API验证记录失败，但不影响本地验证');
-            }
-        } catch (error) {
-            console.log('后台API调用失败，但不影响本地验证:', error);
-        }
+        // 本地标记为已使用
+        usedNonces.push(nonce);
+        localStorage.setItem('usedNonces', JSON.stringify(usedNonces));
+        console.log('本地标记短密钥为已使用:', nonce);
         
         return {valid: true, data: {nonce: nonce, expiry: expiry, deviceFingerprint: "universal"}};
 }
@@ -6589,7 +6735,7 @@ function markKeyAsUsedOnline(nonce) {
       }
     }
 
-function F(){const t=document.getElementById("numbersInput").value.trim().split(/\n+/).filter(Boolean);if(!t.length)return void(v.textContent="请输入数据");let e=0;for(const n of t){const t=E(n);if(!t)return void(v.textContent="格式错误：请输入正确的数据格式");const{period:o,data:c}=t,i=c.join(",");d.has(o)||r.length&&r[r.length-1].input===i||(r.push({period:o,data:c,input:i}),d.add(o),e++)}document.getElementById("numbersInput").value="",v.textContent=e>0?`成功添加 ${e} 期数据`:"没有新数据添加";console.log(`F()函数: 添加 ${e} 期新数据后，数据数组长度为 ${r.length}`);document.getElementById("periodCount").textContent=r.length;console.log(`F()函数: 期数统计已更新为 ${r.length}`);r.sort((t,e)=>{const n=t.period.toString();const o=e.period.toString();return o.localeCompare(n)}); 
+function F(){const t=document.getElementById("numbersInput").value.trim().split(/\n+/).filter(Boolean);if(!t.length)return void(v.textContent="请输入数据");let e=0;for(const n of t){const t=E(n);if(!t)return void(v.textContent="格式错误：请输入正确的数据格式");const{period:o,data:c}=t,i=c.join(",");d.has(o)||r.length&&r[r.length-1].input===i||(r.push({period:o,data:c,input:i}),d.add(o),e++)}document.getElementById("numbersInput").value="",v.textContent=e>0?`成功添加 ${e} 期数据`:"没有新数据添加";console.log(`F()函数: 添加 ${e} 期新数据后，数据数组长度为 ${r.length}`);document.getElementById("periodCount").textContent=r.length;console.log(`F()函数: 期数统计已更新为 ${r.length}`);r.sort((t,e)=>parseInt(e.period) - parseInt(t.period)); 
     // 调用表格渲染函数显示数据
     L();
     console.log('F()函数: 已调用L()函数渲染表格');
@@ -7059,7 +7205,18 @@ const{maxHit:n,maxMiss:o}=d[t],{maxHit:c,maxMiss:r}=d[e];return m?c-n||o-r:o-r||
 // 保存处理后的数据到全局变量，供updateTablePage函数使用
 window.lastProcessedData = s;
 window.lastSortedCombinations = b;
-console.log('已保存处理后的数据到全局变量');document.getElementById("sortText").textContent=hitRateSort?"按命中率排序":m?"按遗漏次数排序":"按连中次数排序";const startIndex=(currentPage-1)*pageSize,endIndex=Math.min(startIndex+pageSize,s.length),pageData=s.slice(startIndex,endIndex);document.getElementById("summary").innerHTML=`\n        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">\n          <div>共 ${b.length} 注分析组合</div>\n          <div>当前显示: ${displayData.length} 期 / 总计: ${r.length} 期</div>\n          <div>筛选条件: ${selectedNums.length>0?selectedNums.join("/"):"全部"}码组合，命中${c.length>0?c.join("/"):"全部"}胆${selectedPositions.length>0?`，位置${selectedPositions.join("/")}名`:""}${selectedHitNumbers.length>0?`，命中数字${selectedHitNumbers.join("/")}`:""}</div>\n          <div>第 ${currentPage}/${totalPages} 页 (${pageData.length}/${s.length} 行)</div>\n        </div>\n        <div class="flex justify-center items-center mt-4 space-x-2">\n          <button id="prevPage" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50" ${currentPage<=1?'disabled':''}>上一页</button>\n          <span class="text-sm text-gray-600">第 ${currentPage} 页，共 ${totalPages} 页</span>\n          <button id="nextPage" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50" ${currentPage>=totalPages?'disabled':''}>下一页</button>\n        </div>`;const h=document.createElement("tr");
+console.log('已保存处理后的数据到全局变量');
+
+// 清空页面缓存，因为数据已更新
+if (window.pageCache) {
+    window.pageCache = {};
+    console.log('已清空页面缓存');
+}
+
+// 清除滚动缓存，确保DOM查询结果与最新表格结构同步
+if (window.clearScrollCache) {
+    window.clearScrollCache();
+}document.getElementById("sortText").textContent=hitRateSort?"按命中率排序":m?"按遗漏次数排序":"按连中次数排序";const startIndex=(currentPage-1)*pageSize,endIndex=Math.min(startIndex+pageSize,s.length),pageData=s.slice(startIndex,endIndex);document.getElementById("summary").innerHTML=`\n        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">\n          <div>共 ${b.length} 注分析组合</div>\n          <div>当前显示: ${displayData.length} 期 / 总计: ${r.length} 期</div>\n          <div>筛选条件: ${selectedNums.length>0?selectedNums.join("/"):"全部"}码组合，命中${c.length>0?c.join("/"):"全部"}胆${selectedPositions.length>0?`，位置${selectedPositions.join("/")}名`:""}${selectedHitNumbers.length>0?`，命中数字${selectedHitNumbers.join("/")}`:""}</div>\n          <div>第 ${currentPage}/${totalPages} 页 (${pageData.length}/${s.length} 行)</div>\n        </div>\n        <div class="flex justify-center items-center mt-4 space-x-2">\n          <button id="prevPage" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50" ${currentPage<=1?'disabled':''}>上一页</button>\n          <span class="text-sm text-gray-600">第 ${currentPage} 页，共 ${totalPages} 页</span>\n          <button id="nextPage" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50" ${currentPage>=totalPages?'disabled':''}>下一页</button>\n        </div>`;const h=document.createElement("tr");
 h.className="bg-gray-50 table-header-sticky";
 const periodHeaderClass = currentLotteryType === 'twpk10' ? 'fixed-width-period twpk10' : 'fixed-width-period';
 const dataHeaderLeftPos = currentLotteryType === 'twpk10' ? 'left-[90px]' : 'left-[120px]';
@@ -7161,8 +7318,9 @@ function getCombinations() {
     return combinations;
 }
 
-// 新增函数：只更新表格页面内容，不重新渲染整个表格
+// 优化后的函数：使用DocumentFragment和避免重复DOM操作来提升翻页性能
 function updateTablePage() {
+    const startTime = performance.now();
     console.log('updateTablePage被调用，当前页面:', currentPage);
     
     const tbody = document.querySelector("#resultTable tbody");
@@ -7189,33 +7347,77 @@ function updateTablePage() {
     
     console.log('只更新表格内容，当前页数据行数:', pageData.length);
     
-    // 清空并重新生成tbody内容
-    tbody.innerHTML = '';
+    // 检查是否有缓存的页面内容
+    const cacheKey = `page_${currentPage}_${currentLotteryType}`;
+    if (window.pageCache && window.pageCache[cacheKey]) {
+        console.log('使用缓存的页面内容');
+        tbody.innerHTML = window.pageCache[cacheKey];
+        const endTime = performance.now();
+        console.log(`翻页性能 (缓存): ${(endTime - startTime).toFixed(2)}ms`);
+        return;
+    }
+    
+    // 使用DocumentFragment批量创建DOM元素，减少重排次数
+    const fragment = document.createDocumentFragment();
+    const periodClass = currentLotteryType === 'twpk10' ? 'fixed-width-period twpk10' : 'fixed-width-period';
+    const dataLeftPos = currentLotteryType === 'twpk10' ? 'left-[90px]' : 'left-[120px]';
     
     pageData.forEach((t, n) => {
-        const o = document.createElement("tr");
-        o.className = 0 === n ? "bg-gray-100" : 1 === n ? "bg-gray-50" : "";
-        const periodClass = currentLotteryType === 'twpk10' ? 'fixed-width-period twpk10' : 'fixed-width-period';
-        const dataLeftPos = currentLotteryType === 'twpk10' ? 'left-[90px]' : 'left-[120px]';
+        const row = document.createElement("tr");
+        row.className = 0 === n ? "bg-gray-100" : 1 === n ? "bg-gray-50" : "";
         
-        o.innerHTML = `
-            <td class="px-3 py-2 text-left sticky-col left-0 border-r border-gray-200 font-medium ${periodClass} ${0 === n ? "sticky-bg-gray-100" : 1 === n ? "sticky-bg-gray-50" : "sticky-bg-white"}">${t.rec.period}</td>
-            <td class="px-3 py-2 text-left sticky-col ${dataLeftPos} border-r border-gray-200 fixed-width-data ${0 === n ? "sticky-bg-gray-100" : 1 === n ? "sticky-bg-gray-50" : "sticky-bg-white"}">
-                <div class="number-row">${t.rec.data.slice(0,5).join(",")}</div>
-                <div class="number-row">${t.rec.data.slice(5).join(",")}</div>
-            </td>
-        `;
+        // 创建期号列
+        const periodCell = document.createElement("td");
+        periodCell.className = `px-3 py-2 text-left sticky-col left-0 border-r border-gray-200 font-medium ${periodClass} ${0 === n ? "sticky-bg-gray-100" : 1 === n ? "sticky-bg-gray-50" : "sticky-bg-white"}`;
+        periodCell.textContent = t.rec.period;
+        row.appendChild(periodCell);
         
+        // 创建数据列
+        const dataCell = document.createElement("td");
+        dataCell.className = `px-3 py-2 text-left sticky-col ${dataLeftPos} border-r border-gray-200 fixed-width-data ${0 === n ? "sticky-bg-gray-100" : 1 === n ? "sticky-bg-gray-50" : "sticky-bg-white"}`;
+        
+        const numberRow1 = document.createElement("div");
+        numberRow1.className = "number-row";
+        numberRow1.textContent = t.rec.data.slice(0,5).join(",");
+        
+        const numberRow2 = document.createElement("div");
+        numberRow2.className = "number-row";
+        numberRow2.textContent = t.rec.data.slice(5).join(",");
+        
+        dataCell.appendChild(numberRow1);
+        dataCell.appendChild(numberRow2);
+        row.appendChild(dataCell);
+        
+        // 创建组合列
         b.forEach(e => {
-            const n = t.cells[e];
-            const c = document.createElement("td");
-            c.className = "px-3 py-2 text-center border-r border-gray-200 " + (n.hit ? "hit-cell" : "miss-cell");
-            c.textContent = n.txt;
-            o.appendChild(c);
+            const cellData = t.cells[e];
+            const cell = document.createElement("td");
+            cell.className = "px-3 py-2 text-center border-r border-gray-200 " + (cellData.hit ? "hit-cell" : "miss-cell");
+            cell.textContent = cellData.txt;
+            row.appendChild(cell);
         });
         
-        tbody.appendChild(o);
+        fragment.appendChild(row);
     });
+    
+    // 一次性替换所有内容，减少重排
+    tbody.innerHTML = '';
+    tbody.appendChild(fragment);
+    
+    // 缓存当前页面内容
+    if (!window.pageCache) {
+        window.pageCache = {};
+    }
+    window.pageCache[cacheKey] = tbody.innerHTML;
+    
+    // 限制缓存大小，避免内存泄漏
+    const cacheKeys = Object.keys(window.pageCache);
+    if (cacheKeys.length > 10) {
+        delete window.pageCache[cacheKeys[0]];
+    }
+    
+    const endTime = performance.now();
+    console.log(`翻页性能 (新渲染): ${(endTime - startTime).toFixed(2)}ms`);
     
     // 更新分页信息
     const summaryDiv = document.getElementById("summary");
@@ -7235,31 +7437,26 @@ function updateTablePage() {
         summaryDiv.innerHTML = updatedSummary;
     }
     
-    // 重新绑定翻页按钮事件
-    setTimeout(() => {
-        const prevBtn = document.getElementById("prevPage");
-        const nextBtn = document.getElementById("nextPage");
-        
-        if (prevBtn) {
-            prevBtn.addEventListener("click", (event) => {
+    // 优化事件绑定：使用事件委托，避免重复绑定
+    if (!window.paginationEventsInitialized) {
+        document.addEventListener('click', function(event) {
+            if (event.target.id === 'prevPage') {
                 event.preventDefault();
                 if (currentPage > 1) {
                     currentPage--;
                     updateTablePage();
                 }
-            });
-        }
-        
-        if (nextBtn) {
-            nextBtn.addEventListener("click", (event) => {
+            } else if (event.target.id === 'nextPage') {
                 event.preventDefault();
                 if (currentPage < totalPages) {
                     currentPage++;
                     updateTablePage();
                 }
-            });
-        }
-    }, 10);
+            }
+        });
+        window.paginationEventsInitialized = true;
+        console.log('翻页事件委托已初始化');
+    }
 }
 // j(); // 移除可能导致无限递归的调用
 }
@@ -7369,33 +7566,90 @@ function j() {
     
 
     
-    // 监听容器滚动事件
-    tableContainer.addEventListener("scroll", () => {
-        if (tableWidth > containerWidth) {
-            const scrollPercent = tableContainer.scrollLeft / (tableWidth - containerWidth);
-            const thumbWidth = Math.max(20, (containerWidth / tableWidth) * containerWidth);
-            const thumbPosition = scrollPercent * (containerWidth - thumbWidth);
-            
-            horizontalThumb.style.left = `${thumbPosition}px`;
-            horizontalFill.style.width = `${scrollPercent * 100}%`;
-            
-            // 处理固定列的显示/隐藏
-            const periodCols = document.querySelectorAll(".fixed-width-period");
-            const dataCols = document.querySelectorAll(".fixed-width-data");
-            const dataLeftPosition = currentLotteryType === 'twpk10' ? '90px' : '120px';
-            if (tableContainer.scrollLeft > 10) {
-                periodCols.forEach(col => col.style.opacity = "0");
-                dataCols.forEach(col => col.style.left = "0px");
-            } else {
-                periodCols.forEach(col => col.style.opacity = "1");
-                dataCols.forEach(col => col.style.left = dataLeftPosition);
-            }
+    // 缓存DOM查询结果，避免重复查询
+    let cachedPeriodCols = null;
+    let cachedDataCols = null;
+    let lastScrollLeft = -1;
+    let lastVisibilityState = null;
+    let scrollAnimationFrame = null;
+    
+    // 节流函数，限制滚动事件触发频率
+    function throttledScrollHandler() {
+        if (scrollAnimationFrame) {
+            cancelAnimationFrame(scrollAnimationFrame);
         }
         
-
-    });
-}async function V(){if(s)try{const t=await s.getFile(),e=(await t.text()).trim().split("\n").filter(Boolean);console.log(`V()函数: 从文件读取到 ${e.length} 行数据`);for(const t of e)q(t);r.sort((t,e)=>{const n=t.period.toString();return e.period.toString().localeCompare(n)});console.log(`V()函数: 处理后数据数组长度为 ${r.length}`);document.getElementById("periodCount").textContent=r.length;console.log(`V()函数: 期数统计已更新为 ${r.length}`);L(); /* 自动渲染表格 */}catch(t){v.textContent=`读取文件错误: ${t.message}`}}async function W(){if(s)try{const t=await s.getFile(),e=(await t.text()).trim().split("\n")[0],n=e.trim().split(/\t+/);if(2!==n.length)return;const o=n[0].trim();if(o===u)return;u=o,q(e);// 重新排序数据，确保最新期号在第一行
-r.sort((t,e)=>{const n=t.period.toString();return e.period.toString().localeCompare(n)});console.log(`W()函数: 新增数据后，数据数组长度为 ${r.length}`);document.getElementById("periodCount").textContent=r.length;console.log(`W()函数: 期数统计已更新为 ${r.length}`);// 自动刷新表格显示最新数据
+        scrollAnimationFrame = requestAnimationFrame(() => {
+            if (tableWidth > containerWidth) {
+                const currentScrollLeft = tableContainer.scrollLeft;
+                
+                // 只有滚动位置真正改变时才执行计算
+                if (currentScrollLeft === lastScrollLeft) return;
+                lastScrollLeft = currentScrollLeft;
+                
+                // 优化滑块更新，减少不必要的计算
+                const scrollPercent = currentScrollLeft / (tableWidth - containerWidth);
+                const thumbWidth = Math.max(20, (containerWidth / tableWidth) * containerWidth);
+                const thumbPosition = scrollPercent * (containerWidth - thumbWidth);
+                
+                // 使用transform代替left，性能更好
+                horizontalThumb.style.transform = `translateX(${thumbPosition}px)`;
+                horizontalFill.style.width = `${scrollPercent * 100}%`;
+                
+                // 缓存DOM查询结果，只在第一次或DOM结构改变时查询
+                if (!cachedPeriodCols || !cachedDataCols) {
+                    cachedPeriodCols = document.querySelectorAll(".fixed-width-period");
+                    cachedDataCols = document.querySelectorAll(".fixed-width-data");
+                    console.log('滚动优化: 缓存DOM查询结果', {
+                        periodCols: cachedPeriodCols.length,
+                        dataCols: cachedDataCols.length
+                    });
+                }
+                
+                // 优化固定列的显示/隐藏逻辑，只在状态改变时更新
+                const shouldHide = currentScrollLeft > 10;
+                if (lastVisibilityState !== shouldHide) {
+                    lastVisibilityState = shouldHide;
+                    const dataLeftPosition = currentLotteryType === 'twpk10' ? '90px' : '120px';
+                    
+                    // 批量更新样式，减少重排
+                    const periodOpacity = shouldHide ? "0" : "1";
+                    const dataLeft = shouldHide ? "0px" : dataLeftPosition;
+                    
+                    // 使用更高效的样式更新方式
+                    cachedPeriodCols.forEach(col => {
+                        if (col.style.opacity !== periodOpacity) {
+                            col.style.opacity = periodOpacity;
+                        }
+                    });
+                    cachedDataCols.forEach(col => {
+                        if (col.style.left !== dataLeft) {
+                            col.style.left = dataLeft;
+                        }
+                    });
+                }
+            }
+            scrollAnimationFrame = null;
+        });
+    }
+    
+    // 监听容器滚动事件，使用节流处理
+    tableContainer.addEventListener("scroll", throttledScrollHandler, { passive: true });
+    
+    // 清除缓存的函数，在表格重新渲染时调用
+    window.clearScrollCache = function() {
+        cachedPeriodCols = null;
+        cachedDataCols = null;
+        lastScrollLeft = -1;
+        lastVisibilityState = null;
+        if (scrollAnimationFrame) {
+            cancelAnimationFrame(scrollAnimationFrame);
+            scrollAnimationFrame = null;
+        }
+        console.log('滚动优化: 清除所有缓存和状态');
+    };
+}async function V(){if(s)try{const t=await s.getFile(),e=(await t.text()).trim().split("\n").filter(Boolean);console.log(`V()函数: 从文件读取到 ${e.length} 行数据`);for(const t of e)q(t);r.sort((t,e)=>parseInt(e.period) - parseInt(t.period));console.log(`V()函数: 处理后数据数组长度为 ${r.length}`);document.getElementById("periodCount").textContent=r.length;console.log(`V()函数: 期数统计已更新为 ${r.length}`);L(); /* 自动渲染表格 */}catch(t){v.textContent=`读取文件错误: ${t.message}`}}async function W(){if(s)try{const t=await s.getFile(),e=(await t.text()).trim().split("\n")[0],n=e.trim().split(/\t+/);if(2!==n.length)return;const o=n[0].trim();if(o===u)return;u=o,q(e);// 重新排序数据，确保最新期号在第一行
+r.sort((t,e)=>parseInt(e.period) - parseInt(t.period));console.log(`W()函数: 新增数据后，数据数组长度为 ${r.length}`);document.getElementById("periodCount").textContent=r.length;console.log(`W()函数: 期数统计已更新为 ${r.length}`);// 自动刷新表格显示最新数据
 L();}catch(t){}}function q(t){let e;if(t.includes("\t"))e=t.trim().split(/\t+/);else{if(!t.includes(" "))return;e=t.trim().split(/\s+/)}if(e.length<2)return;const n=e[0].trim();if(d.has(n))return;let o;if(e[1].includes(","))o=e[1].split(",").map(t=>parseInt(t.trim(),10));else{if(!e[1].includes(" "))return;o=e[1].split(" ").map(t=>parseInt(t.trim(),10))}10!==o.length||o.some(isNaN)||(d.add(n),r.unshift({period:n,data:o,input:o.join(",")}))}// Y函数定义 - 生成文件标识符
 function Y(){try{const t=document.documentElement.outerHTML.substring(0,1e3)+window.location.href.split("/").slice(-2).join("/");let e=0;for(let n=0;n<t.length;n++)e=(e<<5)-e+t.charCodeAt(n),e&=e;return"file_"+Math.abs(e).toString(36)}catch(t){return console.error("Failed to generate file identifier:",t),"fallback_"+Date.now()}}
 
@@ -7434,7 +7688,7 @@ const n=Y();localStorage.setItem(`validKey_${n}`,t);localStorage.setItem(`keyExp
 // 设置新的加密验证状态
 _0xSetAuth(t);
 b=!0;
-D(e.data.expiry)}else alert("密钥验证失败: "+e.reason)}catch(t){console.error("密钥验证过程出错:",t);alert("验证过程中发生错误: "+t.message)}finally{// 重置验证状态（添加延迟防抖）
+D(e.data.expiry);}else alert("密钥验证失败: "+e.reason)}catch(t){console.error("密钥验证过程出错:",t);alert("验证过程中发生错误: "+t.message)}finally{// 重置验证状态（添加延迟防抖）
 if(loadingInterval){clearInterval(loadingInterval);}
 verifyTimeout=setTimeout(()=>{isVerifying=false;this.disabled=false;this.textContent="验证密钥";this.style.opacity="1";this.style.cursor="pointer";},1000);}}else alert("请输入密钥")});
 
@@ -7462,7 +7716,10 @@ warningDiv.style.cssText = 'position:fixed;top:20px;left:0;right:0;background:#f
 warningDiv.innerHTML = '密钥验证出现问题，已使用备用验证方式 <button onclick="this.parentNode.remove()" style="margin-left:10px;padding:2px 8px;background:white;color:#f59e0b;border:none;border-radius:3px;cursor:pointer;">知道了</button>';
 document.body.insertBefore(warningDiv, document.body.firstChild);
 setTimeout(() => { if (warningDiv.parentNode) warningDiv.parentNode.removeChild(warningDiv); }, 6000);
-_0xSetAuth(e);b=!0,D(r),g.classList.add("hidden"),g.style.display="none"}}else{localStorage.removeItem(`validKey_${t}`),localStorage.removeItem(`keyExpiry_${t}`),b=!1,alert("您的访问密钥已过期，请重新验证密钥"),g.classList.remove("hidden"),g.style.display="flex"}}else b=!1,g.classList.remove("hidden"),g.style.display="flex"}catch(t){console.error("页面加载时密钥检查出错:",t),b=!1,g.classList.remove("hidden"),g.style.display="flex"}}),document.getElementById("calcBtn").addEventListener("click",F),document.getElementById("numbersInput").addEventListener("keydown",t=>{"Enter"!==t.key||t.shiftKey||(t.preventDefault(),F())});
+_0xSetAuth(e);b=!0,D(r),g.classList.add("hidden"),g.style.display="none"}}else{localStorage.removeItem(`validKey_${t}`),localStorage.removeItem(`keyExpiry_${t}`),b=!1,alert("您的访问密钥已过期，请重新验证密钥"),g.classList.remove("hidden"),g.style.display="flex"}}else b=!1,g.classList.remove("hidden"),g.style.display="flex"}catch(t){console.error("页面加载时密钥检查出错:",t),b=!1,g.classList.remove("hidden"),g.style.display="flex"}
+}),document.getElementById("calcBtn").addEventListener("click",F),document.getElementById("numbersInput").addEventListener("keydown",t=>{"Enter"!==t.key||t.shiftKey||(t.preventDefault(),F())});
+
+
 
 // 自动抓取相关变量
 let autoScrapeInterval = null;
@@ -7495,7 +7752,7 @@ function startAutoScrape() {
         clearInterval(autoScrapeInterval);
     }
     
-    console.log('启动自动获取数据功能，每2秒获取一次');
+    // console.log('启动自动获取数据功能，每2秒获取一次');
     isInActiveTimeRange = true;
     
     // 立即获取一次数据
@@ -7518,7 +7775,7 @@ function startAutoScrape() {
         autoFetchBtn.classList.add('bg-red-500', 'hover:bg-red-600');
     }
     
-    showNotification('已启动自动获取数据功能，每2秒获取一次', 'success');
+    // showNotification('已启动自动获取数据功能，每2秒获取一次', 'success');
 }
 
 // 停止自动抓取功能
@@ -7667,7 +7924,7 @@ document.getElementById("currentHitBtn").classList.add("btn-active","bg-blue-600
 
 // 命中率排序按钮事件
 document.getElementById("hitRateSortBtn").addEventListener("click",()=>{const tableContainer=document.getElementById("tableContainer");const wasHidden=tableContainer&&tableContainer.scrollLeft>10;y=!0;hitRateSort=!0; // 设置为当前模式和命中率排序模式
-document.getElementById("hitRateSortBtn").classList.add("btn-active","bg-orange-600","text-white");document.getElementById("hitRateSortBtn").classList.remove("bg-gray-200","text-gray-700");document.getElementById("currentMissBtn").classList.remove("btn-active","bg-blue-600","text-white");document.getElementById("currentMissBtn").classList.add("bg-gray-200","text-gray-700");document.getElementById("currentHitBtn").classList.remove("btn-active","bg-blue-600","text-white");document.getElementById("currentHitBtn").classList.add("bg-gray-200","text-gray-700"); console.log('命中率排序按钮被点击，开始刷新数据'); L(); /* 添加数据刷新功能 */ if(wasHidden){setTimeout(()=>{const periodCols=document.querySelectorAll(".fixed-width-period");const dataCols=document.querySelectorAll(".fixed-width-data");periodCols.forEach(col=>col.style.opacity="0");dataCols.forEach(col=>col.style.left="0px")},50)}}); document.getElementById("statBtn").addEventListener("click",() => { /* 移除立即筛选，等待确认按钮点击 */ });document.getElementById("clearBtn").addEventListener("click",()=>{if(confirm("确定要清空所有数据吗？此操作不可恢复。")){
+document.getElementById("hitRateSortBtn").classList.add("btn-active","bg-orange-600","text-white");document.getElementById("hitRateSortBtn").classList.remove("bg-gray-200","text-gray-700");document.getElementById("currentMissBtn").classList.remove("btn-active","bg-blue-600","text-white");document.getElementById("currentMissBtn").classList.add("bg-gray-200","text-gray-700");document.getElementById("currentHitBtn").classList.remove("btn-active","bg-blue-600","text-white");document.getElementById("currentHitBtn").classList.add("bg-gray-200","text-gray-700"); console.log('命中率排序按钮被点击，等待确认筛选'); if(wasHidden){setTimeout(()=>{const periodCols=document.querySelectorAll(".fixed-width-period");const dataCols=document.querySelectorAll(".fixed-width-data");periodCols.forEach(col=>col.style.opacity="0");dataCols.forEach(col=>col.style.left="0px")},50)}}); document.getElementById("statBtn").addEventListener("click",() => { /* 移除立即筛选，等待确认按钮点击 */ });document.getElementById("clearBtn").addEventListener("click",()=>{if(confirm("确定要清空所有数据吗？此操作不可恢复。")){
 r=[];
 i=1;
 d.clear();
@@ -7734,7 +7991,7 @@ if (verifyPlanDataTimer) {
 window.isUsingFileData = true;
 console.log('数据源已切换为文件获取模式');
 // 数据源指示器已移除
-d.clear();u=null;r=[];i=1;await V();l&&clearInterval(l);l=setInterval(W,2e3);v.textContent=`已加载文件: ${s.name} (文件数据模式)`}catch(t){v.textContent=`文件选择错误: ${t.message}`}})});const X=document.querySelectorAll(".period-btn");X.forEach(t=>{t.addEventListener("click",()=>{X.forEach(t=>t.classList.remove("btn-active"));t.classList.add("btn-active");f=parseInt(t.dataset.period);document.getElementById("customPeriod").value=f;currentPage=1;console.log(`期数按钮被点击，设置期数为: ${f}`);L(); /* 添加表格刷新功能 */})});document.getElementById("customPeriodBtn").addEventListener("click",()=>{const t=parseInt(document.getElementById("customPeriod").value);!isNaN(t)&&t>=1&&t<=1e4?(f=t,X.forEach(t=>t.classList.remove("btn-active")),currentPage=1,console.log(`自定义期数被设置为: ${f}`),L() /* 添加表格刷新功能 */):alert("请输入1-10000之间的数字")});window.addEventListener("resize",j);
+d.clear();u=null;r=[];i=1;await V();l&&clearInterval(l);l=setInterval(W,2e3);v.textContent=`已加载文件: ${s.name} (文件数据模式)`}catch(t){v.textContent=`文件选择错误: ${t.message}`}})});const X=document.querySelectorAll(".period-btn");X.forEach(t=>{t.addEventListener("click",()=>{X.forEach(t=>t.classList.remove("btn-active"));t.classList.add("btn-active");f=parseInt(t.dataset.period);document.getElementById("customPeriod").value=f;currentPage=1;console.log(`期数按钮被点击，设置期数为: ${f}，等待确认筛选`);})});document.getElementById("customPeriodBtn").addEventListener("click",()=>{const t=parseInt(document.getElementById("customPeriod").value);!isNaN(t)&&t>=1&&t<=1e4?(f=t,X.forEach(t=>t.classList.remove("btn-active")),currentPage=1,console.log(`自定义期数被设置为: ${f}，等待确认筛选`)):alert("请输入1-10000之间的数字")});window.addEventListener("resize",j);
 
 
 
