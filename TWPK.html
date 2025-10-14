@@ -4913,11 +4913,17 @@ function generateFiveStarConcatenation() {
         return;
     }
     
-    // 收集所有有效的做号模块
+    // 收集所有有效的做号模块（跳过1星和5星做号）
     const validModules = [];
     Object.keys(window.moduleStates).forEach(key => {
         const ms = window.moduleStates[key];
         if (ms && Array.isArray(ms.results) && ms.results.length > 0) {
+            // 跳过5星和1星做号模块
+            if (ms.starLevel === 5 || ms.starLevel === 1) {
+                console.log(`跳过${ms.starLevel}星做号模块: ${key}`);
+                return;
+            }
+            
             // 获取模块的位置信息
             let positions = Array.isArray(ms.selectedPositions) && ms.selectedPositions.length > 0
                 ? ms.selectedPositions.slice()
@@ -4991,7 +4997,6 @@ function generateStarConcatenation(targetStarLevel) {
     
     // 收集所有有效的做号模块
     const validModules = [];
-    const invalidModules = [];
     
     Object.keys(window.moduleStates).forEach(key => {
         const ms = window.moduleStates[key];
@@ -5000,10 +5005,8 @@ function generateStarConcatenation(targetStarLevel) {
             
             // 检查做号星级是否符合拼接规则
             if (!allowedStarLevels.includes(moduleStarLevel)) {
-                invalidModules.push({
-                    key: key,
-                    starLevel: moduleStarLevel
-                });
+                // 记录跳过的模块（1星、5星做号等），但不阻止拼接
+                console.log(`跳过${moduleStarLevel}星做号模块: ${key}`);
                 return; // 跳过不符合规则的模块
             }
             
@@ -5042,13 +5045,7 @@ function generateStarConcatenation(targetStarLevel) {
         }
     });
     
-    // 检查是否有不符合规则的模块
-    if (invalidModules.length > 0) {
-        const invalidStarLevels = [...new Set(invalidModules.map(m => m.starLevel))];
-        const allowedStarLevelsStr = allowedStarLevels.join('星、') + '星';
-        alert(`${targetStarLevel}星拼接只能使用${allowedStarLevelsStr}做号的结果。\n当前存在${invalidStarLevels.join('星、')}星做号结果，无法进行拼接。\n请删除不符合要求的做号模块或重新选择拼接星级。`);
-        return;
-    }
+    // 不再检查不符合规则的模块，直接跳过即可
     
     if (validModules.length === 0) {
         const allowedStarLevelsStr = allowedStarLevels.join('星、') + '星';
@@ -5972,15 +5969,73 @@ function _0xDynamicCode() {
 // 定时验证检查
 // 定时验证机制 - 只有在用户已验证后才启动
 let _0xTimerStarted = false;
+let _0xCurrentKey = null; // 保存当前使用的密钥
+
+// 旧的服务器验证函数已移除，现在使用新的 validate-key API
+
 function _0xStartTimer() {
     if (_0xTimerStarted) return;
     _0xTimerStarted = true;
+    
+    // 每5分钟执行一次完整验证
+    setInterval(async () => {
+        // 1. 本地验证
+        if (_0x1a2b3c && !_0xAuthCheck()) {
+            document.body.innerHTML = '<div style="text-align:center;padding:50px;color:red;">验证失效，请重新加载页面</div>';
+            setTimeout(() => location.reload(), 2000);
+            return;
+        }
+        
+        // 2. 服务器验证（检查密钥是否被删除）
+        if (_0xCurrentKey) {
+            try {
+                // 根据环境选择API地址
+                const serverCheckUrl = window.location.hostname.includes('vercel.app') 
+                    ? '/api/keys/validate-key'
+                    : 'http://47.242.214.89/api/keys/validate-key';
+                
+                // 生成设备ID
+                const deviceId = generateDeviceId();
+                
+                const serverResponse = await fetch(serverCheckUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        key: _0xCurrentKey,
+                        deviceId: deviceId,
+                        clientTime: Date.now()
+                    })
+                });
+                
+                const serverResult = await serverResponse.json();
+                
+                // 如果服务器验证失败
+                if (!serverResult.success || !serverResult.valid) {
+                    // 清除本地存储
+                    const deviceId = Y();
+                    localStorage.removeItem(`validKey_${deviceId}`);
+                    localStorage.removeItem(`keyExpiry_${deviceId}`);
+                    
+                    // 显示提示并重新加载
+                    document.body.innerHTML = '<div style="text-align:center;padding:50px;color:red;font-size:20px;">❌ 您的密钥已被管理员撤销<br><br>页面将在3秒后重新加载</div>';
+                    setTimeout(() => location.reload(), 3000);
+                }
+            } catch (error) {
+                console.warn('⚠️ 定期验证失败（网络错误），暂时允许访问:', error);
+                // 网络错误时容错，不强制退出
+            }
+        }
+    }, 300000); // 每5分钟检查一次
+    
+    // 额外：每1分钟快速检查本地过期时间
     setInterval(() => {
         if (_0x1a2b3c && !_0xAuthCheck()) {
             document.body.innerHTML = '<div style="text-align:center;padding:50px;color:red;">验证失效，请重新加载页面</div>';
             setTimeout(() => location.reload(), 2000);
         }
-    }, 300000); // 每5分钟检查一次
+    }, 60000); // 每1分钟检查一次
 }
 
 // 代码完整性检查
@@ -6760,10 +6815,42 @@ if(checksum !== expectedChecksum) {
 return {valid: false, reason: "密钥校验失败"};
 }
 
-// 使用纯本地验证（短密钥）
+// 🔒 第一步：先向服务器验证（密钥库检查）
         const nonce = t; // 使用整个短密钥作为nonce
+        console.log('🔒 步骤1: 向服务器验证密钥:', nonce);
         
-        console.log('使用纯本地验证短密钥:', nonce);
+        try {
+            // 根据环境选择API地址
+            const serverCheckUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                ? 'http://localhost:3002/api/keys/check-usage'
+                : window.location.hostname.includes('vercel.app')
+                    ? '/api/keys/check-usage'
+                    : 'http://47.242.214.89/api/keys/check-usage';
+            
+            const serverResponse = await fetch(serverCheckUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ key: nonce })
+            });
+            
+            const serverResult = await serverResponse.json();
+            console.log('服务器验证结果:', serverResult);
+            
+            // 如果密钥已被使用，则拒绝
+            if (serverResult.success && serverResult.used) {
+                return {valid: false, reason: "❌ 密钥已被使用"};
+            }
+            
+            console.log('✅ 服务器验证通过（密钥不在库中或已过期）');
+        } catch (serverError) {
+            console.warn('⚠️ 服务器验证失败，继续本地验证:', serverError);
+            // 服务器不可用时，继续本地验证（容错机制）
+        }
+        
+        // 🔒 第二步：本地验证（localStorage检查）
+        console.log('🔒 步骤2: 本地验证密钥');
         
         // 检查密钥是否已被使用
         const usedNonces = JSON.parse(localStorage.getItem('usedNonces') || '[]');
@@ -6774,7 +6861,35 @@ return {valid: false, reason: "密钥校验失败"};
         // 本地标记为已使用
         usedNonces.push(nonce);
         localStorage.setItem('usedNonces', JSON.stringify(usedNonces));
-        console.log('本地标记短密钥为已使用:', nonce);
+        console.log('✅ 本地标记短密钥为已使用:', nonce);
+        
+        // 🔒 第三步：向服务器注册密钥（记录使用）
+        try {
+            // 根据环境选择API地址
+            const registerUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? 'http://localhost:3002/api/keys/validate-and-register'
+                : window.location.hostname.includes('vercel.app')
+                    ? '/api/keys/validate-and-register'
+                    : 'http://47.242.214.89/api/keys/validate-and-register';
+            
+            await fetch(registerUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    key: nonce,
+                    validDays: Math.ceil((expiry - currentTime) / 86400)
+                })
+            });
+            console.log('✅ 密钥已注册到服务器');
+        } catch (registerError) {
+            console.warn('⚠️ 向服务器注册密钥失败（不影响使用）:', registerError);
+        }
+        
+        // 🔒 保存当前密钥以便定期验证
+        _0xCurrentKey = nonce;
+        console.log('✅ 密钥已保存，将定期向服务器验证有效性');
         
         return {valid: true, data: {nonce: nonce, expiry: expiry, deviceFingerprint: "universal"}};
 }
@@ -7676,6 +7791,42 @@ function Y(){try{const t=document.documentElement.outerHTML.substring(0,1e3)+win
 let isVerifying = false;
 let verifyTimeout = null;
 
+// 生成设备ID
+function generateDeviceId() {
+    // 尝试从localStorage获取已存在的设备ID
+    let deviceId = localStorage.getItem('deviceId');
+    
+    if (!deviceId) {
+        // 生成新的设备ID
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.textBaseline = 'top';
+        ctx.font = '14px Arial';
+        ctx.fillText('Device fingerprint', 2, 2);
+        
+        const fingerprint = [
+            navigator.userAgent,
+            navigator.language,
+            screen.width + 'x' + screen.height,
+            new Date().getTimezoneOffset(),
+            canvas.toDataURL()
+        ].join('|');
+        
+        // 简单的哈希函数
+        let hash = 0;
+        for (let i = 0; i < fingerprint.length; i++) {
+            const char = fingerprint.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // 转换为32位整数
+        }
+        
+        deviceId = Math.abs(hash).toString(36);
+        localStorage.setItem('deviceId', deviceId);
+    }
+    
+    return deviceId;
+}
+
 P.addEventListener("click",async function(){const t=p.value.trim();if(t){// 防重复点击检查
 if(isVerifying){console.warn("验证正在进行中，请勿重复点击");return;}
 
@@ -7700,42 +7851,118 @@ const deviceId=Y();
 const existingKey=localStorage.getItem(`validKey_${deviceId}`);
 if(existingKey){console.log("清理现有密钥缓存");localStorage.removeItem(`validKey_${deviceId}`);localStorage.removeItem(`keyExpiry_${deviceId}`);}
 
-try{const e=await A(t);if(e.valid){// 标记密钥为已使用
-// 记录密钥使用信息到本地
-recordKeyUsage(e.data);
-const n=Y();localStorage.setItem(`validKey_${n}`,t);localStorage.setItem(`keyExpiry_${n}`,e.data.expiry);g.classList.add("hidden");g.style.display="none";
-// 设置新的加密验证状态
-_0xSetAuth(t);
-b=!0;
-D(e.data.expiry);}else alert("密钥验证失败: "+e.reason)}catch(t){console.error("密钥验证过程出错:",t);alert("验证过程中发生错误: "+t.message)}finally{// 重置验证状态（添加延迟防抖）
+try{
+  // 🔒 完全依赖服务器验证，移除本地验证逻辑
+  console.log('🔒 密钥输入：向服务器验证密钥');
+  // 根据环境选择API地址
+  const serverValidateUrl = window.location.hostname.includes('vercel.app')
+      ? '/api/keys/validate-key'
+      : 'http://47.242.214.89/api/keys/validate-key';
+  
+  // 生成设备ID
+  const deviceId = generateDeviceId();
+  
+  const serverResponse = await fetch(serverValidateUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ 
+      key: t,
+      deviceId: deviceId,
+      clientTime: Date.now()
+    })
+  });
+  
+  const serverResult = await serverResponse.json();
+  console.log('密钥输入时服务器验证结果:', serverResult);
+  
+  if(serverResult.success && serverResult.valid){
+    // 服务器验证通过
+    console.log('✅ 密钥输入：服务器验证通过');
+    const n=Y();
+    localStorage.setItem(`validKey_${n}`,t);
+    localStorage.setItem(`keyExpiry_${n}`,serverResult.data.expiresAt);
+    g.classList.add("hidden");
+    g.style.display="none";
+    _0xSetAuth(t);
+    b=!0;
+    D(new Date(serverResult.data.expiresAt).getTime() / 1000);
+  }else{
+    alert("密钥验证失败: "+serverResult.reason);
+  }
+}catch(t){console.error("密钥验证过程出错:",t);alert("验证过程中发生错误: "+t.message)}finally{// 重置验证状态（添加延迟防抖）
 if(loadingInterval){clearInterval(loadingInterval);}
 verifyTimeout=setTimeout(()=>{isVerifying=false;this.disabled=false;this.textContent="验证密钥";this.style.opacity="1";this.style.cursor="pointer";},1000);}}else alert("请输入密钥")});
 
-window.addEventListener("load",async function(){try{const t=Y(),e=localStorage.getItem(`validKey_${t}`),n=localStorage.getItem(`keyExpiry_${t}`),o=Math.floor((new Date).getTime()/1e3);if(e&&n){const r=parseInt(n);if(o<r){// 检查是否为长密钥格式（长密钥已失效）
-// 移除长密钥强制失效限制，允许长密钥正常使用
-if(e.length > 25) {
-  console.log('检测到长密钥，尝试验证');
-  // 不再强制失效，继续验证流程
-}// 短密钥验证逻辑
-if(!e.includes('.')){_0xSetAuth(e);b=!0;D(r);g.classList.add("hidden");g.style.display="none"}else try{const keyData=JSON.parse(atob(e.split('.')[1]));const checkResult=checkKeyOnlineUsage(keyData.nonce);if(checkResult.used){localStorage.removeItem(`validKey_${t}`),localStorage.removeItem(`keyExpiry_${t}`),b=!1;
-// 友好的错误提示和重试机制
-const errorDiv = document.createElement('div');
-errorDiv.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;border:2px solid #ef4444;border-radius:8px;padding:20px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.3);text-align:center;max-width:400px;';
-errorDiv.innerHTML = `
-  <div style="color:#ef4444;font-size:18px;margin-bottom:15px;">🔑 密钥验证失败</div>
-  <div style="color:#666;margin-bottom:20px;">您的密钥已被使用，请重新获取新的密钥</div>
-  <button onclick="location.reload()" style="background:#3b82f6;color:white;border:none;padding:8px 16px;border-radius:4px;cursor:pointer;margin-right:10px;">重新加载</button>
-  <button onclick="this.parentNode.remove()" style="background:#6b7280;color:white;border:none;padding:8px 16px;border-radius:4px;cursor:pointer;">稍后再试</button>
-`;
-document.body.appendChild(errorDiv);
-g.classList.remove("hidden"),g.style.display="flex"}else{_0xSetAuth(e);b=!0,D(r),g.classList.add("hidden"),g.style.display="none"}}catch(err){console.error("本地验证失败:",err);
-// 验证失败时的友好提示
-const warningDiv = document.createElement('div');
-warningDiv.style.cssText = 'position:fixed;top:20px;left:0;right:0;background:#f59e0b;color:white;text-align:center;padding:8px;z-index:9998;font-size:14px;';
-warningDiv.innerHTML = '密钥验证出现问题，已使用备用验证方式 <button onclick="this.parentNode.remove()" style="margin-left:10px;padding:2px 8px;background:white;color:#f59e0b;border:none;border-radius:3px;cursor:pointer;">知道了</button>';
-document.body.insertBefore(warningDiv, document.body.firstChild);
-setTimeout(() => { if (warningDiv.parentNode) warningDiv.parentNode.removeChild(warningDiv); }, 6000);
-_0xSetAuth(e);b=!0,D(r),g.classList.add("hidden"),g.style.display="none"}}else{localStorage.removeItem(`validKey_${t}`),localStorage.removeItem(`keyExpiry_${t}`),b=!1,alert("您的访问密钥已过期，请重新验证密钥"),g.classList.remove("hidden"),g.style.display="flex"}}else b=!1,g.classList.remove("hidden"),g.style.display="flex"}catch(t){console.error("页面加载时密钥检查出错:",t),b=!1,g.classList.remove("hidden"),g.style.display="flex"}
+window.addEventListener("load",async function(){try{const t=Y(),e=localStorage.getItem(`validKey_${t}`);if(e){
+  // 🔒 完全依赖服务器验证，移除所有本地验证逻辑
+  console.log('🔒 页面加载：向服务器验证密钥状态');
+  try {
+    // 根据环境选择API地址
+    const serverCheckUrl = window.location.hostname.includes('vercel.app')
+        ? '/api/keys/validate-key'
+        : 'http://47.242.214.89/keys-api/keys/validate-key';
+    
+    // 生成设备ID
+    const deviceId = generateDeviceId();
+    
+    const serverResponse = await fetch(serverCheckUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ 
+        key: e,
+        deviceId: deviceId,
+        clientTime: Date.now()
+      })
+    });
+    
+    const serverResult = await serverResponse.json();
+    console.log('页面加载时服务器验证结果:', serverResult);
+    
+    // 服务器验证通过
+    if (serverResult.success && serverResult.valid) {
+      console.log('✅ 页面加载：服务器验证通过');
+      _0xSetAuth(e);
+      b = true;
+      D(new Date(serverResult.data.expiresAt).getTime() / 1000);
+      g.classList.add("hidden");
+      g.style.display = "none";
+      return;
+    }
+    
+    // 服务器验证失败
+    console.warn('🔒 页面加载：服务器验证失败，清除本地存储');
+    localStorage.removeItem(`validKey_${t}`);
+    localStorage.removeItem(`keyExpiry_${t}`);
+    b = false;
+    
+    // 显示密钥失效提示
+    const errorDiv = document.createElement('div');
+    errorDiv.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;border:2px solid #ef4444;border-radius:8px;padding:20px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.3);text-align:center;max-width:400px;';
+    errorDiv.innerHTML = `
+      <div style="color:#ef4444;font-size:18px;margin-bottom:15px;">🔑 密钥已失效</div>
+      <div style="color:#666;margin-bottom:20px;">${serverResult.reason || '您的密钥已被管理员撤销或已过期，请重新获取密钥'}</div>
+      <button onclick="location.reload()" style="background:#3b82f6;color:white;border:none;padding:8px 16px;border-radius:4px;cursor:pointer;">重新验证</button>
+    `;
+    document.body.appendChild(errorDiv);
+    g.classList.remove("hidden");
+    g.style.display = "flex";
+    return;
+    
+  } catch (serverError) {
+    console.warn('⚠️ 页面加载：服务器验证失败（网络错误）:', serverError);
+    // 网络错误时清除本地存储，要求重新验证
+    localStorage.removeItem(`validKey_${t}`);
+    localStorage.removeItem(`keyExpiry_${t}`);
+    b = false;
+    g.classList.remove("hidden");
+    g.style.display = "flex";
+    return;
+  }
+}else{b=!1,g.classList.remove("hidden"),g.style.display="flex"}}catch(t){console.error("页面加载时密钥检查出错:",t),b=!1,g.classList.remove("hidden"),g.style.display="flex"}
 }),document.getElementById("calcBtn").addEventListener("click",F),document.getElementById("numbersInput").addEventListener("keydown",t=>{"Enter"!==t.key||t.shiftKey||(t.preventDefault(),F())});
 
 
