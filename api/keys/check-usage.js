@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   try {
     console.log('代理密钥使用检查请求到阿里云服务器...');
     
-    const response = await fetch('http://47.242.214.89/api/keys/check-usage', {
+    const response = await fetch('http://47.242.214.89:3002/api/keys/check-usage', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
