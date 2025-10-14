@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     console.log('代理密钥验证请求到阿里云服务器...');
     
     // 代理到阿里云服务器
-    const response = await fetch('http://47.242.214.89/keys-api/keys/validate-key', {
+    const response = await fetch('http://47.242.214.89/api/keys/validate-key', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
