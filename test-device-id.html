@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>机器码测试</title>
+    <style>
+        body {
+            font-family: -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        .result {
+            background: #f0f9ff;
+            border: 2px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: monospace;
+        }
+        .success { background: #ecfdf5; border-color: #10b981; }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 10px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        .label { font-weight: bold; color: #666; }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover { background: #5568d3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔑 机器码生成测试</h1>
+        <p>测试新的硬件指纹机器码生成器</p>
+        
+        <div>
+            <button onclick="testDeviceId()">生成机器码</button>
+            <button onclick="testMultipleTimes()">测试一致性（生成10次）</button>
+            <button onclick="showDetails()">显示详细信息</button>
+        </div>
+        
+        <div id="result"></div>
+    </div>
+
+    <!-- 引入设备指纹生成器 -->
+    <script src="device-fingerprint.js"></script>
+    
+    <script>
+        function testDeviceId() {
+            const deviceId = generateDeviceId();
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'result success';
+            resultDiv.innerHTML = `
+                <h3>✅ 机器码生成成功</h3>
+                <div style="font-size: 20px; margin: 15px 0; color: #10b981;">
+                    <strong>${deviceId}</strong>
+                </div>
+                <div style="color: #666; font-size: 13px;">
+                    长度: ${deviceId.length} 字符 | 
+                    格式: 36进制 | 
+                    ${deviceId.startsWith('fb_') ? '⚠️ 降级模式' : '✅ 完整模式'}
+                </div>
+            `;
+        }
+
+        function testMultipleTimes() {
+            const results = [];
+            for (let i = 0; i < 10; i++) {
+                results.push(generateDeviceId());
+            }
+            
+            // 检查是否所有结果都相同
+            const allSame = results.every(id => id === results[0]);
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = allSame ? 'result success' : 'result';
+            resultDiv.innerHTML = `
+                <h3>${allSame ? '✅ 一致性测试通过' : '❌ 一致性测试失败'}</h3>
+                <p>连续生成10次机器码：</p>
+                <div style="margin: 10px 0;">
+                    <strong>结果：</strong>${results[0]}
+                </div>
+                <div style="color: #666; font-size: 13px;">
+                    ${allSame ? 
+                        '所有10次生成的机器码完全一致 ✅' : 
+                        '机器码不一致，可能存在随机因素 ❌'
+                    }
+                </div>
+            `;
+        }
+
+        function showDetails() {
+            const info = getDeviceInfo();
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = `
+                <h3>📊 设备详细信息</h3>
+                <div class="info-grid">
+                    <div class="label">机器码：</div>
+                    <div style="color: #10b981; font-weight: bold;">${info.deviceId}</div>
+                    
+                    <div class="label">浏览器：</div>
+                    <div>${info.userAgent.substring(0, 80)}...</div>
+                    
+                    <div class="label">操作系统：</div>
+                    <div>${info.platform}</div>
+                    
+                    <div class="label">语言：</div>
+                    <div>${info.language}</div>
+                    
+                    <div class="label">屏幕分辨率：</div>
+                    <div>${info.screenResolution}</div>
+                    
+                    <div class="label">色深：</div>
+                    <div>${info.colorDepth} bit</div>
+                    
+                    <div class="label">像素比：</div>
+                    <div>${info.pixelRatio}</div>
+                    
+                    <div class="label">时区：</div>
+                    <div>${info.timezone} (UTC${info.timezoneOffset / -60})</div>
+                    
+                    <div class="label">CPU核心数：</div>
+                    <div>${info.hardwareConcurrency || '不可用'}</div>
+                    
+                    <div class="label">触摸点：</div>
+                    <div>${info.maxTouchPoints || 0}</div>
+                    
+                    <div class="label">Cookie启用：</div>
+                    <div>${info.cookieEnabled ? '是' : '否'}</div>
+                </div>
+            `;
+        }
+
+        // 页面加载时自动测试
+        window.addEventListener('load', () => {
+            testDeviceId();
+        });
+    </script>
+</body>
+</html>
+
