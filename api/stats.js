@@ -1,87 +1,33 @@
-// Vercel Serverless Function for Stats API
-import { createClient } from '@vercel/kv';
-
-// 初始化KV存储
-const kv = createClient({
-  url: process.env.KV_REST_API_URL,
-  token: process.env.KV_REST_API_TOKEN,
-});
-
-// CORS headers
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, User-Agent',
-};
+// Vercel Serverless Function - 统计API代理
+// 将统计请求转发到阿里云服务器
 
 export default async function handler(req, res) {
-  // 处理CORS预检请求
-  if (req.method === 'OPTIONS') {
-    return res.status(200).json({}).setHeaders(corsHeaders);
-  }
-
-  // 设置CORS headers
-  Object.entries(corsHeaders).forEach(([key, value]) => {
-    res.setHeader(key, value);
-  });
-
+  // 只允许GET请求
   if (req.method !== 'GET') {
-    return res.status(405).json({
-      success: false,
-      error: '不支持的HTTP方法'
+    return res.status(405).json({ 
+      success: false, 
+      error: 'Method not allowed' 
     });
   }
 
   try {
-    // 获取所有密钥记录
-    const keyRecordKeys = await kv.keys('keyRecord:*');
-    const usedNonceKeys = await kv.keys('usedNonce:*');
-    
-    let verifiedKeys = 0;
-    let usedKeys = 0;
-    let todayKeys = 0;
-    const now = new Date();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    // 统计密钥状态
-    for (const key of keyRecordKeys) {
-      const record = await kv.get(key);
-      if (record) {
-        const recordData = JSON.parse(record);
-        const expiresAt = new Date(recordData.expiresAt);
-        const usedAt = new Date(recordData.usedAt);
-        
-        // 统计已验证的密钥（未过期的）
-        if (expiresAt > now) {
-          verifiedKeys++;
-        }
-        
-        // 统计今日验证的密钥
-        if (usedAt >= today && usedAt < tomorrow) {
-          todayKeys++;
-        }
+    // 转发请求到阿里云服务器
+    const response = await fetch('http://47.242.214.89/api/keys/stats/summary', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
       }
-    }
-    
-    const totalKeys = keyRecordKeys.length;
-    usedKeys = usedNonceKeys.length;
-    
-    return res.status(200).json({
-      totalKeys,
-      verifiedKeys,
-      usedKeys,
-      todayKeys
     });
+
+    const data = await response.json();
     
+    return res.status(response.ok ? 200 : response.status).json(data);
   } catch (error) {
-    console.error('统计API错误:', error);
-    return res.status(500).json({
-      success: false,
-      error: '服务器内部错误',
-      details: error.message
+    console.error('统计API代理错误:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: '获取统计数据失败',
+      message: error.message
     });
   }
-};
+}

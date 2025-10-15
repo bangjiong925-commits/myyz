@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>心跳测试 - 直接连接</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #666;
+            font-weight: 500;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status-box {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 12px;
+        }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        .status-label {
+            color: #666;
+        }
+        .status-value {
+            font-weight: bold;
+            color: #333;
+        }
+        .status-value.online {
+            color: #34c759;
+        }
+        .status-value.offline {
+            color: #ff3b30;
+        }
+        .log-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #1e1e1e;
+            border-radius: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            color: #00ff00;
+        }
+        .log-entry {
+            margin: 5px 0;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 心跳在线测试</h1>
+        
+        <div class="input-group">
+            <label>输入您的密钥</label>
+            <input type="text" id="keyInput" placeholder="请输入密钥" autocomplete="off">
+        </div>
+        
+        <button id="startBtn" onclick="startTest()">开始测试</button>
+        <button id="stopBtn" onclick="stopTest()" style="display: none; margin-top: 10px; background: #ff3b30;">停止测试</button>
+        
+        <div class="status-box">
+            <div class="status-item">
+                <span class="status-label">状态</span>
+                <span class="status-value offline" id="status">离线</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">心跳次数</span>
+                <span class="status-value" id="heartbeatCount">0</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">最后心跳</span>
+                <span class="status-value" id="lastHeartbeat">-</span>
+            </div>
+        </div>
+        
+        <div class="log-box" id="logBox"></div>
+    </div>
+
+    <script>
+        let heartbeatTimer = null;
+        let currentKey = null;
+        let heartbeatCount = 0;
+
+        function log(message, type = 'info') {
+            const logBox = document.getElementById('logBox');
+            const time = new Date().toLocaleTimeString();
+            const colors = {
+                info: '#00ff00',
+                success: '#00ff00',
+                error: '#ff3b30',
+                warning: '#fbbf24'
+            };
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.style.color = colors[type];
+            entry.textContent = `[${time}] ${message}`;
+            logBox.appendChild(entry);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        async function sendHeartbeat() {
+            if (!currentKey) return;
+            
+            try {
+                const response = await fetch('http://47.242.214.89/api/keys/heartbeat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: currentKey })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    heartbeatCount++;
+                    document.getElementById('heartbeatCount').textContent = heartbeatCount;
+                    document.getElementById('lastHeartbeat').textContent = new Date().toLocaleTimeString();
+                    document.getElementById('status').textContent = '在线';
+                    document.getElementById('status').className = 'status-value online';
+                    log(`✅ 心跳成功 (第${heartbeatCount}次)`, 'success');
+                } else {
+                    log(`⚠️ 心跳失败: ${result.error}`, 'warning');
+                }
+            } catch (error) {
+                log(`❌ 心跳错误: ${error.message}`, 'error');
+            }
+        }
+
+        function startTest() {
+            const keyInput = document.getElementById('keyInput');
+            const key = keyInput.value.trim();
+            
+            if (!key) {
+                alert('请输入密钥');
+                return;
+            }
+            
+            currentKey = key;
+            heartbeatCount = 0;
+            document.getElementById('heartbeatCount').textContent = '0';
+            document.getElementById('lastHeartbeat').textContent = '-';
+            
+            log(`🚀 开始测试 - 密钥: ${key.substring(0, 8)}...`, 'info');
+            
+            // 立即发送第一次心跳
+            sendHeartbeat();
+            
+            // 每30秒发送一次
+            heartbeatTimer = setInterval(sendHeartbeat, 30000);
+            
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('stopBtn').style.display = 'block';
+            keyInput.disabled = true;
+            
+            log('⏱️ 心跳定时器已启动（每30秒）', 'info');
+        }
+
+        function stopTest() {
+            if (heartbeatTimer) {
+                clearInterval(heartbeatTimer);
+                heartbeatTimer = null;
+            }
+            
+            document.getElementById('status').textContent = '离线';
+            document.getElementById('status').className = 'status-value offline';
+            
+            log('⏹️ 测试已停止', 'warning');
+            
+            document.getElementById('startBtn').style.display = 'block';
+            document.getElementById('stopBtn').style.display = 'none';
+            document.getElementById('keyInput').disabled = false;
+        }
+
+        window.addEventListener('beforeunload', stopTest);
+        
+        log('📱 测试工具已就绪', 'info');
+        log('💡 输入密钥后点击"开始测试"', 'info');
+        log('💡 打开密钥管理系统查看在线状态', 'info');
+    </script>
+</body>
+</html>

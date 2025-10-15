@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vercel 心跳测试</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .env-info {
+            background: #f0f9ff;
+            border: 2px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 30px;
+        }
+        .env-info h3 {
+            color: #0369a1;
+            margin-bottom: 10px;
+        }
+        .env-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #666;
+            font-weight: 500;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: monospace;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover { transform: translateY(-2px); }
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        .btn-success:hover { background: #059669; }
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        .btn-danger:hover { background: #dc2626; }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .status-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .status-card h3 {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+        .status-card.online h3 { color: #10b981; }
+        .status-card.offline h3 { color: #ef4444; }
+        .status-card p {
+            color: #666;
+            font-size: 14px;
+        }
+        .log-box {
+            background: #1e1e1e;
+            border-radius: 12px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .log-entry {
+            font-family: monospace;
+            font-size: 13px;
+            line-height: 1.8;
+            margin: 3px 0;
+        }
+        .log-success { color: #10b981; }
+        .log-error { color: #ef4444; }
+        .log-info { color: #60a5fa; }
+        .log-warning { color: #fbbf24; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 Vercel 部署心跳测试</h1>
+        
+        <!-- 环境信息 -->
+        <div class="env-info">
+            <h3>📊 当前环境信息</h3>
+            <div class="env-item">
+                <span>域名：</span>
+                <span id="hostname">-</span>
+            </div>
+            <div class="env-item">
+                <span>环境：</span>
+                <span id="environment">-</span>
+            </div>
+            <div class="env-item">
+                <span>API地址：</span>
+                <span id="apiBase">-</span>
+            </div>
+        </div>
+
+        <!-- 测试1：心跳发送 -->
+        <div class="section">
+            <h2>测试1：心跳发送</h2>
+            <div class="input-group">
+                <label>输入测试密钥</label>
+                <input type="text" id="keyInput" placeholder="请输入密钥">
+            </div>
+            <div class="button-group">
+                <button class="btn-primary" onclick="startHeartbeat()">启动心跳</button>
+                <button class="btn-danger" onclick="stopHeartbeat()" disabled id="stopBtn">停止心跳</button>
+            </div>
+            <div class="status-grid">
+                <div class="status-card offline" id="heartbeatCard">
+                    <h3 id="heartbeatStatus">离线</h3>
+                    <p>心跳状态</p>
+                </div>
+                <div class="status-card">
+                    <h3 id="heartbeatCount">0</h3>
+                    <p>发送次数</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 测试2：查询在线状态 -->
+        <div class="section">
+            <h2>测试2：查询在线状态</h2>
+            <div class="button-group">
+                <button class="btn-success" onclick="checkOnlineStatus()">查询在线密钥</button>
+                <button class="btn-success" onclick="checkStats()">查询统计数据</button>
+            </div>
+            <div class="status-grid">
+                <div class="status-card">
+                    <h3 id="onlineCount">-</h3>
+                    <p>在线数量</p>
+                </div>
+                <div class="status-card">
+                    <h3 id="totalKeys">-</h3>
+                    <p>总密钥数</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 日志 -->
+        <div class="section">
+            <h2>实时日志</h2>
+            <div class="log-box" id="logBox"></div>
+        </div>
+    </div>
+
+    <script>
+        // 环境检测
+        const hostname = window.location.hostname;
+        const isVercel = hostname.includes('vercel.app');
+        const isAliyun = hostname === '47.242.214.89';
+        const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
+
+        let API_BASE;
+        let environment;
+
+        if (isVercel) {
+            API_BASE = '/api';
+            environment = 'Vercel 生产环境';
+        } else if (isAliyun) {
+            API_BASE = '/api';
+            environment = '阿里云服务器';
+        } else if (isLocal) {
+            API_BASE = 'http://localhost:3002/api';
+            environment = '本地开发环境';
+        } else {
+            API_BASE = '/api';
+            environment = '未知环境';
+        }
+
+        // 显示环境信息
+        document.getElementById('hostname').textContent = hostname;
+        document.getElementById('environment').textContent = environment;
+        document.getElementById('apiBase').textContent = API_BASE;
+
+        // 日志函数
+        function log(message, type = 'info') {
+            const logBox = document.getElementById('logBox');
+            const time = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${time}] ${message}`;
+            logBox.appendChild(entry);
+            logBox.scrollTop = logBox.scrollHeight;
+            console.log(`[${type}] ${message}`);
+        }
+
+        // 心跳相关
+        let heartbeatTimer = null;
+        let heartbeatCount = 0;
+        let currentKey = null;
+
+        async function sendHeartbeat() {
+            if (!currentKey) return;
+
+            try {
+                log(`💓 发送心跳到 ${API_BASE}/keys/heartbeat`, 'info');
+                
+                const response = await fetch(`${API_BASE}/keys/heartbeat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: currentKey })
+                });
+
+                const result = await response.json();
+                log(`响应状态: ${response.status}`, 'info');
+                log(`响应数据: ${JSON.stringify(result)}`, 'info');
+
+                if (result.success) {
+                    heartbeatCount++;
+                    document.getElementById('heartbeatCount').textContent = heartbeatCount;
+                    document.getElementById('heartbeatStatus').textContent = '在线';
+                    document.getElementById('heartbeatCard').className = 'status-card online';
+                    log(`✅ 心跳成功 (第${heartbeatCount}次)`, 'success');
+                } else {
+                    log(`⚠️ 心跳失败: ${result.error}`, 'warning');
+                }
+            } catch (error) {
+                log(`❌ 心跳错误: ${error.message}`, 'error');
+                console.error('心跳错误详情:', error);
+            }
+        }
+
+        function startHeartbeat() {
+            const keyInput = document.getElementById('keyInput');
+            const key = keyInput.value.trim();
+
+            if (!key) {
+                alert('请输入密钥');
+                return;
+            }
+
+            currentKey = key;
+            heartbeatCount = 0;
+            document.getElementById('heartbeatCount').textContent = '0';
+
+            log(`🚀 启动心跳测试 - 密钥: ${key.substring(0, 8)}...`, 'info');
+            log(`📡 目标API: ${API_BASE}/keys/heartbeat`, 'info');
+
+            // 立即发送第一次
+            sendHeartbeat();
+
+            // 每30秒发送一次
+            heartbeatTimer = setInterval(sendHeartbeat, 30000);
+
+            document.getElementById('stopBtn').disabled = false;
+            keyInput.disabled = true;
+
+            log('⏱️ 心跳定时器已启动（每30秒）', 'info');
+        }
+
+        function stopHeartbeat() {
+            if (heartbeatTimer) {
+                clearInterval(heartbeatTimer);
+                heartbeatTimer = null;
+            }
+
+            document.getElementById('heartbeatStatus').textContent = '离线';
+            document.getElementById('heartbeatCard').className = 'status-card offline';
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('keyInput').disabled = false;
+
+            log('⏹️ 心跳已停止', 'warning');
+        }
+
+        async function checkOnlineStatus() {
+            try {
+                log(`🔍 查询在线状态: ${API_BASE}/keys?limit=100`, 'info');
+
+                const response = await fetch(`${API_BASE}/keys?limit=100`);
+                const result = await response.json();
+
+                log(`响应状态: ${response.status}`, 'info');
+
+                if (result.success && result.data) {
+                    const now = Date.now();
+                    const THRESHOLD = 90 * 1000; // 90秒
+
+                    const onlineKeys = result.data.filter(key => {
+                        if (key.lastHeartbeat) {
+                            const diff = now - new Date(key.lastHeartbeat).getTime();
+                            return diff < THRESHOLD;
+                        }
+                        return false;
+                    });
+
+                    document.getElementById('onlineCount').textContent = onlineKeys.length;
+                    document.getElementById('totalKeys').textContent = result.data.length;
+
+                    log(`✅ 在线密钥数: ${onlineKeys.length}`, 'success');
+                    log(`📊 总密钥数: ${result.data.length}`, 'info');
+
+                    if (onlineKeys.length > 0) {
+                        onlineKeys.forEach(key => {
+                            const lastHeartbeat = new Date(key.lastHeartbeat);
+                            const secondsAgo = Math.floor((now - lastHeartbeat.getTime()) / 1000);
+                            log(`  🟢 ${key.key.substring(0, 12)}... (${secondsAgo}秒前)`, 'success');
+                        });
+                    }
+                } else {
+                    log(`❌ 查询失败: ${result.error || '未知错误'}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ 查询错误: ${error.message}`, 'error');
+                console.error('查询错误详情:', error);
+            }
+        }
+
+        async function checkStats() {
+            try {
+                log(`📊 查询统计数据: ${API_BASE}/stats`, 'info');
+
+                const response = await fetch(`${API_BASE}/stats`);
+                const result = await response.json();
+
+                log(`响应状态: ${response.status}`, 'info');
+
+                if (result.success && result.stats) {
+                    log(`✅ 统计数据获取成功`, 'success');
+                    log(`  总数: ${result.stats.total}`, 'info');
+                    log(`  激活: ${result.stats.active}`, 'info');
+                    log(`  过期: ${result.stats.expired}`, 'info');
+                    document.getElementById('totalKeys').textContent = result.stats.total;
+                } else {
+                    log(`❌ 获取统计失败: ${result.error || '未知错误'}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ 统计错误: ${error.message}`, 'error');
+                console.error('统计错误详情:', error);
+            }
+        }
+
+        // 页面加载完成
+        window.addEventListener('beforeunload', stopHeartbeat);
+        
+        log('✅ 测试工具已就绪', 'success');
+        log(`📍 当前环境: ${environment}`, 'info');
+        log(`🔗 API地址: ${API_BASE}`, 'info');
+        log('💡 请输入密钥后点击"启动心跳"开始测试', 'info');
+    </script>
+</body>
+</html>
+
