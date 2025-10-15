@@ -7846,11 +7846,6 @@ const originalText=this.textContent;
 let dots=0;
 const loadingInterval=setInterval(()=>{dots=(dots+1)%4;this.textContent="验证中"+".".repeat(dots);},500);
 
-// 清理可能的状态缓存
-const deviceId=Y();
-const existingKey=localStorage.getItem(`validKey_${deviceId}`);
-if(existingKey){console.log("清理现有密钥缓存");localStorage.removeItem(`validKey_${deviceId}`);localStorage.removeItem(`keyExpiry_${deviceId}`);}
-
 try{
   // 🔒 完全依赖服务器验证，移除本地验证逻辑
   console.log('🔒 密钥输入：向服务器验证密钥');
@@ -7908,7 +7903,7 @@ window.addEventListener("load",async function(){try{const t=Y(),e=localStorage.g
     // 根据环境选择API地址
     const serverCheckUrl = window.location.hostname.includes('vercel.app')
         ? '/api/keys/validate-key'
-        : 'http://47.242.214.89/keys-api/keys/validate-key';
+        : 'http://47.242.214.89/api/keys/validate-key';
     
     // 生成设备ID
     const deviceId = generateDeviceId();
@@ -7966,12 +7961,29 @@ window.addEventListener("load",async function(){try{const t=Y(),e=localStorage.g
     
   } catch (serverError) {
     console.warn('⚠️ 页面加载：服务器验证失败（网络错误）:', serverError);
-    // 网络错误时清除本地存储，要求重新验证
-    localStorage.removeItem(`validKey_${t}`);
-    localStorage.removeItem(`keyExpiry_${t}`);
-    b = false;
-    g.classList.remove("hidden");
-    g.style.display = "flex";
+    // 网络错误时不清除缓存，允许离线使用（检查本地到期时间）
+    const expiryTime = localStorage.getItem(`keyExpiry_${t}`);
+    if (expiryTime && new Date(expiryTime) > new Date()) {
+      console.log('✅ 网络错误但密钥未过期，允许离线使用');
+      _0xSetAuth(e);
+      b = true;
+      D(new Date(expiryTime).getTime() / 1000);
+      g.classList.add("hidden");
+      g.style.display = "none";
+      
+      // 尝试启动心跳（可能因网络问题失败，但不影响使用）
+      console.log('🌐 尝试启动心跳（网络恢复后会自动工作）');
+      if (typeof startOnlineHeartbeat === 'function') {
+        startOnlineHeartbeat(e);
+      }
+    } else {
+      console.log('❌ 网络错误且密钥已过期或无效，清除缓存');
+      localStorage.removeItem(`validKey_${t}`);
+      localStorage.removeItem(`keyExpiry_${t}`);
+      b = false;
+      g.classList.remove("hidden");
+      g.style.display = "flex";
+    }
     return;
   }
 }else{b=!1,g.classList.remove("hidden"),g.style.display="flex"}}catch(t){console.error("页面加载时密钥检查出错:",t),b=!1,g.classList.remove("hidden"),g.style.display="flex"}
