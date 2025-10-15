@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设备绑定测试工具</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .warning-box h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 15px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #666;
+        }
+        .info-value {
+            color: #333;
+            word-break: break-all;
+        }
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #856404;
+        }
+        .input-group {
+            margin: 20px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #666;
+            font-weight: 500;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: monospace;
+        }
+        button {
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover { transform: translateY(-2px); }
+        .result-box {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            border: 2px solid #e5e7eb;
+        }
+        .status-success {
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+        .status-error {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .comparison-table th,
+        .comparison-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .comparison-table th {
+            background: #f3f4f6;
+            font-weight: bold;
+        }
+        .same { color: #10b981; font-weight: bold; }
+        .different { color: #ef4444; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 设备绑定测试工具</h1>
+        
+        <div class="warning-box">
+            <h3>⚠️ 关于跨域设备绑定</h3>
+            <p>由于浏览器的安全限制，<code>localStorage</code> 是域名隔离的：</p>
+            <ul style="margin-top: 10px; margin-left: 20px;">
+                <li><code>http://47.242.214.89</code> 有独立的 localStorage</li>
+                <li><code>https://myyz.vercel.app</code> 有独立的 localStorage</li>
+                <li>即使是同一设备，可能生成<strong>不同的</strong> deviceId</li>
+            </ul>
+        </div>
+
+        <!-- 当前环境信息 -->
+        <div class="section">
+            <h2>📊 当前环境信息</h2>
+            <div class="info-grid">
+                <div class="info-label">域名：</div>
+                <div class="info-value" id="hostname">-</div>
+                
+                <div class="info-label">协议：</div>
+                <div class="info-value" id="protocol">-</div>
+                
+                <div class="info-label">当前DeviceID：</div>
+                <div class="info-value highlight" id="currentDeviceId">-</div>
+                
+                <div class="info-label">浏览器：</div>
+                <div class="info-value" id="userAgent">-</div>
+                
+                <div class="info-label">屏幕分辨率：</div>
+                <div class="info-value" id="screenResolution">-</div>
+                
+                <div class="info-label">语言：</div>
+                <div class="info-value" id="language">-</div>
+                
+                <div class="info-label">时区：</div>
+                <div class="info-value" id="timezone">-</div>
+            </div>
+        </div>
+
+        <!-- 测试密钥验证 -->
+        <div class="section">
+            <h2>🧪 测试密钥验证</h2>
+            <div class="input-group">
+                <label>输入测试密钥</label>
+                <input type="text" id="keyInput" placeholder="请输入密钥">
+            </div>
+            <button onclick="testAliyun()">测试阿里云环境</button>
+            <button onclick="testVercel()">测试Vercel环境</button>
+            <button onclick="testCurrent()">测试当前环境</button>
+            <div id="testResult"></div>
+        </div>
+
+        <!-- 跨域对比 -->
+        <div class="section">
+            <h2>🔄 跨域DeviceID对比</h2>
+            <p style="color: #666; margin-bottom: 15px;">
+                在两个环境中验证相同密钥，对比deviceId是否一致
+            </p>
+            <button onclick="openBothEnvironments()">同时打开两个环境</button>
+            <button onclick="clearAllDeviceIds()">清除所有DeviceID</button>
+            
+            <table class="comparison-table" id="comparisonTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>环境</th>
+                        <th>DeviceID</th>
+                        <th>状态</th>
+                    </tr>
+                </thead>
+                <tbody id="comparisonBody"></tbody>
+            </table>
+        </div>
+
+        <!-- 日志 -->
+        <div class="section">
+            <h2>📝 操作日志</h2>
+            <div id="logBox" style="max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 13px;"></div>
+        </div>
+    </div>
+
+    <script>
+        // 生成设备ID（与TWPK.html相同的逻辑）
+        function generateDeviceId() {
+            let deviceId = localStorage.getItem('deviceId');
+            
+            if (!deviceId) {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                ctx.textBaseline = 'top';
+                ctx.font = '14px Arial';
+                ctx.fillText('Device fingerprint', 2, 2);
+                
+                const fingerprint = [
+                    navigator.userAgent,
+                    navigator.language,
+                    screen.width + 'x' + screen.height,
+                    new Date().getTimezoneOffset(),
+                    canvas.toDataURL()
+                ].join('|');
+                
+                let hash = 0;
+                for (let i = 0; i < fingerprint.length; i++) {
+                    const char = fingerprint.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash;
+                }
+                
+                deviceId = Math.abs(hash).toString(36);
+                localStorage.setItem('deviceId', deviceId);
+            }
+            
+            return deviceId;
+        }
+
+        // 日志
+        function log(message, type = 'info') {
+            const logBox = document.getElementById('logBox');
+            const time = new Date().toLocaleTimeString();
+            const colors = { info: '#666', success: '#10b981', error: '#ef4444', warning: '#f59e0b' };
+            const entry = document.createElement('div');
+            entry.style.color = colors[type];
+            entry.style.margin = '5px 0';
+            entry.textContent = `[${time}] ${message}`;
+            logBox.appendChild(entry);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        // 显示环境信息
+        function showEnvironmentInfo() {
+            const deviceId = generateDeviceId();
+            document.getElementById('hostname').textContent = window.location.hostname;
+            document.getElementById('protocol').textContent = window.location.protocol;
+            document.getElementById('currentDeviceId').textContent = deviceId;
+            document.getElementById('userAgent').textContent = navigator.userAgent;
+            document.getElementById('screenResolution').textContent = screen.width + 'x' + screen.height;
+            document.getElementById('language').textContent = navigator.language;
+            document.getElementById('timezone').textContent = `UTC${new Date().getTimezoneOffset() / -60}`;
+            
+            log(`当前环境: ${window.location.hostname}`, 'info');
+            log(`DeviceID: ${deviceId}`, 'info');
+        }
+
+        // 测试验证
+        async function testEnvironment(apiUrl, envName) {
+            const key = document.getElementById('keyInput').value.trim();
+            if (!key) {
+                alert('请输入密钥');
+                return;
+            }
+
+            const deviceId = generateDeviceId();
+            log(`测试 ${envName} - DeviceID: ${deviceId}`, 'info');
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        key: key,
+                        deviceId: deviceId,
+                        clientTime: Date.now()
+                    })
+                });
+
+                const result = await response.json();
+                const resultBox = document.getElementById('testResult');
+                
+                if (result.success && result.valid) {
+                    resultBox.innerHTML = `
+                        <div class="result-box status-success">
+                            <h3 style="color: #10b981; margin-bottom: 10px;">✅ ${envName} 验证成功</h3>
+                            <div style="font-family: monospace; font-size: 13px;">
+                                <div><strong>密钥：</strong>${result.data.key}</div>
+                                <div><strong>状态：</strong>${result.data.status}</div>
+                                <div><strong>设备绑定：</strong>${result.data.deviceBound ? '是' : '否'}</div>
+                                ${result.data.deviceInfo ? `
+                                    <div><strong>绑定DeviceID：</strong>${result.data.deviceInfo.deviceId}</div>
+                                    <div><strong>首次验证：</strong>${new Date(result.data.deviceInfo.firstVerified).toLocaleString()}</div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                    log(`✅ ${envName} 验证成功`, 'success');
+                    
+                    if (result.data.deviceBound) {
+                        log(`⚠️ 密钥已绑定到 DeviceID: ${result.data.deviceInfo.deviceId}`, 'warning');
+                        if (result.data.deviceInfo.deviceId !== deviceId) {
+                            log(`🔴 注意：当前DeviceID (${deviceId}) 与绑定的不同！`, 'error');
+                        } else {
+                            log(`🟢 当前DeviceID与绑定的一致`, 'success');
+                        }
+                    }
+                } else {
+                    resultBox.innerHTML = `
+                        <div class="result-box status-error">
+                            <h3 style="color: #ef4444; margin-bottom: 10px;">❌ ${envName} 验证失败</h3>
+                            <div><strong>原因：</strong>${result.reason || result.error}</div>
+                        </div>
+                    `;
+                    log(`❌ ${envName} 验证失败: ${result.reason || result.error}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ 测试错误: ${error.message}`, 'error');
+            }
+        }
+
+        function testAliyun() {
+            testEnvironment('http://47.242.214.89/api/keys/validate-key', '阿里云');
+        }
+
+        function testVercel() {
+            testEnvironment('https://myyz.vercel.app/api/keys/validate-key', 'Vercel');
+        }
+
+        function testCurrent() {
+            const apiUrl = window.location.hostname.includes('vercel.app')
+                ? '/api/keys/validate-key'
+                : window.location.hostname === '47.242.214.89'
+                    ? '/api/keys/validate-key'
+                    : 'http://47.242.214.89/api/keys/validate-key';
+            testEnvironment(apiUrl, '当前环境');
+        }
+
+        function openBothEnvironments() {
+            window.open('http://47.242.214.89/test-device-binding.html', '_blank');
+            window.open('https://myyz.vercel.app/test-device-binding.html', '_blank');
+            log('已在新标签页中打开两个环境', 'info');
+            log('请在两个环境中查看DeviceID是否相同', 'warning');
+        }
+
+        function clearAllDeviceIds() {
+            if (confirm('确定要清除当前域名的DeviceID吗？')) {
+                localStorage.removeItem('deviceId');
+                log('已清除当前DeviceID，刷新页面将生成新的ID', 'warning');
+                setTimeout(() => location.reload(), 1000);
+            }
+        }
+
+        // 初始化
+        showEnvironmentInfo();
+        log('测试工具已就绪', 'success');
+        log('💡 提示：在不同域名下，localStorage是隔离的', 'info');
+    </script>
+</body>
+</html>
+
