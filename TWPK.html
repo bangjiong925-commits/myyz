@@ -7888,6 +7888,12 @@ try{
     _0xSetAuth(t);
     b=!0;
     D(new Date(serverResult.data.expiresAt).getTime() / 1000);
+    
+    // 🌐 验证成功后立即启动在线心跳
+    console.log('🌐 密钥验证成功，启动在线心跳系统');
+    if (typeof startOnlineHeartbeat === 'function') {
+      startOnlineHeartbeat(t);
+    }
   }else{
     alert("密钥验证失败: "+serverResult.reason);
   }
@@ -7930,6 +7936,12 @@ window.addEventListener("load",async function(){try{const t=Y(),e=localStorage.g
       D(new Date(serverResult.data.expiresAt).getTime() / 1000);
       g.classList.add("hidden");
       g.style.display = "none";
+      
+      // 🌐 页面加载时已有密钥，启动在线心跳
+      console.log('🌐 页面加载后启动在线心跳系统');
+      if (typeof startOnlineHeartbeat === 'function') {
+        startOnlineHeartbeat(e);
+      }
       return;
     }
     
@@ -12437,126 +12449,94 @@ function generateIntersectionCombinations(modules, targetStarLevel) {
     return [...new Set(finalCombinations)].sort();
 }
 
-// ========== 心跳机制 ==========
-// 保持在线状态的心跳机制
-let heartbeatTimer = null;
-let currentValidatedKey = null;
+// ========== 简化的在线状态心跳系统 ==========
+// 全局变量
+window.heartbeatTimer = null;
+window.currentOnlineKey = null;
+window.heartbeatActive = false;
 
-// 启动心跳
-function startHeartbeat(key) {
-    console.log('🔄 启动心跳机制:', key);
-    currentValidatedKey = key;
+// 发送心跳 - 超级简单版本
+async function sendOnlineHeartbeat(key) {
+    if (!key) return;
     
-    // 立即发送一次心跳
-    sendHeartbeat(key);
-    
-    // 每30秒发送一次心跳
-    heartbeatTimer = setInterval(() => {
-        sendHeartbeat(key);
-    }, 30000);
-}
-
-// 停止心跳
-function stopHeartbeat() {
-    console.log('⏹️ 停止心跳机制');
-    if (heartbeatTimer) {
-        clearInterval(heartbeatTimer);
-        heartbeatTimer = null;
-    }
-    currentValidatedKey = null;
-}
-
-// 发送心跳请求
-async function sendHeartbeat(key) {
     try {
-        const heartbeatUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-            ? 'http://localhost:3002/api/keys/heartbeat'
-            : window.location.hostname.includes('vercel.app')
-                ? '/api/keys/heartbeat'
-                : 'http://47.242.214.89/api/keys/heartbeat';
+        // 根据环境选择API
+        const apiUrl = window.location.hostname.includes('vercel.app')
+            ? '/api/keys/heartbeat'
+            : 'http://47.242.214.89/api/keys/heartbeat';
         
-        const response = await fetch(heartbeatUrl, {
+        console.log('💓 发送心跳:', new Date().toLocaleTimeString());
+        
+        const response = await fetch(apiUrl, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ key: key })
         });
         
         const result = await response.json();
-        if (result.success) {
-            console.log('💓 心跳发送成功');
-        } else {
-            console.warn('⚠️ 心跳发送失败:', result.error);
-        }
+        console.log('💓 心跳响应:', result.success ? '成功' : '失败');
+        
     } catch (error) {
-        console.error('❌ 心跳发送错误:', error);
+        console.log('💓 心跳错误:', error.message);
     }
 }
 
-// 页面关闭时停止心跳
-window.addEventListener('beforeunload', () => {
-    stopHeartbeat();
-});
+// 启动心跳 - 超级简单版本
+function startOnlineHeartbeat(key) {
+    if (!key) {
+        console.log('⚠️ 密钥为空，无法启动心跳');
+        return;
+    }
+    
+    // 如果已经有心跳在运行，先停止
+    if (window.heartbeatTimer) {
+        clearInterval(window.heartbeatTimer);
+        window.heartbeatTimer = null;
+    }
+    
+    window.currentOnlineKey = key;
+    window.heartbeatActive = true;
+    
+    console.log('🚀 启动在线心跳系统 - Key:', key.substring(0, 8) + '...');
+    
+    // 立即发送第一次心跳
+    sendOnlineHeartbeat(key);
+    
+    // 每30秒发送一次心跳
+    window.heartbeatTimer = setInterval(() => {
+        if (window.heartbeatActive && window.currentOnlineKey) {
+            sendOnlineHeartbeat(window.currentOnlineKey);
+        }
+    }, 30000); // 30秒
+    
+    console.log('✅ 心跳系统已启动，每30秒发送一次');
+}
 
-// 页面隐藏时停止心跳（移动端切换应用）
+// 停止心跳
+function stopOnlineHeartbeat() {
+    console.log('⏹️ 停止心跳系统');
+    window.heartbeatActive = false;
+    if (window.heartbeatTimer) {
+        clearInterval(window.heartbeatTimer);
+        window.heartbeatTimer = null;
+    }
+    window.currentOnlineKey = null;
+}
+
+// 页面关闭/隐藏时停止心跳
+window.addEventListener('beforeunload', stopOnlineHeartbeat);
+window.addEventListener('pagehide', stopOnlineHeartbeat);
+
+// 页面可见性变化
 document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
-        stopHeartbeat();
-    } else if (currentValidatedKey) {
-        startHeartbeat(currentValidatedKey);
+        console.log('📱 页面隐藏，停止心跳');
+        stopOnlineHeartbeat();
+    } else if (window.currentOnlineKey) {
+        console.log('📱 页面显示，恢复心跳');
+        startOnlineHeartbeat(window.currentOnlineKey);
     }
 });
-
-// 页面加载时检查是否已经验证过密钥
-window.addEventListener('load', () => {
-    // 延迟1秒后检查，确保页面完全加载
-    setTimeout(() => {
-        // 检查页面是否已经验证（通过检查认证模态框是否隐藏）
-        const authModal = document.getElementById('authModal');
-        if (authModal && authModal.style.display === 'none') {
-            console.log('检测到密钥已验证，准备启动心跳');
-            
-            // 尝试从输入框获取密钥
-            const keyInput = document.getElementById('keyInput');
-            if (keyInput && keyInput.value) {
-                const key = keyInput.value.trim();
-                console.log('从输入框获取密钥:', key.substring(0, 10) + '...');
-                startHeartbeat(key);
-            } else {
-                // 尝试从localStorage获取已验证的密钥
-                const usedNonces = JSON.parse(localStorage.getItem('usedNonces') || '[]');
-                if (usedNonces.length > 0) {
-                    // 使用最后一个验证的密钥
-                    const lastKey = usedNonces[usedNonces.length - 1];
-                    console.log('从localStorage获取密钥:', lastKey.substring(0, 10) + '...');
-                    startHeartbeat(lastKey);
-                }
-            }
-        } else {
-            console.log('密钥尚未验证，等待用户输入密钥');
-        }
-    }, 1000);
-});
-
-// 监听密钥验证按钮，验证成功后启动心跳
-const originalVerifyKeyBtn = document.getElementById("verifyKeyBtn");
-if (originalVerifyKeyBtn) {
-    originalVerifyKeyBtn.addEventListener('click', () => {
-        // 验证按钮点击后，等待3秒检查是否验证成功
-        setTimeout(() => {
-            const authModal = document.getElementById('authModal');
-            if (authModal && authModal.style.display === 'none') {
-                console.log('密钥验证成功，启动心跳');
-                const keyInput = document.getElementById('keyInput');
-                if (keyInput && keyInput.value) {
-                    const key = keyInput.value.trim();
-                    startHeartbeat(key);
-                }
-            }
-        }, 3000);
-    });
-}
 
 
 
