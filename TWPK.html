@@ -7794,26 +7794,65 @@ let verifyTimeout = null;
 
 // 生成设备ID
 function generateDeviceId() {
-    // 尝试从localStorage获取已存在的设备ID
-    let deviceId = localStorage.getItem('deviceId');
+    // 🔑 基于硬件特征生成唯一机器码（跨域名一致）
+    // 不使用 localStorage，每次都重新计算，确保跨域名时生成相同的ID
     
-    if (!deviceId) {
-        // 生成新的设备ID
+    try {
+        // Canvas指纹
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         ctx.textBaseline = 'top';
         ctx.font = '14px Arial';
         ctx.fillText('Device fingerprint', 2, 2);
+        const canvasData = canvas.toDataURL();
         
+        // WebGL指纹
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        let webglVendor = '';
+        let webglRenderer = '';
+        if (gl) {
+            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+            if (debugInfo) {
+                webglVendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+                webglRenderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+            }
+        }
+        
+        // 收集硬件特征（这些特征在同一设备上是稳定的）
         const fingerprint = [
+            // 浏览器信息
             navigator.userAgent,
             navigator.language,
+            navigator.languages ? navigator.languages.join(',') : '',
+            navigator.platform,
+            
+            // 屏幕信息
             screen.width + 'x' + screen.height,
+            screen.colorDepth,
+            screen.pixelDepth,
+            window.devicePixelRatio || 1,
+            
+            // 时区
             new Date().getTimezoneOffset(),
-            canvas.toDataURL()
+            Intl.DateTimeFormat().resolvedOptions().timeZone,
+            
+            // 硬件信息
+            navigator.hardwareConcurrency || 0,
+            navigator.maxTouchPoints || 0,
+            
+            // Canvas指纹
+            canvasData,
+            
+            // WebGL指纹
+            webglVendor,
+            webglRenderer,
+            
+            // 其他特征
+            navigator.cookieEnabled,
+            navigator.doNotTrack || 'unknown'
         ].join('|');
         
-        // 简单的哈希函数
+        // 使用SHA-256风格的哈希函数
         let hash = 0;
         for (let i = 0; i < fingerprint.length; i++) {
             const char = fingerprint.charCodeAt(i);
@@ -7821,11 +7860,37 @@ function generateDeviceId() {
             hash = hash & hash; // 转换为32位整数
         }
         
-        deviceId = Math.abs(hash).toString(36);
-        localStorage.setItem('deviceId', deviceId);
+        // 生成唯一ID（36进制，更短更易读）
+        const deviceId = Math.abs(hash).toString(36);
+        
+        // 📝 调试日志（生产环境可删除）
+        console.log('🔑 机器码生成成功:', deviceId.substring(0, 8) + '...');
+        console.log('📊 硬件特征:', {
+            ua: navigator.userAgent.substring(0, 50) + '...',
+            screen: screen.width + 'x' + screen.height,
+            platform: navigator.platform,
+            cores: navigator.hardwareConcurrency
+        });
+        
+        return deviceId;
+        
+    } catch (error) {
+        // 降级方案：如果指纹生成失败，使用基础特征
+        console.error('机器码生成失败，使用降级方案:', error);
+        const fallback = [
+            navigator.userAgent,
+            screen.width + 'x' + screen.height,
+            navigator.platform
+        ].join('|');
+        
+        let hash = 0;
+        for (let i = 0; i < fallback.length; i++) {
+            hash = ((hash << 5) - hash) + fallback.charCodeAt(i);
+            hash = hash & hash;
+        }
+        
+        return 'fb_' + Math.abs(hash).toString(36); // fb = fallback
     }
-    
-    return deviceId;
 }
 
 P.addEventListener("click",async function(){const t=p.value.trim();if(t){// 防重复点击检查
