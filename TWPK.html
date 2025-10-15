@@ -12437,6 +12437,97 @@ function generateIntersectionCombinations(modules, targetStarLevel) {
     return [...new Set(finalCombinations)].sort();
 }
 
+// ========== 心跳机制 ==========
+// 保持在线状态的心跳机制
+let heartbeatTimer = null;
+let currentValidatedKey = null;
+
+// 启动心跳
+function startHeartbeat(key) {
+    console.log('🔄 启动心跳机制:', key);
+    currentValidatedKey = key;
+    
+    // 立即发送一次心跳
+    sendHeartbeat(key);
+    
+    // 每30秒发送一次心跳
+    heartbeatTimer = setInterval(() => {
+        sendHeartbeat(key);
+    }, 30000);
+}
+
+// 停止心跳
+function stopHeartbeat() {
+    console.log('⏹️ 停止心跳机制');
+    if (heartbeatTimer) {
+        clearInterval(heartbeatTimer);
+        heartbeatTimer = null;
+    }
+    currentValidatedKey = null;
+}
+
+// 发送心跳请求
+async function sendHeartbeat(key) {
+    try {
+        const heartbeatUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? 'http://localhost:3002/api/keys/heartbeat'
+            : window.location.hostname.includes('vercel.app')
+                ? '/api/keys/heartbeat'
+                : 'http://47.242.214.89/api/keys/heartbeat';
+        
+        const response = await fetch(heartbeatUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ key: key })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            console.log('💓 心跳发送成功');
+        } else {
+            console.warn('⚠️ 心跳发送失败:', result.error);
+        }
+    } catch (error) {
+        console.error('❌ 心跳发送错误:', error);
+    }
+}
+
+// 页面关闭时停止心跳
+window.addEventListener('beforeunload', () => {
+    stopHeartbeat();
+});
+
+// 页面隐藏时停止心跳（移动端切换应用）
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        stopHeartbeat();
+    } else if (currentValidatedKey) {
+        startHeartbeat(currentValidatedKey);
+    }
+});
+
+// 监听密钥验证按钮，验证成功后启动心跳
+const originalVerifyKeyBtn = document.getElementById("verifyKeyBtn");
+if (originalVerifyKeyBtn) {
+    originalVerifyKeyBtn.addEventListener('click', async () => {
+        // 等待验证完成
+        setTimeout(async () => {
+            // 检查是否有已验证的密钥
+            const keyInput = document.getElementById('keyInput');
+            if (keyInput && keyInput.value) {
+                const key = keyInput.value.trim();
+                // 验证成功后启动心跳
+                const validated = await A(key); // 假设 A 是验证函数
+                if (validated && validated.valid) {
+                    startHeartbeat(key);
+                }
+            }
+        }, 2000);
+    });
+}
+
 
 
 
