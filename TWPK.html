@@ -12533,17 +12533,25 @@ window.heartbeatTimer = null;
 window.currentOnlineKey = null;
 window.heartbeatActive = false;
 
-// 发送心跳 - 超级简单版本
+// 发送心跳 - 智能路由（HTTPS用代理，HTTP直连）
 async function sendOnlineHeartbeat(key) {
     if (!key) return;
     
     try {
-        // 根据环境选择API
-        const apiUrl = window.location.hostname.includes('vercel.app')
-            ? '/api/keys/heartbeat'
-            : 'http://47.242.214.89/api/keys/heartbeat';
+        // 🔥 智能选择心跳路径
+        let apiUrl, method;
         
-        console.log('💓 发送心跳:', new Date().toLocaleTimeString());
+        if (window.location.protocol === 'https:') {
+            // HTTPS环境（Vercel）：使用代理避免混合内容错误
+            apiUrl = '/api/keys/heartbeat';
+            method = 'Vercel代理';
+        } else {
+            // HTTP环境（阿里云或本地）：直接连接阿里云服务器
+            apiUrl = 'http://47.242.214.89/api/keys/heartbeat';
+            method = '直连阿里云';
+        }
+        
+        console.log(`💓 发送心跳[${method}]:`, new Date().toLocaleTimeString());
         
         const response = await fetch(apiUrl, {
             method: 'POST',
@@ -12552,10 +12560,15 @@ async function sendOnlineHeartbeat(key) {
         });
         
         const result = await response.json();
-        console.log('💓 心跳响应:', result.success ? '成功' : '失败');
+        
+        if (result.success) {
+            console.log(`✅ 心跳成功[${method}]`);
+        } else {
+            console.warn(`⚠️ 心跳失败[${method}]:`, result.error || '未知错误');
+        }
         
     } catch (error) {
-        console.log('💓 心跳错误:', error.message);
+        console.error('❌ 心跳错误:', error.message);
     }
 }
 
