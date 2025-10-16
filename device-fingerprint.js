@@ -9,10 +9,24 @@
  */
 
 function generateDeviceId() {
-    // 🔑 基于硬件特征生成唯一机器码（跨域名一致）
-    // 不使用 localStorage，每次都重新计算，确保跨域名时生成相同的ID
+    // 🔑 优先使用缓存的设备ID，确保同一浏览器始终使用相同的设备ID
+    const STORAGE_KEY = 'myyz_device_id';
     
     try {
+        // 1. 先尝试从localStorage获取已缓存的设备ID
+        const cachedDeviceId = localStorage.getItem(STORAGE_KEY);
+        if (cachedDeviceId) {
+            if (typeof console !== 'undefined' && console.log) {
+                console.log('🔑 使用已缓存的设备ID:', cachedDeviceId.substring(0, 8) + '...');
+            }
+            return cachedDeviceId;
+        }
+        
+        // 2. 如果没有缓存，则基于硬件特征生成新的设备ID
+        if (typeof console !== 'undefined' && console.log) {
+            console.log('🔑 首次生成设备ID，基于硬件特征...');
+        }
+        
         // Canvas指纹
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -78,9 +92,21 @@ function generateDeviceId() {
         // 生成唯一ID（36进制，更短更易读）
         const deviceId = Math.abs(hash).toString(36);
         
-        // 📝 调试日志（生产环境可删除）
+        // 3. 将生成的设备ID保存到localStorage，确保后续使用相同的ID
+        try {
+            localStorage.setItem(STORAGE_KEY, deviceId);
+            if (typeof console !== 'undefined' && console.log) {
+                console.log('✅ 设备ID已缓存到localStorage');
+            }
+        } catch (storageError) {
+            if (typeof console !== 'undefined' && console.warn) {
+                console.warn('⚠️ 无法缓存设备ID到localStorage:', storageError);
+            }
+        }
+        
+        // 📝 调试日志
         if (typeof console !== 'undefined' && console.log) {
-            console.log('🔑 机器码生成成功:', deviceId.substring(0, 8) + '...');
+            console.log('🔑 设备ID生成成功:', deviceId.substring(0, 8) + '...');
             console.log('📊 硬件特征:', {
                 ua: navigator.userAgent.substring(0, 50) + '...',
                 screen: screen.width + 'x' + screen.height,
@@ -138,4 +164,5 @@ function getDeviceInfo() {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { generateDeviceId, getDeviceInfo };
 }
+
 
