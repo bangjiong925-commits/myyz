@@ -13,8 +13,8 @@
   <!-- 安全防护脚本 -->
   <script>
     // 🎯 版本信息
-    const APP_VERSION = 'v1.0.0.12';
-    const BUILD_TIME = '2025-10-18 03:30:00';
+    const APP_VERSION = 'v1.0.0.13';
+    const BUILD_TIME = '2025-10-18 03:45:00';
     console.log('%c🚀 台湾PK数据分析工具 ' + APP_VERSION, 'color: #3b82f6; font-size: 18px; font-weight: bold; padding: 10px;');
     console.log('%c📅 构建时间: ' + BUILD_TIME, 'color: #10b981; font-size: 14px;');
     console.log('%c🔧 如看到此版本号说明页面已更新', 'color: #f59e0b; font-size: 12px;');
@@ -1508,11 +1508,6 @@
           
           <!-- 统一操作面板 -->
           <div class="mb-6 border border-gray-200 rounded-lg p-4 bg-gray-50">
-            <!-- 自动检测信息（仅交集模式显示） -->
-            <div id="detectedModulesInfo" class="mb-3 p-3 bg-white rounded-lg border border-blue-200 shadow-sm hidden">
-              <div class="text-gray-500 text-sm text-center py-2">正在扫描模块...</div>
-            </div>
-            
             <!-- 操作区域 -->
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center space-x-3">
@@ -2729,7 +2724,7 @@
   <!-- 页脚 -->
   <footer class="bg-white border-t border-gray-200 py-4">
     <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
-      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.12</span></p>
+      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.13</span></p>
     </div>
   </footer>
 
@@ -5715,7 +5710,8 @@ function initModeSwitcher() {
   const toleranceLabel = document.getElementById('toleranceLabel');
   const toleranceSelector = document.getElementById('toleranceSelector');
   const actionBtn = document.getElementById('actionBtn');
-  const detectedModulesInfo = document.getElementById('detectedModulesInfo');
+  const numberDisplay = document.getElementById('numberDisplay');
+  const numberCount = document.getElementById('numberCount');
   
   if (!concatModeBtn || !intersectionModeBtn) return;
   
@@ -5736,7 +5732,6 @@ function initModeSwitcher() {
     // 隐藏交集相关元素
     if (toleranceLabel) toleranceLabel.classList.add('hidden');
     if (toleranceSelector) toleranceSelector.classList.add('hidden');
-    if (detectedModulesInfo) detectedModulesInfo.classList.add('hidden');
     
     // 修改按钮文字
     if (actionBtn) actionBtn.textContent = '拼接';
@@ -5762,13 +5757,20 @@ function initModeSwitcher() {
       toleranceSelector.classList.remove('hidden');
       toleranceSelector.classList.add('flex'); // 确保flex布局
     }
-    if (detectedModulesInfo) detectedModulesInfo.classList.remove('hidden');
     
     // 修改按钮文字
     if (actionBtn) actionBtn.textContent = '交集';
     
-    // 扫描并显示模块信息
-    scanAndDisplayModules();
+    // 清空显示区域
+    if (numberDisplay) {
+      numberDisplay.innerHTML = '<div class="text-gray-500 text-center py-8">请选择容错值并点击"交集"</div>';
+    }
+    if (numberCount) {
+      numberCount.textContent = '共 0 注';
+    }
+    
+    // 清空交集结果
+    window.intersectionResults = '';
   });
   
   // 容错按钮事件（支持多选，点击切换选中状态）
@@ -5842,47 +5844,6 @@ function scanModulesAndGroup() {
   return groups;
 }
 
-// 扫描并显示模块信息
-function scanAndDisplayModules() {
-  const groups = scanModulesAndGroup();
-  const infoDiv = document.getElementById('detectedModulesInfo');
-  
-  if (!infoDiv) return;
-  
-  let html = '<div class="space-y-2">';
-  html += '<h4 class="font-semibold text-gray-800 mb-2">📊 自动检测到的模块：</h4>';
-  
-  if (Object.keys(groups).length === 0) {
-    html += '<p class="text-gray-500 text-sm">暂无数据，请在下方输入模块中粘贴号码</p>';
-  } else {
-    Object.keys(groups).sort((a, b) => b - a).forEach(star => {
-      const modules = groups[star];
-      const totalCount = modules.reduce((sum, m) => sum + m.count, 0);
-      const moduleInfo = modules.map(m => 
-        `模块${m.moduleNum}(${m.count}注)`
-      ).join(', ');
-      
-      html += `<div class="p-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded border border-blue-200">
-        <div class="flex items-center justify-between">
-          <div>
-            <span class="font-bold text-blue-600 text-lg">${star}星:</span> 
-            <span class="text-gray-700 text-sm">${moduleInfo}</span>
-          </div>
-          <div class="text-right">
-            <span class="text-xs text-gray-500">共${totalCount}注</span>
-            ${modules.length >= 2 ? 
-              `<span class="ml-2 px-2 py-1 bg-green-100 text-green-700 text-xs rounded font-medium">✓ 可交集</span>` : 
-              `<span class="ml-2 px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded">需≥2个模块</span>`
-            }
-          </div>
-        </div>
-      </div>`;
-    });
-  }
-  
-  html += '</div>';
-  infoDiv.innerHTML = html;
-}
 
 // 两组号码求交集（带容错）
 function intersectTwoGroups(groupA, groupB, tolerance, star) {
@@ -5944,9 +5905,10 @@ function executeAutoIntersection() {
   const selectedToleranceBtns = document.querySelectorAll('.tolerance-btn.bg-blue-500');
   const tolerances = Array.from(selectedToleranceBtns).map(btn => parseInt(btn.dataset.tolerance));
   
+  // 如果没有选择容错值，使用精确交集（容错0）
   if (tolerances.length === 0) {
-    alert('❌ 请至少选择一个容错值\n\n点击容错按钮进行选择');
-    return;
+    tolerances.push(0);
+    console.log('未选择容错值，使用精确交集（容错0）');
   }
   
   console.log(`开始执行自动交集，容错值: ${tolerances.join(', ')}`);
