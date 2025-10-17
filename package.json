@@ -9,6 +9,7 @@
     "api": "node api_server_mongodb.js",
     "keys": "node key_management_server.js",
     "analysis": "node pk10-analysis-api.js",
+    "build": "echo \"no build step for static TWPK deployment\"",
     "dev": "nodemon proxy-server.js",
     "dev-api": "nodemon api_server_mongodb.js",
     "dev-keys": "nodemon key_management_server.js",
