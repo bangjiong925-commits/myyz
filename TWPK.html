@@ -13,8 +13,8 @@
   <!-- 安全防护脚本 -->
   <script>
     // 🎯 版本信息
-    const APP_VERSION = 'v1.0.0.5';
-    const BUILD_TIME = '2025-10-18 00:15:00';
+    const APP_VERSION = 'v1.0.0.6';
+    const BUILD_TIME = '2025-10-18 00:20:00';
     console.log('%c🚀 台湾PK数据分析工具 ' + APP_VERSION, 'color: #3b82f6; font-size: 18px; font-weight: bold; padding: 10px;');
     console.log('%c📅 构建时间: ' + BUILD_TIME, 'color: #10b981; font-size: 14px;');
     console.log('%c🔧 如看到此版本号说明页面已更新', 'color: #f59e0b; font-size: 12px;');
@@ -2693,7 +2693,7 @@
   <!-- 页脚 -->
   <footer class="bg-white border-t border-gray-200 py-4">
     <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
-      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.5</span></p>
+      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.6</span></p>
     </div>
   </footer>
 
@@ -9387,43 +9387,60 @@ async function fetchApiData() {
             }
             
             // 处理数据
-            const numbers = numbersStr.split(',').map(n => parseInt(n.trim(), 10));
-            if (numbers.length === 10 && !numbers.some(isNaN)) {
-                // 添加新数据到数组
-                addPeriodToSet(period);
-                const newData = {
+            let numbers;
+            
+            if (currentLotteryType === 'twpk10') {
+                // 台湾PK10：原始20个数字，需要转换为10个数字
+                const cleanStr = numbersStr.split('+')[0]; // 去掉+68部分
+                const raw20Numbers = cleanStr.split(',').map(n => parseInt(n.trim(), 10));
+                
+                if (raw20Numbers.length === 20 && !raw20Numbers.some(isNaN)) {
+                    // 使用calcResult转换20个数字为10个排名
+                    numbers = calcResult(raw20Numbers);
+                    console.log(`步骤4.5: 台湾PK10转换 - 20个数字转换为10个排名: [${numbers.join(',')}]`);
+                } else {
+                    throw new Error(`数据格式错误，应为20个数字，实际为 ${raw20Numbers.length} 个`);
+                }
+            } else {
+                // 其他彩种：直接解析10个数字
+                numbers = numbersStr.split(',').map(n => parseInt(n.trim(), 10));
+                if (numbers.length !== 10 || numbers.some(isNaN)) {
+                    throw new Error('数据格式错误');
+                }
+            }
+            
+            // 添加新数据到数组
+            addPeriodToSet(period);
+            const newData = {
+                period: period,
+                data: numbers,
+                input: numbers.join(',') // 存储转换后的10个数字
+            };
+            addToCurrentLotteryData([newData]);
+            console.log('步骤5: 新数据已添加到数组，当前数组长度:', r.length);
+            
+            console.log('步骤6: 已将数据同步到window.r，长度:', window.r.length);
+            
+            // 触发计划自动验证
+            if (window.PlanDataUpdateListener && typeof window.PlanDataUpdateListener.onHistoryDataUpdate === 'function') {
+                console.log('步骤6.1: 触发计划自动验证');
+                const newDataItem = {
                     period: period,
                     data: numbers,
-                    input: numbersStr
+                    input: numbers.join(',')
                 };
-                addToCurrentLotteryData([newData]);
-                console.log('步骤5: 新数据已添加到数组，当前数组长度:', r.length);
-                
-                console.log('步骤6: 已将数据同步到window.r，长度:', window.r.length);
-                
-                // 触发计划自动验证
-                if (window.PlanDataUpdateListener && typeof window.PlanDataUpdateListener.onHistoryDataUpdate === 'function') {
-                    console.log('步骤6.1: 触发计划自动验证');
-                    const newDataItem = {
-                        period: period,
-                        data: numbers,
-                        input: numbersStr
-                    };
-                    window.PlanDataUpdateListener.onHistoryDataUpdate([newDataItem]);
-                }
-                
-                // 更新期数统计
-                document.getElementById('periodCount').textContent = r.length;
-                
-                // 刷新表格显示新数据
-                console.log('步骤7: 检测到新数据，刷新表格显示');
-                L(); // 刷新表格显示新数据
-                console.log('步骤8: 数据处理完成，表格已刷新');
-            
-                console.log('步骤9: 数据处理完成，状态更新已触发');
-            } else {
-                throw new Error('数据格式不正确');
+                window.PlanDataUpdateListener.onHistoryDataUpdate([newDataItem]);
             }
+            
+            // 更新期数统计
+            document.getElementById('periodCount').textContent = r.length;
+            
+            // 刷新表格显示新数据
+            console.log('步骤7: 检测到新数据，刷新表格显示');
+            L(); // 刷新表格显示新数据
+            console.log('步骤8: 数据处理完成，表格已刷新');
+        
+            console.log('步骤9: 数据处理完成，状态更新已触发');
             
             return { period, numbersStr, drawTime, dataExists };
         }
@@ -9608,16 +9625,38 @@ window.fetchHistoryData = async function fetchHistoryData() {
                 const numbersStr = item.preDrawCode;
                 
                 // 解析号码
-                const numbers = numbersStr.split(',').map(n => parseInt(n.trim(), 10));
-                if (numbers.length === 10 && !numbers.some(isNaN)) {
-                    r.push({
-                        period: period,
-                        data: numbers,
-                        input: numbersStr
-                    });
-                    d.add(period);
-                    addedCount++;
+                let numbers;
+                
+                if (lotteryType === 'twpk10') {
+                    // 台湾PK10：原始20个数字，需要转换为10个数字
+                    // 格式：06,33,62,...,68+68 （去掉最后的+号和重复数字）
+                    const cleanStr = numbersStr.split('+')[0]; // 去掉+68部分
+                    const raw20Numbers = cleanStr.split(',').map(n => parseInt(n.trim(), 10));
+                    
+                    if (raw20Numbers.length === 20 && !raw20Numbers.some(isNaN)) {
+                        // 使用calcResult转换20个数字为10个排名
+                        numbers = calcResult(raw20Numbers);
+                        console.log(`期号 ${period}: 20个数字 [${raw20Numbers.slice(0,5).join(',')}...] 转换为 10个排名 [${numbers.join(',')}]`);
+                    } else {
+                        console.warn(`期号 ${period}: 数据格式错误，应为20个数字，实际为 ${raw20Numbers.length} 个`);
+                        continue;
+                    }
+                } else {
+                    // 其他彩种：直接解析10个数字
+                    numbers = numbersStr.split(',').map(n => parseInt(n.trim(), 10));
+                    if (numbers.length !== 10 || numbers.some(isNaN)) {
+                        console.warn(`期号 ${period}: 数据格式错误`);
+                        continue;
+                    }
                 }
+                
+                r.push({
+                    period: period,
+                    data: numbers,
+                    input: numbers.join(',') // 存储转换后的10个数字
+                });
+                d.add(period);
+                addedCount++;
             }
             
             // 按期数倒序排列，确保最新期数在最上方
