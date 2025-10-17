@@ -13,8 +13,8 @@
   <!-- 安全防护脚本 -->
   <script>
     // 🎯 版本信息
-    const APP_VERSION = 'v1.0.0.10';
-    const BUILD_TIME = '2025-10-18 02:30:00';
+    const APP_VERSION = 'v1.0.0.11';
+    const BUILD_TIME = '2025-10-18 03:00:00';
     console.log('%c🚀 台湾PK数据分析工具 ' + APP_VERSION, 'color: #3b82f6; font-size: 18px; font-weight: bold; padding: 10px;');
     console.log('%c📅 构建时间: ' + BUILD_TIME, 'color: #10b981; font-size: 14px;');
     console.log('%c🔧 如看到此版本号说明页面已更新', 'color: #f59e0b; font-size: 12px;');
@@ -1494,7 +1494,7 @@
         <div class="bg-white rounded-lg shadow-md p-6">
           <!-- 模式切换区域 -->
           <div class="mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
-            <div class="flex gap-3 mb-3">
+            <div class="flex gap-3">
               <button id="concatModeBtn" class="flex-1 px-4 py-3 rounded-lg border-2 border-blue-500 bg-blue-500 text-white font-semibold transition-all hover:shadow-lg flex items-center justify-center gap-2 mode-btn-active">
                 <span class="text-xl">🔗</span>
                 <span>拼接模式</span>
@@ -1504,38 +1504,11 @@
                 <span>交集模式</span>
               </button>
             </div>
-            
-            <!-- 交集配置区域（默认隐藏） -->
-            <div id="intersectionConfig" class="hidden">
-              <!-- 自动检测信息 -->
-              <div id="detectedModulesInfo" class="mb-3 p-3 bg-white rounded-lg border border-blue-200">
-                <div class="text-gray-500 text-sm text-center py-2">正在扫描模块...</div>
-              </div>
-              
-              <!-- 容错设置 -->
-              <div class="p-3 bg-white rounded-lg border border-blue-200">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">
-                  <span class="text-purple-600">⚙️</span> 容错设置
-                </label>
-                <div class="flex gap-2 flex-wrap">
-                  <button class="intersection-tolerance-btn px-4 py-2 rounded-md border-2 border-blue-500 bg-blue-500 text-white font-medium transition-all hover:shadow-md" data-tolerance="0">0</button>
-                  <button class="intersection-tolerance-btn px-4 py-2 rounded-md border-2 border-gray-300 bg-white text-gray-700 font-medium transition-all hover:border-blue-400" data-tolerance="1">1</button>
-                  <button class="intersection-tolerance-btn px-4 py-2 rounded-md border-2 border-gray-300 bg-white text-gray-700 font-medium transition-all hover:border-blue-400" data-tolerance="2">2</button>
-                  <button class="intersection-tolerance-btn px-4 py-2 rounded-md border-2 border-gray-300 bg-white text-gray-700 font-medium transition-all hover:border-blue-400" data-tolerance="3">3</button>
-                  <button class="intersection-tolerance-btn px-4 py-2 rounded-md border-2 border-gray-300 bg-white text-gray-700 font-medium transition-all hover:border-blue-400" data-tolerance="4">4</button>
-                  <button class="intersection-tolerance-btn px-4 py-2 rounded-md border-2 border-gray-300 bg-white text-gray-700 font-medium transition-all hover:border-blue-400" data-tolerance="5">5</button>
-                  <button class="intersection-tolerance-btn px-4 py-2 rounded-md border-2 border-gray-300 bg-white text-gray-700 font-medium transition-all hover:border-blue-400" data-tolerance="6">6</button>
-                  <button class="intersection-tolerance-btn px-4 py-2 rounded-md border-2 border-gray-300 bg-white text-gray-700 font-medium transition-all hover:border-blue-400" data-tolerance="7">7</button>
-                  <button class="intersection-tolerance-btn px-4 py-2 rounded-md border-2 border-gray-300 bg-white text-gray-700 font-medium transition-all hover:border-blue-400" data-tolerance="8">8</button>
-                </div>
-                <p class="text-xs text-gray-500 mt-2">💡 容错值越大，交集结果越多</p>
-              </div>
-            </div>
           </div>
           
-          <!-- 号码显示区域 -->
-          <div class="mb-6 border border-gray-200 rounded-lg p-4 bg-gray-50">
-            <!-- 星级选择器在左上角 -->
+          <!-- 拼接模式面板（默认显示） -->
+          <div id="concatPanel" class="mb-6 border border-gray-200 rounded-lg p-4 bg-gray-50">
+            <!-- 星级选择器 -->
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center space-x-3">
                 <span class="text-sm font-semibold text-gray-800">拼接星级：</span>
@@ -1555,6 +1528,53 @@
               <div class="text-gray-500 text-center py-8">请先生成号码</div>
             </div>
             <div id="numberCount" class="text-xs text-gray-500 mt-2">共 0 注</div>
+          </div>
+          
+          <!-- 交集模式面板（默认隐藏） -->
+          <div id="intersectionPanel" class="mb-6 border border-purple-200 rounded-lg p-4 bg-gradient-to-br from-purple-50 to-blue-50 hidden">
+            <!-- 自动检测信息 -->
+            <div id="detectedModulesInfo" class="mb-3 p-3 bg-white rounded-lg border border-purple-200 shadow-sm">
+              <div class="text-gray-500 text-sm text-center py-2">正在扫描模块...</div>
+            </div>
+            
+            <!-- 容错设置和操作区域 -->
+            <div class="p-4 bg-white rounded-lg border border-purple-200 shadow-sm">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex-1">
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <span class="text-purple-600">⚙️</span> 容错设置
+                  </label>
+                  <div class="flex gap-2 flex-wrap">
+                    <button class="intersection-tolerance-btn px-3 py-1.5 rounded-md border-2 border-purple-500 bg-purple-500 text-white text-sm font-medium transition-all hover:shadow-md" data-tolerance="0">0</button>
+                    <button class="intersection-tolerance-btn px-3 py-1.5 rounded-md border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-purple-400" data-tolerance="1">1</button>
+                    <button class="intersection-tolerance-btn px-3 py-1.5 rounded-md border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-purple-400" data-tolerance="2">2</button>
+                    <button class="intersection-tolerance-btn px-3 py-1.5 rounded-md border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-purple-400" data-tolerance="3">3</button>
+                    <button class="intersection-tolerance-btn px-3 py-1.5 rounded-md border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-purple-400" data-tolerance="4">4</button>
+                    <button class="intersection-tolerance-btn px-3 py-1.5 rounded-md border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-purple-400" data-tolerance="5">5</button>
+                    <button class="intersection-tolerance-btn px-3 py-1.5 rounded-md border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-purple-400" data-tolerance="6">6</button>
+                    <button class="intersection-tolerance-btn px-3 py-1.5 rounded-md border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-purple-400" data-tolerance="7">7</button>
+                    <button class="intersection-tolerance-btn px-3 py-1.5 rounded-md border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-purple-400" data-tolerance="8">8</button>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-2">💡 容错值越大，交集结果越多</p>
+                </div>
+                <div class="ml-4 flex flex-col gap-2">
+                  <button id="intersectionBtn" class="px-6 py-2 bg-purple-500 text-white rounded-lg text-sm font-semibold hover:bg-purple-600 transition-colors shadow-md hover:shadow-lg">
+                    ⚡ 做号
+                  </button>
+                  <button id="intersectionCopyBtn" class="px-6 py-2 bg-green-500 text-white rounded-lg text-sm font-semibold hover:bg-green-600 transition-colors shadow-md hover:shadow-lg">
+                    📋 复制
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 交集结果显示 -->
+            <div class="mt-3 p-3 bg-white rounded-lg border border-purple-200 shadow-sm">
+              <div class="bg-gray-50 border rounded p-3 min-h-[120px] max-h-[200px] overflow-y-auto text-sm font-mono" id="intersectionDisplay">
+                <div class="text-gray-500 text-center py-8">请设置容错并点击"做号"</div>
+              </div>
+              <div id="intersectionCount" class="text-xs text-gray-500 mt-2">共 0 注</div>
+            </div>
           </div>
            <!-- 下方添加区域 - 所有模块统一容器 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="modules-container">
@@ -2734,7 +2754,7 @@
   <!-- 页脚 -->
   <footer class="bg-white border-t border-gray-200 py-4">
     <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
-      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.10</span></p>
+      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.11</span></p>
     </div>
   </footer>
 
@@ -5681,19 +5701,13 @@ function initNumberDisplayButtons() {
   const concatBtn = document.getElementById('concatBtn');
   if (concatBtn) {
     concatBtn.addEventListener('click', function() {
-      // 根据当前模式执行不同的功能
-      if (currentFiveStarMode === 'intersection') {
-        // 交集模式
-        executeAutoIntersection();
-      } else {
-        // 拼接模式
-        // 获取当前选择的星级
-        const activeStarBtn = document.querySelector('.star-btn.active');
-        const selectedStar = activeStarBtn ? parseInt(activeStarBtn.dataset.star) : 5;
-        
-        // 根据星级调用相应的拼接函数
-        generateStarConcatenation(selectedStar);
-      }
+      // 拼接按钮只负责拼接功能
+      // 获取当前选择的星级
+      const activeStarBtn = document.querySelector('.star-btn.active');
+      const selectedStar = activeStarBtn ? parseInt(activeStarBtn.dataset.star) : 5;
+      
+      // 根据星级调用相应的拼接函数
+      generateStarConcatenation(selectedStar);
     });
   }
   
@@ -5723,28 +5737,39 @@ let currentFiveStarMode = 'concat';
 function initModeSwitcher() {
   const concatModeBtn = document.getElementById('concatModeBtn');
   const intersectionModeBtn = document.getElementById('intersectionModeBtn');
-  const intersectionConfig = document.getElementById('intersectionConfig');
+  const concatPanel = document.getElementById('concatPanel');
+  const intersectionPanel = document.getElementById('intersectionPanel');
   
   if (!concatModeBtn || !intersectionModeBtn) return;
   
   // 拼接模式按钮
   concatModeBtn.addEventListener('click', function() {
     currentFiveStarMode = 'concat';
+    
+    // 更新按钮样式
     concatModeBtn.classList.add('border-blue-500', 'bg-blue-500', 'text-white');
     concatModeBtn.classList.remove('border-gray-300', 'bg-white', 'text-gray-700');
     intersectionModeBtn.classList.remove('border-purple-500', 'bg-purple-500', 'text-white');
     intersectionModeBtn.classList.add('border-gray-300', 'bg-white', 'text-gray-700');
-    if (intersectionConfig) intersectionConfig.classList.add('hidden');
+    
+    // 切换面板显示
+    if (concatPanel) concatPanel.classList.remove('hidden');
+    if (intersectionPanel) intersectionPanel.classList.add('hidden');
   });
   
   // 交集模式按钮
   intersectionModeBtn.addEventListener('click', function() {
     currentFiveStarMode = 'intersection';
+    
+    // 更新按钮样式
     intersectionModeBtn.classList.add('border-purple-500', 'bg-purple-500', 'text-white');
     intersectionModeBtn.classList.remove('border-gray-300', 'bg-white', 'text-gray-700');
     concatModeBtn.classList.remove('border-blue-500', 'bg-blue-500', 'text-white');
     concatModeBtn.classList.add('border-gray-300', 'bg-white', 'text-gray-700');
-    if (intersectionConfig) intersectionConfig.classList.remove('hidden');
+    
+    // 切换面板显示
+    if (concatPanel) concatPanel.classList.add('hidden');
+    if (intersectionPanel) intersectionPanel.classList.remove('hidden');
     
     // 扫描并显示模块信息
     scanAndDisplayModules();
@@ -5755,13 +5780,29 @@ function initModeSwitcher() {
   toleranceBtns.forEach(btn => {
     btn.addEventListener('click', function() {
       toleranceBtns.forEach(b => {
-        b.classList.remove('border-blue-500', 'bg-blue-500', 'text-white');
+        b.classList.remove('border-purple-500', 'bg-purple-500', 'text-white');
         b.classList.add('border-gray-300', 'bg-white', 'text-gray-700');
       });
-      this.classList.add('border-blue-500', 'bg-blue-500', 'text-white');
+      this.classList.add('border-purple-500', 'bg-purple-500', 'text-white');
       this.classList.remove('border-gray-300', 'bg-white', 'text-gray-700');
     });
   });
+  
+  // 交集做号按钮
+  const intersectionBtn = document.getElementById('intersectionBtn');
+  if (intersectionBtn) {
+    intersectionBtn.addEventListener('click', function() {
+      executeAutoIntersection();
+    });
+  }
+  
+  // 交集复制按钮
+  const intersectionCopyBtn = document.getElementById('intersectionCopyBtn');
+  if (intersectionCopyBtn) {
+    intersectionCopyBtn.addEventListener('click', function() {
+      copyIntersectionNumbers();
+    });
+  }
 }
 
 // 扫描模块并按星级分组
@@ -5902,7 +5943,7 @@ function performMultiModuleIntersection(modules, tolerance) {
 // 执行自动交集
 function executeAutoIntersection() {
   // 获取容错值
-  const activeToleranceBtn = document.querySelector('.intersection-tolerance-btn.bg-blue-500');
+  const activeToleranceBtn = document.querySelector('.intersection-tolerance-btn.bg-purple-500');
   const tolerance = activeToleranceBtn ? parseInt(activeToleranceBtn.dataset.tolerance) : 0;
   
   console.log(`开始执行自动交集，容错值: ${tolerance}`);
@@ -5945,21 +5986,53 @@ function executeAutoIntersection() {
     return;
   }
   
-  // 格式化显示
+  // 格式化显示到交集专用显示区域
   const resultText = allResults.map(item => item.numbers.join(',')).join('\n');
-  const numberDisplay = document.getElementById('numberDisplay');
-  const numberCount = document.getElementById('numberCount');
+  const intersectionDisplay = document.getElementById('intersectionDisplay');
+  const intersectionCount = document.getElementById('intersectionCount');
   
-  if (numberDisplay) {
-    numberDisplay.innerHTML = `<pre class="whitespace-pre-wrap font-mono text-sm">${resultText}</pre>`;
+  if (intersectionDisplay) {
+    intersectionDisplay.innerHTML = `<pre class="whitespace-pre-wrap font-mono text-sm">${resultText}</pre>`;
   }
   
-  if (numberCount) {
-    numberCount.textContent = `共 ${allResults.length} 注 (${resultSummary.join(' | ')})`;
+  if (intersectionCount) {
+    intersectionCount.textContent = `共 ${allResults.length} 注 (${resultSummary.join(' | ')})`;
   }
+  
+  // 保存结果到全局变量供复制使用
+  window.intersectionResults = resultText;
   
   console.log('✅ 交集完成:', resultSummary.join(', '));
   alert(`✅ 交集完成！\n\n${resultSummary.join('\n')}\n─────────\n总计: ${allResults.length}注`);
+}
+
+// 复制交集结果
+function copyIntersectionNumbers() {
+  if (!window.intersectionResults || window.intersectionResults.trim() === '') {
+    alert('❌ 暂无交集结果\n\n请先点击"做号"按钮生成交集结果');
+    return;
+  }
+  
+  // 创建临时文本区域
+  const textarea = document.createElement('textarea');
+  textarea.value = window.intersectionResults;
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  
+  // 选择并复制
+  textarea.select();
+  textarea.setSelectionRange(0, 99999);
+  
+  try {
+    document.execCommand('copy');
+    alert('✅ 复制成功！\n\n已将交集结果复制到剪贴板');
+  } catch (err) {
+    alert('❌ 复制失败\n\n请手动选择并复制');
+  }
+  
+  // 移除临时元素
+  document.body.removeChild(textarea);
 }
 
 // 五星做号页面的拼接功能（使用交集拼接逻辑）
