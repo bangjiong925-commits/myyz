@@ -13,8 +13,8 @@
   <!-- 安全防护脚本 -->
   <script>
     // 🎯 版本信息
-    const APP_VERSION = 'v1.0.0.18';
-    const BUILD_TIME = '2025-10-18 04:45:00';
+    const APP_VERSION = 'v1.0.0.19';
+    const BUILD_TIME = '2025-10-18 04:50:00';
     console.log('%c🚀 台湾PK数据分析工具 ' + APP_VERSION, 'color: #3b82f6; font-size: 18px; font-weight: bold; padding: 10px;');
     console.log('%c📅 构建时间: ' + BUILD_TIME, 'color: #10b981; font-size: 14px;');
     console.log('%c🔧 如看到此版本号说明页面已更新', 'color: #f59e0b; font-size: 12px;');
@@ -2724,7 +2724,7 @@
   <!-- 页脚 -->
   <footer class="bg-white border-t border-gray-200 py-4">
     <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
-      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.18</span></p>
+      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.19</span></p>
     </div>
   </footer>
 
@@ -5856,26 +5856,26 @@ function performModuleIntersection(modules, tolerance) {
   if (modules.length === 0) return [];
   if (modules.length === 1) {
     console.log('只有1个模块，直接返回原数据');
-    return modules[0].numbers;
+    return modules[0];
   }
   
   let result = [];
   
   if (tolerance === 0) {
     // 严格交集：必须在所有模块中都出现
-    result = modules[0].numbers;
+    result = modules[0];
     for (let i = 1; i < modules.length; i++) {
-      result = result.filter(num => modules[i].numbers.includes(num));
-      console.log(`与模块${modules[i].moduleNum}严格交集: → ${result.length}个号码`);
+      result = result.filter(num => modules[i].includes(num));
+      console.log(`与模块${i+1}严格交集: → ${result.length}个号码`);
     }
   } else {
     // 容错交集：允许在指定数量的模块中缺失
-    const allNumbers = [...new Set(modules.flatMap(m => m.numbers))];
+    const allNumbers = [...new Set(modules.flat())];
     
     allNumbers.forEach(num => {
       let appearCount = 0;
       modules.forEach(module => {
-        if (module.numbers.includes(num)) {
+        if (module.includes(num)) {
           appearCount++;
         }
       });
