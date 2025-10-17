@@ -13,8 +13,8 @@
   <!-- 安全防护脚本 -->
   <script>
     // 🎯 版本信息
-    const APP_VERSION = 'v1.0.0.21';
-    const BUILD_TIME = '2025-10-18 05:10:00';
+    const APP_VERSION = 'v1.0.0.22';
+    const BUILD_TIME = '2025-10-18 05:20:00';
     console.log('%c🚀 台湾PK数据分析工具 ' + APP_VERSION, 'color: #3b82f6; font-size: 18px; font-weight: bold; padding: 10px;');
     console.log('%c📅 构建时间: ' + BUILD_TIME, 'color: #10b981; font-size: 14px;');
     console.log('%c🔧 如看到此版本号说明页面已更新', 'color: #f59e0b; font-size: 12px;');
@@ -2724,7 +2724,7 @@
   <!-- 页脚 -->
   <footer class="bg-white border-t border-gray-200 py-4">
     <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
-      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.21</span></p>
+      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.22</span></p>
     </div>
   </footer>
 
@@ -5805,7 +5805,7 @@ function initModeSwitcher() {
   }
 }
 
-// 扫描所有模块（号码交集页面逻辑：保留完整的号码组合）
+// 扫描所有模块（完全按照号码交集页面的逻辑）
 function scanAllModules() {
   const modules = [];
   
@@ -5817,37 +5817,23 @@ function scanAllModules() {
       continue;
     }
     
-    const lines = textarea.value.trim().split('\n').filter(line => line.trim());
-    if (lines.length === 0) {
+    const content = textarea.value.trim();
+    if (!content) {
       console.log(`模块${i}为空`);
-      continue; // 跳过空模块
+      continue;
     }
     
-    console.log(`模块${i}数据行数:`, lines.length);
+    // 按逗号分隔，然后去除空格和空项（完全按照号码交集页面的逻辑）
+    const combinations = content.split(',').map(s => s.trim()).filter(Boolean);
     
-    // 收集所有号码组合（每行是一个组合）
-    const moduleCombinations = [];
-    lines.forEach(line => {
-      // 标准化每行：去除空格，统一用逗号分隔，补齐0
-      const numbers = line.trim().split(/[,，\s]+/).filter(n => n).map(n => n.padStart(2, '0'));
-      if (numbers.length > 0) {
-        // 将号码组合转为字符串用于比较
-        const combination = numbers.join(',');
-        moduleCombinations.push(combination);
-      }
-    });
-    
-    if (moduleCombinations.length === 0) {
+    if (combinations.length === 0) {
       console.log(`模块${i}解析后为空`);
       continue;
     }
     
-    // 去重（相同的号码组合只保留一个）
-    const uniqueCombinations = [...new Set(moduleCombinations)];
+    console.log(`模块${i}解析结果: ${combinations.length}个号码组合，前3个:`, combinations.slice(0, 3));
     
-    console.log(`模块${i}解析结果: ${uniqueCombinations.length}个不同号码组合`);
-    
-    modules.push(uniqueCombinations);
+    modules.push(combinations);
   }
   
   console.log(`扫描到${modules.length}个有效模块`);
@@ -5855,7 +5841,7 @@ function scanAllModules() {
 }
 
 
-// 多模块交集（号码组合的交集）
+// 多模块交集（完全按照号码交集页面的逻辑）
 function performModuleIntersection(modules, tolerance) {
   if (modules.length === 0) return [];
   if (modules.length === 1) {
@@ -5866,11 +5852,12 @@ function performModuleIntersection(modules, tolerance) {
   let result = [];
   
   if (tolerance === 0) {
-    // 严格交集：号码组合必须在所有模块中都出现
+    // 严格交集：号码组合字符串必须在所有模块中都出现
+    // 等同于：const intersection = groupA.filter(x => groupB.includes(x));
     result = modules[0];
     for (let i = 1; i < modules.length; i++) {
-      result = result.filter(combination => modules[i].includes(combination));
-      console.log(`与模块${i+1}严格交集: → ${result.length}个号码组合`);
+      result = result.filter(x => modules[i].includes(x));
+      console.log(`与模块${i+1}严格交集: → ${result.length}注`);
     }
   } else {
     // 容错交集：允许在指定数量的模块中缺失
@@ -5891,10 +5878,9 @@ function performModuleIntersection(modules, tolerance) {
       }
     });
     
-    console.log(`容错${tolerance}交集: ${result.length}个号码组合（共${modules.length}个模块）`);
+    console.log(`容错${tolerance}交集: ${result.length}注（共${modules.length}个模块）`);
   }
   
-  // 结果已经是字符串数组，不需要特殊排序
   return result;
 }
 
@@ -5929,7 +5915,7 @@ function executeAutoIntersection() {
   if (modules.length === 1) {
     // 只有一个模块时，直接显示该模块的数据
     console.log('只有1个模块，直接显示');
-    const resultText = modules[0].join('\n');
+    const resultText = modules[0].join(',');
     const numberDisplay = document.getElementById('numberDisplay');
     const numberCount = document.getElementById('numberCount');
     
@@ -5964,21 +5950,19 @@ function executeAutoIntersection() {
     return;
   }
   
-  // 不需要排序，保持原有顺序即可
-  
-  // 格式化显示（号码组合，每行一个）
-  const resultText = allResults.join('\n');
+  // 格式化显示（完全按照号码交集页面：用逗号分隔）
+  const resultText = allResults.join(',');
   const numberDisplay = document.getElementById('numberDisplay');
   const numberCount = document.getElementById('numberCount');
   
   if (numberDisplay) {
-    // 只显示前500个号码组合
+    // 只显示前500注
     const displayCombinations = allResults.slice(0, 500);
-    const displayText = displayCombinations.join('\n');
+    const displayText = displayCombinations.join(',');
     
-    // 如果超过500个号码组合，添加省略提示
+    // 如果超过500注，添加省略提示
     if (allResults.length > 500) {
-      numberDisplay.innerHTML = `<pre class="whitespace-pre-wrap font-mono text-sm">${displayText}\n...（显示前500注，共${allResults.length}注，点击复制可复制全部）</pre>`;
+      numberDisplay.innerHTML = `<pre class="whitespace-pre-wrap font-mono text-sm">${displayText}...（显示前500注，共${allResults.length}注，点击复制可复制全部）</pre>`;
     } else {
       numberDisplay.innerHTML = `<pre class="whitespace-pre-wrap font-mono text-sm">${displayText}</pre>`;
     }
