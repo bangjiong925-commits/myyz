@@ -13,8 +13,8 @@
   <!-- 安全防护脚本 -->
   <script>
     // 🎯 版本信息
-    const APP_VERSION = 'v1.0.0.17';
-    const BUILD_TIME = '2025-10-18 04:30:00';
+    const APP_VERSION = 'v1.0.0.18';
+    const BUILD_TIME = '2025-10-18 04:45:00';
     console.log('%c🚀 台湾PK数据分析工具 ' + APP_VERSION, 'color: #3b82f6; font-size: 18px; font-weight: bold; padding: 10px;');
     console.log('%c📅 构建时间: ' + BUILD_TIME, 'color: #10b981; font-size: 14px;');
     console.log('%c🔧 如看到此版本号说明页面已更新', 'color: #f59e0b; font-size: 12px;');
@@ -2724,7 +2724,7 @@
   <!-- 页脚 -->
   <footer class="bg-white border-t border-gray-200 py-4">
     <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
-      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.17</span></p>
+      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.18</span></p>
     </div>
   </footer>
 
@@ -5805,9 +5805,9 @@ function initModeSwitcher() {
   }
 }
 
-// 扫描模块并按星级分组（参考号码交集页面逻辑）
-function scanModulesAndGroup() {
-  const groups = {}; // { '5': [单个号码数组], '3': [单个号码数组] }
+// 扫描所有模块（参考号码交集页面逻辑，不区分星级）
+function scanAllModules() {
+  const modules = [];
   
   // 扫描8个输入模块（使用做号拼接页面的textarea选择器）
   for (let i = 1; i <= 8; i++) {
@@ -5824,13 +5824,6 @@ function scanModulesAndGroup() {
     }
     
     console.log(`模块${i}数据:`, lines);
-    
-    // 解析第一行确定星级
-    const firstLine = lines[0].trim();
-    const firstNumbers = firstLine.split(/[,，\s]+/).filter(n => n);
-    const star = firstNumbers.length;
-    
-    console.log(`模块${i}星级: ${star}星`);
     
     // 收集所有单个号码（参考号码交集页面的逻辑）
     const moduleNumbers = [];
@@ -5850,18 +5843,11 @@ function scanModulesAndGroup() {
     
     console.log(`模块${i}解析结果: ${uniqueNumbers.length}个不同号码，原始${moduleNumbers.length}个号码`);
     
-    // 按星级分组
-    if (!groups[star]) groups[star] = [];
-    groups[star].push({
-      moduleNum: i,
-      star: star,
-      count: uniqueNumbers.length,
-      numbers: uniqueNumbers // 单个号码的数组
-    });
+    modules.push(uniqueNumbers);
   }
   
-  console.log('扫描结果:', groups);
-  return groups;
+  console.log(`扫描到${modules.length}个有效模块`);
+  return modules;
 }
 
 
@@ -5928,58 +5914,54 @@ function executeAutoIntersection() {
   
   console.log(`开始执行自动交集，容错值: ${tolerances.join(', ')}`);
   
-  // 扫描并分组
-  const groups = scanModulesAndGroup();
+  // 扫描所有模块（不区分星级）
+  const modules = scanAllModules();
   
-  if (Object.keys(groups).length === 0) {
+  if (modules.length === 0) {
     alert('❌ 没有检测到任何模块数据\n\n请在下方输入模块中粘贴号码后再试');
     return;
   }
   
-  // 对每个星级组和每个容错值执行交集
-  let allResults = [];
-  let resultSummary = [];
-  
-  Object.keys(groups).sort((a, b) => b - a).forEach(star => {
-    const modules = groups[star];
+  if (modules.length === 1) {
+    // 只有一个模块时，直接显示该模块的数据
+    console.log('只有1个模块，直接显示');
+    const resultText = modules[0].join(',');
+    const numberDisplay = document.getElementById('numberDisplay');
+    const numberCount = document.getElementById('numberCount');
     
-    if (modules.length < 2) {
-      console.log(`${star}星只有${modules.length}个模块，跳过交集`);
-      return;
+    if (numberDisplay) {
+      numberDisplay.innerHTML = `<pre class="whitespace-pre-wrap font-mono text-sm">${resultText}</pre>`;
     }
-    
-    console.log(`\n开始处理${star}星交集，共${modules.length}个模块`);
-    
-    // 对每个容错值执行交集
-    let starNumbers = [];
-    tolerances.forEach(tolerance => {
-      const intersectionResult = performModuleIntersection(modules, tolerance);
-      if (intersectionResult.length > 0) {
-        starNumbers.push(...intersectionResult);
-        console.log(`  容错${tolerance}: ${intersectionResult.length}个号码`);
-      }
-    });
-    
-    // 去重
-    const uniqueNumbers = [...new Set(starNumbers)];
-    
-    if (uniqueNumbers.length > 0) {
-      // 排序
-      uniqueNumbers.sort((a, b) => parseInt(a) - parseInt(b));
-      
-      allResults.push(...uniqueNumbers);
-      resultSummary.push(`${star}星: ${uniqueNumbers.length}个号码`);
-      console.log(`✓ ${star}星交集完成: ${uniqueNumbers.length}个号码`);
-    } else {
-      console.log(`✗ ${star}星交集结果为空`);
+    if (numberCount) {
+      numberCount.textContent = `共 ${modules[0].length} 个号码`;
+    }
+    window.intersectionResults = resultText;
+    return;
+  }
+  
+  console.log(`\n开始处理交集，共${modules.length}个模块`);
+  
+  // 对每个容错值执行交集
+  let allNumbers = [];
+  tolerances.forEach(tolerance => {
+    const intersectionResult = performModuleIntersection(modules, tolerance);
+    if (intersectionResult.length > 0) {
+      allNumbers.push(...intersectionResult);
+      console.log(`  容错${tolerance}: ${intersectionResult.length}个号码`);
     }
   });
+  
+  // 去重
+  const allResults = [...new Set(allNumbers)];
   
   // 显示结果
   if (allResults.length === 0) {
     alert('❌ 交集结果为空\n\n可能原因：\n1. 各模块号码差异过大\n2. 容错值设置过小\n\n建议：增加容错值再试');
     return;
   }
+  
+  // 排序
+  allResults.sort((a, b) => parseInt(a) - parseInt(b));
   
   // 格式化显示（参考号码交集页面的显示方式）
   const resultText = allResults.join(',');
@@ -6000,13 +5982,13 @@ function executeAutoIntersection() {
   }
   
   if (numberCount) {
-    numberCount.textContent = `共 ${allResults.length} 个号码 (${resultSummary.join(' | ')})`;
+    numberCount.textContent = `共 ${allResults.length} 个号码`;
   }
   
   // 保存完整结果到全局变量供复制使用
   window.intersectionResults = resultText;
   
-  console.log('✅ 交集完成:', resultSummary.join(', '));
+  console.log(`✅ 交集完成: ${allResults.length}个号码`);
   // 不再弹窗，直接显示在方框中
 }
 
