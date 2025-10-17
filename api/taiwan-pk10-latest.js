@@ -1,5 +1,3 @@
-const fetch = require('node-fetch');
-
 export default async function handler(req, res) {
   // 处理CORS预检请求
   if (req.method === 'OPTIONS') {
@@ -29,7 +27,20 @@ export default async function handler(req, res) {
       throw new Error(`HTTP错误! 状态: ${response.status}`);
     }
 
-    const data = await response.json();
+    const contentType = response.headers.get('content-type') || '';
+    let data;
+    if (contentType.includes('application/json')) {
+      data = await response.json();
+    } else {
+      const text = await response.text();
+      console.error('台湾PK10最新数据代理收到非JSON响应:', text.slice(0, 200));
+      return res.status(502).json({
+        error: '获取数据失败',
+        message: '远程服务返回异常响应',
+        detail: text.slice(0, 200),
+        timestamp: new Date().toISOString()
+      });
+    }
     
     console.log(`成功获取台湾PK10数据，记录数: ${data.length || 0}`);
     

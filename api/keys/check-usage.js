@@ -20,7 +20,21 @@ export default async function handler(req, res) {
       body: JSON.stringify(req.body)
     });
 
-    const data = await response.json();
+    const contentType = response.headers.get('content-type') || '';
+    let data;
+    if (contentType.includes('application/json')) {
+      data = await response.json();
+    } else {
+      const text = await response.text();
+      console.error('检查使用代理收到非JSON响应:', text.slice(0, 200));
+      return res.status(502).json({
+        success: false,
+        used: false,
+        error: '检查请求失败',
+        message: '远程服务返回异常响应',
+        detail: text.slice(0, 200)
+      });
+    }
     
     return res.status(response.ok ? 200 : response.status).json(data);
   } catch (error) {

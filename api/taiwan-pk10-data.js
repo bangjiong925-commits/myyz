@@ -50,7 +50,16 @@ export default async function handler(req, res) {
       throw new Error(`API请求失败: ${response.status} ${response.statusText}`);
     }
     
-    const data = await response.json();
+    const parseResponse = async (resp, context) => {
+      const contentType = resp.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        return resp.json();
+      }
+      const text = await resp.text();
+      throw new Error(`${context} 返回非JSON响应: ${text.slice(0, 200)}`);
+    };
+
+    const data = await parseResponse(response, '台湾PK10主数据接口');
     
     // 检查API响应
     if (data.errorCode !== 0) {
@@ -62,7 +71,7 @@ export default async function handler(req, res) {
       throw new Error(`业务逻辑错误: ${result.message}`);
     }
     
-    const lotteryData = result.data;
+    let lotteryData = result.data;
     
     if (!lotteryData || lotteryData.length === 0) {
       // 如果当天没有数据，尝试获取前一天的数据
@@ -83,7 +92,7 @@ export default async function handler(req, res) {
       });
       
       if (yesterdayResponse.ok) {
-        const yesterdayData = await yesterdayResponse.json();
+        const yesterdayData = await parseResponse(yesterdayResponse, '台湾PK10备用数据接口');
         if (yesterdayData.errorCode === 0 && yesterdayData.result.businessCode === 0 && yesterdayData.result.data.length > 0) {
           targetDate = yesterdayStr;
           lotteryData = yesterdayData.result.data;
