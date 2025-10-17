@@ -1,19 +1,14 @@
 {
+  "version": 2,
   "builds": [
-    { "src": "api/**/*.js", "use": "@vercel/node" },
-    { "src": "index.html", "use": "@vercel/static" },
-    { "src": "TWPK.html", "use": "@vercel/static" },
-    { "src": "device-fingerprint.js", "use": "@vercel/static" }
+    { "src": "api/**/*.js", "use": "@vercel/node@2" },
+    { "src": "index.html", "use": "@vercel/static@1" },
+    { "src": "TWPK.html", "use": "@vercel/static@1" },
+    { "src": "device-fingerprint.js", "use": "@vercel/static@1" }
   ],
   "routes": [
     { "src": "/", "dest": "/index.html" }
   ],
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "nodejs18.x",
-      "maxDuration": 10
-    }
-  },
   "headers": [
     {
       "source": "/api/(.*)",
