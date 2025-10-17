@@ -24,6 +24,7 @@
         const allowedDomains = [
           'localhost',
           '127.0.0.1',
+          '47.242.214.89',
           'myyz-git-main-a1234s-projects.vercel.app',
           'myyz.vercel.app',
           // 添加其他允许的域名
@@ -745,6 +746,113 @@
         }
       }
       
+      /* 杀形态样式 */
+      .kill-pattern-container {
+        position: relative;
+      }
+      
+      .kill-pattern-dropdown {
+        position: relative;
+        display: inline-block;
+      }
+      
+      .kill-pattern-trigger {
+        min-width: 120px;
+        padding: 4px 8px;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        background-color: white;
+        cursor: pointer;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      
+      .kill-pattern-trigger:hover {
+        border-color: #9ca3af;
+        background-color: #f9fafb;
+      }
+      
+      .kill-pattern-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background-color: white;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        padding: 8px;
+        margin-top: 4px;
+        min-width: 200px;
+      }
+      
+      .kill-pattern-menu.active {
+        display: block;
+      }
+      
+      .kill-pattern-row {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 6px;
+      }
+      
+      .kill-pattern-cell {
+        flex: 1;
+        min-width: 30px;
+        height: 30px;
+        border: 1px solid #d1d5db;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        background-color: white;
+      }
+      
+      .kill-pattern-btn {
+        flex: 1;
+        min-width: 30px;
+        height: 30px;
+        border: 1px solid #d1d5db;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        background-color: #f3f4f6;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      
+      .kill-pattern-btn:hover {
+        background-color: #e5e7eb;
+        border-color: #9ca3af;
+      }
+      
+      .kill-pattern-btn.active {
+        background-color: #3b82f6;
+        color: white;
+        border-color: #2563eb;
+      }
+      
+      .kill-pattern-clear-btn {
+        padding: 4px 12px;
+        font-size: 12px;
+        background-color: #ef4444;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+      
+      .kill-pattern-clear-btn:hover {
+        background-color: #dc2626;
+      }
+      
       /* 手机端黄金切割页面优化 */
       @media (max-width: 768px) {
         /* 移除黄金切割页面主容器的左右边距 */
@@ -1396,7 +1504,7 @@
           
           <!-- 模块总容错设置 -->
           <div class="module-tolerance mb-4 p-3 bg-gray-50 rounded border">
-            <div class="flex items-center text-sm">
+            <div class="flex items-center text-sm mb-3">
               <span class="text-gray-700 font-medium mr-3">总容错：</span>
               <select class="module-tolerance-min border border-gray-300 rounded px-2 py-1 text-xs" data-module="1">
                 <option value="0">0</option>
@@ -1415,6 +1523,48 @@
                 <option value="4">4</option>
                 <option value="5">5</option>
               </select>
+            </div>
+            
+            <!-- 杀形态设置 -->
+            <div class="kill-pattern-container">
+              <div class="flex items-center text-sm">
+                <span class="text-gray-700 font-medium mr-3">杀形态：</span>
+                <div class="flex items-center gap-2">
+                  <!-- 第1组：单双选择器 -->
+                  <div class="kill-pattern-dropdown" data-module="1" data-type="odd-even">
+                    <div class="kill-pattern-trigger">
+                      <span class="kill-pattern-display">单双</span>
+                      <span>▼</span>
+                    </div>
+                    <div class="kill-pattern-menu">
+                      <!-- 第1排：显示结果 -->
+                      <div class="kill-pattern-row kill-pattern-result-row"></div>
+                      <!-- 第2排：单 -->
+                      <div class="kill-pattern-row kill-pattern-odd-row"></div>
+                      <!-- 第3排：双 -->
+                      <div class="kill-pattern-row kill-pattern-even-row"></div>
+                    </div>
+                  </div>
+                  <button class="kill-pattern-clear-btn" data-module="1" data-type="odd-even">清</button>
+                  
+                  <!-- 第2组：大小选择器 -->
+                  <div class="kill-pattern-dropdown" data-module="1" data-type="big-small">
+                    <div class="kill-pattern-trigger">
+                      <span class="kill-pattern-display">大小</span>
+                      <span>▼</span>
+                    </div>
+                    <div class="kill-pattern-menu">
+                      <!-- 第1排：显示结果 -->
+                      <div class="kill-pattern-row kill-pattern-result-row"></div>
+                      <!-- 第2排：大 -->
+                      <div class="kill-pattern-row kill-pattern-big-row"></div>
+                      <!-- 第3排：小 -->
+                      <div class="kill-pattern-row kill-pattern-small-row"></div>
+                    </div>
+                  </div>
+                  <button class="kill-pattern-clear-btn" data-module="1" data-type="big-small">清</button>
+                </div>
+              </div>
             </div>
           </div>
           
@@ -1693,7 +1843,7 @@
           
           <!-- 模块总容错设置 -->
           <div class="module-tolerance mb-4 p-3 bg-gray-50 rounded border">
-            <div class="flex items-center text-sm">
+            <div class="flex items-center text-sm mb-3">
               <span class="text-gray-700 font-medium mr-3">总容错：</span>
               <select class="module-tolerance-min border border-gray-300 rounded px-2 py-1 text-xs" data-module="2">
                 <option value="0">0</option>
@@ -1712,6 +1862,48 @@
                 <option value="4">4</option>
                 <option value="5">5</option>
               </select>
+            </div>
+            
+            <!-- 杀形态设置 -->
+            <div class="kill-pattern-container">
+              <div class="flex items-center text-sm">
+                <span class="text-gray-700 font-medium mr-3">杀形态：</span>
+                <div class="flex items-center gap-2">
+                  <!-- 第1组：单双选择器 -->
+                  <div class="kill-pattern-dropdown" data-module="2" data-type="odd-even">
+                    <div class="kill-pattern-trigger">
+                      <span class="kill-pattern-display">单双</span>
+                      <span>▼</span>
+                    </div>
+                    <div class="kill-pattern-menu">
+                      <!-- 第1排：显示结果 -->
+                      <div class="kill-pattern-row kill-pattern-result-row"></div>
+                      <!-- 第2排：单 -->
+                      <div class="kill-pattern-row kill-pattern-odd-row"></div>
+                      <!-- 第3排：双 -->
+                      <div class="kill-pattern-row kill-pattern-even-row"></div>
+                    </div>
+                  </div>
+                  <button class="kill-pattern-clear-btn" data-module="2" data-type="odd-even">清</button>
+                  
+                  <!-- 第2组：大小选择器 -->
+                  <div class="kill-pattern-dropdown" data-module="2" data-type="big-small">
+                    <div class="kill-pattern-trigger">
+                      <span class="kill-pattern-display">大小</span>
+                      <span>▼</span>
+                    </div>
+                    <div class="kill-pattern-menu">
+                      <!-- 第1排：显示结果 -->
+                      <div class="kill-pattern-row kill-pattern-result-row"></div>
+                      <!-- 第2排：大 -->
+                      <div class="kill-pattern-row kill-pattern-big-row"></div>
+                      <!-- 第3排：小 -->
+                      <div class="kill-pattern-row kill-pattern-small-row"></div>
+                    </div>
+                  </div>
+                  <button class="kill-pattern-clear-btn" data-module="2" data-type="big-small">清</button>
+                </div>
+              </div>
             </div>
           </div>
           
@@ -2592,7 +2784,12 @@ function initFiveStarModule(moduleId) {
     results: [],         // 当前显示结果
     allPermutations: [], // 所有排列组合
     originalResults: [], // 原始筛选结果
-    isReversed: false    // 是否显示反向结果
+    isReversed: false,   // 是否显示反向结果
+    // 杀形态设置
+    killPatterns: {
+      oddEven: [],      // 单双杀形态，例如：['单', '', '双', '', ''] 表示1名杀单，3名杀双
+      bigSmall: []      // 大小杀形态，例如：['大', '', '', '小', ''] 表示1名杀大，4名杀小
+    }
   };
 
   // 获取模块元素
@@ -2757,6 +2954,191 @@ function initFiveStarModule(moduleId) {
       moduleState.moduleToleranceMax = parseInt(this.value);
     });
   }
+
+  // ============ 杀形态功能初始化 ============
+  
+  // 初始化杀形态下拉框
+  function initKillPatternDropdowns() {
+    const starLevel = moduleState.starLevel || 5;
+    
+    // 初始化杀形态数组
+    moduleState.killPatterns.oddEven = new Array(starLevel).fill('');
+    moduleState.killPatterns.bigSmall = new Array(starLevel).fill('');
+    
+    // 初始化单双选择器
+    const oddEvenDropdown = module.querySelector('.kill-pattern-dropdown[data-type="odd-even"]');
+    if (oddEvenDropdown) {
+      const menu = oddEvenDropdown.querySelector('.kill-pattern-menu');
+      const resultRow = menu.querySelector('.kill-pattern-result-row');
+      const oddRow = menu.querySelector('.kill-pattern-odd-row');
+      const evenRow = menu.querySelector('.kill-pattern-even-row');
+      
+      // 清空并重新生成
+      resultRow.innerHTML = '';
+      oddRow.innerHTML = '';
+      evenRow.innerHTML = '';
+      
+      for (let i = 0; i < starLevel; i++) {
+        // 第1排：显示结果
+        const resultCell = document.createElement('div');
+        resultCell.className = 'kill-pattern-cell';
+        resultCell.dataset.position = i;
+        resultRow.appendChild(resultCell);
+        
+        // 第2排：单
+        const oddBtn = document.createElement('button');
+        oddBtn.className = 'kill-pattern-btn';
+        oddBtn.textContent = '单';
+        oddBtn.dataset.position = i;
+        oddBtn.dataset.value = '单';
+        oddBtn.addEventListener('click', () => handleKillPatternClick(moduleId, 'oddEven', i, '单', oddBtn));
+        oddRow.appendChild(oddBtn);
+        
+        // 第3排：双
+        const evenBtn = document.createElement('button');
+        evenBtn.className = 'kill-pattern-btn';
+        evenBtn.textContent = '双';
+        evenBtn.dataset.position = i;
+        evenBtn.dataset.value = '双';
+        evenBtn.addEventListener('click', () => handleKillPatternClick(moduleId, 'oddEven', i, '双', evenBtn));
+        evenRow.appendChild(evenBtn);
+      }
+    }
+    
+    // 初始化大小选择器
+    const bigSmallDropdown = module.querySelector('.kill-pattern-dropdown[data-type="big-small"]');
+    if (bigSmallDropdown) {
+      const menu = bigSmallDropdown.querySelector('.kill-pattern-menu');
+      const resultRow = menu.querySelector('.kill-pattern-result-row');
+      const bigRow = menu.querySelector('.kill-pattern-big-row');
+      const smallRow = menu.querySelector('.kill-pattern-small-row');
+      
+      // 清空并重新生成
+      resultRow.innerHTML = '';
+      bigRow.innerHTML = '';
+      smallRow.innerHTML = '';
+      
+      for (let i = 0; i < starLevel; i++) {
+        // 第1排：显示结果
+        const resultCell = document.createElement('div');
+        resultCell.className = 'kill-pattern-cell';
+        resultCell.dataset.position = i;
+        resultRow.appendChild(resultCell);
+        
+        // 第2排：大
+        const bigBtn = document.createElement('button');
+        bigBtn.className = 'kill-pattern-btn';
+        bigBtn.textContent = '大';
+        bigBtn.dataset.position = i;
+        bigBtn.dataset.value = '大';
+        bigBtn.addEventListener('click', () => handleKillPatternClick(moduleId, 'bigSmall', i, '大', bigBtn));
+        bigRow.appendChild(bigBtn);
+        
+        // 第3排：小
+        const smallBtn = document.createElement('button');
+        smallBtn.className = 'kill-pattern-btn';
+        smallBtn.textContent = '小';
+        smallBtn.dataset.position = i;
+        smallBtn.dataset.value = '小';
+        smallBtn.addEventListener('click', () => handleKillPatternClick(moduleId, 'bigSmall', i, '小', smallBtn));
+        smallRow.appendChild(smallBtn);
+      }
+    }
+  }
+  
+  // 处理杀形态点击
+  function handleKillPatternClick(moduleId, type, position, value, button) {
+    const moduleState = window.moduleStates[moduleId];
+    const module = document.getElementById(`module${moduleId}`);
+    const dropdown = module.querySelector(`.kill-pattern-dropdown[data-type="${type === 'oddEven' ? 'odd-even' : 'big-small'}"]`);
+    const menu = dropdown.querySelector('.kill-pattern-menu');
+    const resultRow = menu.querySelector('.kill-pattern-result-row');
+    const resultCell = resultRow.children[position];
+    
+    // 获取同一列的所有按钮
+    const allButtons = menu.querySelectorAll(`button[data-position="${position}"]`);
+    
+    // 如果点击的是已选中的按钮，则取消选择
+    if (button.classList.contains('active')) {
+      button.classList.remove('active');
+      moduleState.killPatterns[type][position] = '';
+      resultCell.textContent = '';
+    } else {
+      // 取消同一列其他按钮的选中状态
+      allButtons.forEach(btn => btn.classList.remove('active'));
+      
+      // 选中当前按钮
+      button.classList.add('active');
+      moduleState.killPatterns[type][position] = value;
+      resultCell.textContent = value;
+    }
+    
+    console.log(`杀形态设置 - ${type}:`, moduleState.killPatterns[type]);
+  }
+  
+  // 下拉框显示/隐藏
+  const killPatternDropdowns = module.querySelectorAll('.kill-pattern-dropdown');
+  killPatternDropdowns.forEach(dropdown => {
+    const trigger = dropdown.querySelector('.kill-pattern-trigger');
+    const menu = dropdown.querySelector('.kill-pattern-menu');
+    
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      
+      // 关闭其他下拉框
+      document.querySelectorAll('.kill-pattern-menu.active').forEach(m => {
+        if (m !== menu) m.classList.remove('active');
+      });
+      
+      // 切换当前下拉框
+      menu.classList.toggle('active');
+    });
+  });
+  
+  // 点击页面其他地方关闭下拉框
+  document.addEventListener('click', () => {
+    module.querySelectorAll('.kill-pattern-menu.active').forEach(menu => {
+      menu.classList.remove('active');
+    });
+  });
+  
+  // 清除按钮
+  const killPatternClearBtns = module.querySelectorAll('.kill-pattern-clear-btn');
+  killPatternClearBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const type = btn.dataset.type === 'odd-even' ? 'oddEven' : 'bigSmall';
+      const dropdown = module.querySelector(`.kill-pattern-dropdown[data-type="${btn.dataset.type}"]`);
+      const menu = dropdown.querySelector('.kill-pattern-menu');
+      
+      // 清空状态
+      moduleState.killPatterns[type] = new Array(moduleState.starLevel || 5).fill('');
+      
+      // 清空UI
+      const resultCells = menu.querySelectorAll('.kill-pattern-result-row .kill-pattern-cell');
+      resultCells.forEach(cell => cell.textContent = '');
+      
+      const buttons = menu.querySelectorAll('.kill-pattern-btn.active');
+      buttons.forEach(button => button.classList.remove('active'));
+      
+      console.log(`已清除${type}杀形态`);
+    });
+  });
+  
+  // 初始化杀形态
+  initKillPatternDropdowns();
+  
+  // 星级变化时重新初始化杀形态
+  const moduleStarButtons = module.querySelectorAll('.module-star-btn');
+  moduleStarButtons.forEach(btn => {
+    const originalClickHandler = btn.onclick;
+    btn.addEventListener('click', () => {
+      setTimeout(() => {
+        initKillPatternDropdowns();
+      }, 100);
+    });
+  });
+  
+  // ============ 杀形态功能初始化结束 ============
 
   // 位置选择按钮事件处理
   const positionButtons = module.querySelectorAll('.position-btn');
@@ -3106,6 +3488,50 @@ function initFiveStarModule(moduleId) {
           return evaluation.ok;
       });
     }
+    
+    // ============ 应用杀形态过滤 ============
+    if (moduleState.killPatterns && (moduleState.killPatterns.oddEven.some(v => v) || moduleState.killPatterns.bigSmall.some(v => v))) {
+      const beforeKillFilter = filteredResults.length;
+      
+      filteredResults = filteredResults.filter(comb => {
+        // 检查单双杀形态
+        for (let i = 0; i < moduleState.killPatterns.oddEven.length; i++) {
+          const killValue = moduleState.killPatterns.oddEven[i];
+          if (killValue) {
+            const num = comb[i];
+            const isOdd = num % 2 === 1;
+            
+            // 如果设置了杀单，但号码是单，则过滤掉
+            if (killValue === '单' && isOdd) return false;
+            // 如果设置了杀双，但号码是双，则过滤掉
+            if (killValue === '双' && !isOdd) return false;
+          }
+        }
+        
+        // 检查大小杀形态 (6-10为大，1-5为小)
+        for (let i = 0; i < moduleState.killPatterns.bigSmall.length; i++) {
+          const killValue = moduleState.killPatterns.bigSmall[i];
+          if (killValue) {
+            const num = comb[i];
+            const isBig = num >= 6;
+            
+            // 如果设置了杀大，但号码是大，则过滤掉
+            if (killValue === '大' && isBig) return false;
+            // 如果设置了杀小，但号码是小，则过滤掉
+            if (killValue === '小' && !isBig) return false;
+          }
+        }
+        
+        return true;
+      });
+      
+      console.log(`杀形态过滤: ${beforeKillFilter} → ${filteredResults.length} (杀掉${beforeKillFilter - filteredResults.length}注)`);
+      console.log('杀形态设置:', {
+        oddEven: moduleState.killPatterns.oddEven,
+        bigSmall: moduleState.killPatterns.bigSmall
+      });
+    }
+    // ============ 杀形态过滤结束 ============
     
     // 调试信息：输出筛选统计
     console.log(`模块总容错设置: ${moduleState.moduleToleranceMin}-${moduleState.moduleToleranceMax}`);
@@ -4913,11 +5339,17 @@ function generateFiveStarConcatenation() {
         return;
     }
     
-    // 收集所有有效的做号模块
+    // 收集所有有效的做号模块（跳过1星和5星做号）
     const validModules = [];
     Object.keys(window.moduleStates).forEach(key => {
         const ms = window.moduleStates[key];
         if (ms && Array.isArray(ms.results) && ms.results.length > 0) {
+            // 跳过5星和1星做号模块
+            if (ms.starLevel === 5 || ms.starLevel === 1) {
+                console.log(`跳过${ms.starLevel}星做号模块: ${key}`);
+                return;
+            }
+            
             // 获取模块的位置信息
             let positions = Array.isArray(ms.selectedPositions) && ms.selectedPositions.length > 0
                 ? ms.selectedPositions.slice()
@@ -4991,7 +5423,6 @@ function generateStarConcatenation(targetStarLevel) {
     
     // 收集所有有效的做号模块
     const validModules = [];
-    const skippedModules = []; // 用于记录跳过的模块（仅用于日志）
     
     Object.keys(window.moduleStates).forEach(key => {
         const ms = window.moduleStates[key];
@@ -5000,12 +5431,8 @@ function generateStarConcatenation(targetStarLevel) {
             
             // 检查做号星级是否符合拼接规则
             if (!allowedStarLevels.includes(moduleStarLevel)) {
-                // 自动跳过不符合规则的模块（如5星做号），不再提示错误
-                skippedModules.push({
-                    key: key,
-                    starLevel: moduleStarLevel
-                });
-                console.log(`自动跳过 ${moduleStarLevel} 星做号模块: ${key}`);
+                // 记录跳过的模块（1星、5星做号等），但不阻止拼接
+                console.log(`跳过${moduleStarLevel}星做号模块: ${key}`);
                 return; // 跳过不符合规则的模块
             }
             
@@ -5044,11 +5471,7 @@ function generateStarConcatenation(targetStarLevel) {
         }
     });
     
-    // 记录跳过的模块信息（仅用于调试）
-    if (skippedModules.length > 0) {
-        const skippedStarLevels = [...new Set(skippedModules.map(m => m.starLevel))];
-        console.log(`已自动跳过 ${skippedStarLevels.join('星、')}星 做号模块，继续进行 ${targetStarLevel} 星拼接`);
-    }
+    // 不再检查不符合规则的模块，直接跳过即可
     
     if (validModules.length === 0) {
         const allowedStarLevelsStr = allowedStarLevels.join('星、') + '星';
@@ -5972,15 +6395,73 @@ function _0xDynamicCode() {
 // 定时验证检查
 // 定时验证机制 - 只有在用户已验证后才启动
 let _0xTimerStarted = false;
+let _0xCurrentKey = null; // 保存当前使用的密钥
+
+// 旧的服务器验证函数已移除，现在使用新的 validate-key API
+
 function _0xStartTimer() {
     if (_0xTimerStarted) return;
     _0xTimerStarted = true;
+    
+    // 每5分钟执行一次完整验证
+    setInterval(async () => {
+        // 1. 本地验证
+        if (_0x1a2b3c && !_0xAuthCheck()) {
+            document.body.innerHTML = '<div style="text-align:center;padding:50px;color:red;">验证失效，请重新加载页面</div>';
+            setTimeout(() => location.reload(), 2000);
+            return;
+        }
+        
+        // 2. 服务器验证（检查密钥是否被删除）
+        if (_0xCurrentKey) {
+            try {
+                // 根据环境选择API地址
+                const serverCheckUrl = window.location.hostname.includes('vercel.app') 
+                    ? '/api/keys/validate-key'
+                    : 'http://47.242.214.89/api/keys/validate-key';
+                
+                // 生成设备ID
+                const deviceId = generateDeviceId();
+                
+                const serverResponse = await fetch(serverCheckUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        key: _0xCurrentKey,
+                        deviceId: deviceId,
+                        clientTime: Date.now()
+                    })
+                });
+                
+                const serverResult = await serverResponse.json();
+                
+                // 如果服务器验证失败
+                if (!serverResult.success || !serverResult.valid) {
+                    // 清除本地存储
+                    const deviceId = Y();
+                    localStorage.removeItem(`validKey_${deviceId}`);
+                    localStorage.removeItem(`keyExpiry_${deviceId}`);
+                    
+                    // 显示提示并重新加载
+                    document.body.innerHTML = '<div style="text-align:center;padding:50px;color:red;font-size:20px;">❌ 您的密钥已被管理员撤销<br><br>页面将在3秒后重新加载</div>';
+                    setTimeout(() => location.reload(), 3000);
+                }
+            } catch (error) {
+                console.warn('⚠️ 定期验证失败（网络错误），暂时允许访问:', error);
+                // 网络错误时容错，不强制退出
+            }
+        }
+    }, 300000); // 每5分钟检查一次
+    
+    // 额外：每1分钟快速检查本地过期时间
     setInterval(() => {
         if (_0x1a2b3c && !_0xAuthCheck()) {
             document.body.innerHTML = '<div style="text-align:center;padding:50px;color:red;">验证失效，请重新加载页面</div>';
             setTimeout(() => location.reload(), 2000);
         }
-    }, 300000); // 每5分钟检查一次
+    }, 60000); // 每1分钟检查一次
 }
 
 // 代码完整性检查
@@ -6760,10 +7241,42 @@ if(checksum !== expectedChecksum) {
 return {valid: false, reason: "密钥校验失败"};
 }
 
-// 使用纯本地验证（短密钥）
+// 🔒 第一步：先向服务器验证（密钥库检查）
         const nonce = t; // 使用整个短密钥作为nonce
+        console.log('🔒 步骤1: 向服务器验证密钥:', nonce);
         
-        console.log('使用纯本地验证短密钥:', nonce);
+        try {
+            // 根据环境选择API地址
+            const serverCheckUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                ? 'http://localhost:3002/api/keys/check-usage'
+                : window.location.hostname.includes('vercel.app')
+                    ? '/api/keys/check-usage'
+                    : 'http://47.242.214.89/api/keys/check-usage';
+            
+            const serverResponse = await fetch(serverCheckUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ key: nonce })
+            });
+            
+            const serverResult = await serverResponse.json();
+            console.log('服务器验证结果:', serverResult);
+            
+            // 如果密钥已被使用，则拒绝
+            if (serverResult.success && serverResult.used) {
+                return {valid: false, reason: "❌ 密钥已被使用"};
+            }
+            
+            console.log('✅ 服务器验证通过（密钥不在库中或已过期）');
+        } catch (serverError) {
+            console.warn('⚠️ 服务器验证失败，继续本地验证:', serverError);
+            // 服务器不可用时，继续本地验证（容错机制）
+        }
+        
+        // 🔒 第二步：本地验证（localStorage检查）
+        console.log('🔒 步骤2: 本地验证密钥');
         
         // 检查密钥是否已被使用
         const usedNonces = JSON.parse(localStorage.getItem('usedNonces') || '[]');
@@ -6774,7 +7287,35 @@ return {valid: false, reason: "密钥校验失败"};
         // 本地标记为已使用
         usedNonces.push(nonce);
         localStorage.setItem('usedNonces', JSON.stringify(usedNonces));
-        console.log('本地标记短密钥为已使用:', nonce);
+        console.log('✅ 本地标记短密钥为已使用:', nonce);
+        
+        // 🔒 第三步：向服务器注册密钥（记录使用）
+        try {
+            // 根据环境选择API地址
+            const registerUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? 'http://localhost:3002/api/keys/validate-and-register'
+                : window.location.hostname.includes('vercel.app')
+                    ? '/api/keys/validate-and-register'
+                    : 'http://47.242.214.89/api/keys/validate-and-register';
+            
+            await fetch(registerUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    key: nonce,
+                    validDays: Math.ceil((expiry - currentTime) / 86400)
+                })
+            });
+            console.log('✅ 密钥已注册到服务器');
+        } catch (registerError) {
+            console.warn('⚠️ 向服务器注册密钥失败（不影响使用）:', registerError);
+        }
+        
+        // 🔒 保存当前密钥以便定期验证
+        _0xCurrentKey = nonce;
+        console.log('✅ 密钥已保存，将定期向服务器验证有效性');
         
         return {valid: true, data: {nonce: nonce, expiry: expiry, deviceFingerprint: "universal"}};
 }
@@ -7676,6 +8217,126 @@ function Y(){try{const t=document.documentElement.outerHTML.substring(0,1e3)+win
 let isVerifying = false;
 let verifyTimeout = null;
 
+// 生成设备ID
+function generateDeviceId() {
+    // 🔑 优先使用缓存的设备ID，确保同一浏览器始终使用相同的设备ID
+    const STORAGE_KEY = 'myyz_device_id';
+    
+    try {
+        // 1. 先尝试从localStorage获取已缓存的设备ID
+        const cachedDeviceId = localStorage.getItem(STORAGE_KEY);
+        if (cachedDeviceId) {
+            console.log('🔑 使用已缓存的设备ID:', cachedDeviceId.substring(0, 8) + '...');
+            return cachedDeviceId;
+        }
+        
+        // 2. 如果没有缓存，则基于硬件特征生成新的设备ID
+        console.log('🔑 首次生成设备ID，基于硬件特征...');
+        
+        // Canvas指纹
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.textBaseline = 'top';
+        ctx.font = '14px Arial';
+        ctx.fillText('Device fingerprint', 2, 2);
+        const canvasData = canvas.toDataURL();
+        
+        // WebGL指纹
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        let webglVendor = '';
+        let webglRenderer = '';
+        if (gl) {
+            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+            if (debugInfo) {
+                webglVendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+                webglRenderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+            }
+        }
+        
+        // 收集硬件特征（这些特征在同一设备上是稳定的）
+        const fingerprint = [
+            // 浏览器信息
+            navigator.userAgent,
+            navigator.language,
+            navigator.languages ? navigator.languages.join(',') : '',
+            navigator.platform,
+            
+            // 屏幕信息
+            screen.width + 'x' + screen.height,
+            screen.colorDepth,
+            screen.pixelDepth,
+            window.devicePixelRatio || 1,
+            
+            // 时区
+            new Date().getTimezoneOffset(),
+            Intl.DateTimeFormat().resolvedOptions().timeZone,
+            
+            // 硬件信息
+            navigator.hardwareConcurrency || 0,
+            navigator.maxTouchPoints || 0,
+            
+            // Canvas指纹
+            canvasData,
+            
+            // WebGL指纹
+            webglVendor,
+            webglRenderer,
+            
+            // 其他特征
+            navigator.cookieEnabled,
+            navigator.doNotTrack || 'unknown'
+        ].join('|');
+        
+        // 使用SHA-256风格的哈希函数
+        let hash = 0;
+        for (let i = 0; i < fingerprint.length; i++) {
+            const char = fingerprint.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // 转换为32位整数
+        }
+        
+        // 生成唯一ID（36进制，更短更易读）
+        const deviceId = Math.abs(hash).toString(36);
+        
+        // 3. 将生成的设备ID保存到localStorage，确保后续使用相同的ID
+        try {
+            localStorage.setItem(STORAGE_KEY, deviceId);
+            console.log('✅ 设备ID已缓存到localStorage');
+        } catch (storageError) {
+            console.warn('⚠️ 无法缓存设备ID到localStorage:', storageError);
+        }
+        
+        // 📝 调试日志
+        console.log('🔑 设备ID生成成功:', deviceId.substring(0, 8) + '...');
+        console.log('📊 硬件特征:', {
+            ua: navigator.userAgent.substring(0, 50) + '...',
+            screen: screen.width + 'x' + screen.height,
+            platform: navigator.platform,
+            cores: navigator.hardwareConcurrency,
+            webgl: webglRenderer || '不可用'
+        });
+        
+        return deviceId;
+        
+    } catch (error) {
+        // 降级方案：如果指纹生成失败，使用基础特征
+        console.error('机器码生成失败，使用降级方案:', error);
+        const fallback = [
+            navigator.userAgent,
+            screen.width + 'x' + screen.height,
+            navigator.platform
+        ].join('|');
+        
+        let hash = 0;
+        for (let i = 0; i < fallback.length; i++) {
+            hash = ((hash << 5) - hash) + fallback.charCodeAt(i);
+            hash = hash & hash;
+        }
+        
+        return 'fb_' + Math.abs(hash).toString(36); // fb = fallback
+    }
+}
+
 P.addEventListener("click",async function(){const t=p.value.trim();if(t){// 防重复点击检查
 if(isVerifying){console.warn("验证正在进行中，请勿重复点击");return;}
 
@@ -7695,47 +8356,147 @@ const originalText=this.textContent;
 let dots=0;
 const loadingInterval=setInterval(()=>{dots=(dots+1)%4;this.textContent="验证中"+".".repeat(dots);},500);
 
-// 清理可能的状态缓存
-const deviceId=Y();
-const existingKey=localStorage.getItem(`validKey_${deviceId}`);
-if(existingKey){console.log("清理现有密钥缓存");localStorage.removeItem(`validKey_${deviceId}`);localStorage.removeItem(`keyExpiry_${deviceId}`);}
-
-try{const e=await A(t);if(e.valid){// 标记密钥为已使用
-// 记录密钥使用信息到本地
-recordKeyUsage(e.data);
-const n=Y();localStorage.setItem(`validKey_${n}`,t);localStorage.setItem(`keyExpiry_${n}`,e.data.expiry);g.classList.add("hidden");g.style.display="none";
-// 设置新的加密验证状态
-_0xSetAuth(t);
-b=!0;
-D(e.data.expiry);}else alert("密钥验证失败: "+e.reason)}catch(t){console.error("密钥验证过程出错:",t);alert("验证过程中发生错误: "+t.message)}finally{// 重置验证状态（添加延迟防抖）
+try{
+  // 🔒 完全依赖服务器验证，移除本地验证逻辑
+  console.log('🔒 密钥输入：向服务器验证密钥');
+  // 根据环境选择API地址
+  const serverValidateUrl = window.location.hostname.includes('vercel.app')
+      ? '/api/keys/validate-key'
+      : 'http://47.242.214.89/api/keys/validate-key';
+  
+  // 生成设备ID
+  const deviceId = generateDeviceId();
+  
+  const serverResponse = await fetch(serverValidateUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ 
+      key: t,
+      deviceId: deviceId,
+      clientTime: Date.now()
+    })
+  });
+  
+  const serverResult = await serverResponse.json();
+  console.log('密钥输入时服务器验证结果:', serverResult);
+  
+  if(serverResult.success && serverResult.valid){
+    // 服务器验证通过
+    console.log('✅ 密钥输入：服务器验证通过');
+    const n=Y();
+    localStorage.setItem(`validKey_${n}`,t);
+    localStorage.setItem(`keyExpiry_${n}`,serverResult.data.expiresAt);
+    g.classList.add("hidden");
+    g.style.display="none";
+    _0xSetAuth(t);
+    b=!0;
+    D(new Date(serverResult.data.expiresAt).getTime() / 1000);
+    
+    // 🌐 验证成功后立即启动在线心跳
+    console.log('🌐 密钥验证成功，启动在线心跳系统');
+    if (typeof startOnlineHeartbeat === 'function') {
+      startOnlineHeartbeat(t);
+    }
+  }else{
+    alert("密钥验证失败: "+serverResult.reason);
+  }
+}catch(t){console.error("密钥验证过程出错:",t);alert("验证过程中发生错误: "+t.message)}finally{// 重置验证状态（添加延迟防抖）
 if(loadingInterval){clearInterval(loadingInterval);}
 verifyTimeout=setTimeout(()=>{isVerifying=false;this.disabled=false;this.textContent="验证密钥";this.style.opacity="1";this.style.cursor="pointer";},1000);}}else alert("请输入密钥")});
 
-window.addEventListener("load",async function(){try{const t=Y(),e=localStorage.getItem(`validKey_${t}`),n=localStorage.getItem(`keyExpiry_${t}`),o=Math.floor((new Date).getTime()/1e3);if(e&&n){const r=parseInt(n);if(o<r){// 检查是否为长密钥格式（长密钥已失效）
-// 移除长密钥强制失效限制，允许长密钥正常使用
-if(e.length > 25) {
-  console.log('检测到长密钥，尝试验证');
-  // 不再强制失效，继续验证流程
-}// 短密钥验证逻辑
-if(!e.includes('.')){_0xSetAuth(e);b=!0;D(r);g.classList.add("hidden");g.style.display="none"}else try{const keyData=JSON.parse(atob(e.split('.')[1]));const checkResult=checkKeyOnlineUsage(keyData.nonce);if(checkResult.used){localStorage.removeItem(`validKey_${t}`),localStorage.removeItem(`keyExpiry_${t}`),b=!1;
-// 友好的错误提示和重试机制
-const errorDiv = document.createElement('div');
-errorDiv.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;border:2px solid #ef4444;border-radius:8px;padding:20px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.3);text-align:center;max-width:400px;';
-errorDiv.innerHTML = `
-  <div style="color:#ef4444;font-size:18px;margin-bottom:15px;">🔑 密钥验证失败</div>
-  <div style="color:#666;margin-bottom:20px;">您的密钥已被使用，请重新获取新的密钥</div>
-  <button onclick="location.reload()" style="background:#3b82f6;color:white;border:none;padding:8px 16px;border-radius:4px;cursor:pointer;margin-right:10px;">重新加载</button>
-  <button onclick="this.parentNode.remove()" style="background:#6b7280;color:white;border:none;padding:8px 16px;border-radius:4px;cursor:pointer;">稍后再试</button>
-`;
-document.body.appendChild(errorDiv);
-g.classList.remove("hidden"),g.style.display="flex"}else{_0xSetAuth(e);b=!0,D(r),g.classList.add("hidden"),g.style.display="none"}}catch(err){console.error("本地验证失败:",err);
-// 验证失败时的友好提示
-const warningDiv = document.createElement('div');
-warningDiv.style.cssText = 'position:fixed;top:20px;left:0;right:0;background:#f59e0b;color:white;text-align:center;padding:8px;z-index:9998;font-size:14px;';
-warningDiv.innerHTML = '密钥验证出现问题，已使用备用验证方式 <button onclick="this.parentNode.remove()" style="margin-left:10px;padding:2px 8px;background:white;color:#f59e0b;border:none;border-radius:3px;cursor:pointer;">知道了</button>';
-document.body.insertBefore(warningDiv, document.body.firstChild);
-setTimeout(() => { if (warningDiv.parentNode) warningDiv.parentNode.removeChild(warningDiv); }, 6000);
-_0xSetAuth(e);b=!0,D(r),g.classList.add("hidden"),g.style.display="none"}}else{localStorage.removeItem(`validKey_${t}`),localStorage.removeItem(`keyExpiry_${t}`),b=!1,alert("您的访问密钥已过期，请重新验证密钥"),g.classList.remove("hidden"),g.style.display="flex"}}else b=!1,g.classList.remove("hidden"),g.style.display="flex"}catch(t){console.error("页面加载时密钥检查出错:",t),b=!1,g.classList.remove("hidden"),g.style.display="flex"}
+window.addEventListener("load",async function(){try{const t=Y(),e=localStorage.getItem(`validKey_${t}`);if(e){
+  // 🔒 完全依赖服务器验证，移除所有本地验证逻辑
+  console.log('🔒 页面加载：向服务器验证密钥状态');
+  try {
+    // 根据环境选择API地址
+    const serverCheckUrl = window.location.hostname.includes('vercel.app')
+        ? '/api/keys/validate-key'
+        : 'http://47.242.214.89/api/keys/validate-key';
+    
+    // 生成设备ID
+    const deviceId = generateDeviceId();
+    
+    const serverResponse = await fetch(serverCheckUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ 
+        key: e,
+        deviceId: deviceId,
+        clientTime: Date.now()
+      })
+    });
+    
+    const serverResult = await serverResponse.json();
+    console.log('页面加载时服务器验证结果:', serverResult);
+    
+    // 服务器验证通过
+    if (serverResult.success && serverResult.valid) {
+      console.log('✅ 页面加载：服务器验证通过');
+      _0xSetAuth(e);
+      b = true;
+      D(new Date(serverResult.data.expiresAt).getTime() / 1000);
+      g.classList.add("hidden");
+      g.style.display = "none";
+      
+      // 🌐 页面加载时已有密钥，启动在线心跳
+      console.log('🌐 页面加载后启动在线心跳系统');
+      if (typeof startOnlineHeartbeat === 'function') {
+        startOnlineHeartbeat(e);
+      }
+      return;
+    }
+    
+    // 服务器验证失败
+    console.warn('🔒 页面加载：服务器验证失败，清除本地存储');
+    localStorage.removeItem(`validKey_${t}`);
+    localStorage.removeItem(`keyExpiry_${t}`);
+    b = false;
+    
+    // 显示密钥失效提示
+    const errorDiv = document.createElement('div');
+    errorDiv.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;border:2px solid #ef4444;border-radius:8px;padding:20px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.3);text-align:center;max-width:400px;';
+    errorDiv.innerHTML = `
+      <div style="color:#ef4444;font-size:18px;margin-bottom:15px;">🔑 密钥已失效</div>
+      <div style="color:#666;margin-bottom:20px;">${serverResult.reason || '您的密钥已被管理员撤销或已过期，请重新获取密钥'}</div>
+      <button onclick="location.reload()" style="background:#3b82f6;color:white;border:none;padding:8px 16px;border-radius:4px;cursor:pointer;">重新验证</button>
+    `;
+    document.body.appendChild(errorDiv);
+    g.classList.remove("hidden");
+    g.style.display = "flex";
+    return;
+    
+  } catch (serverError) {
+    console.warn('⚠️ 页面加载：服务器验证失败（网络错误）:', serverError);
+    // 网络错误时不清除缓存，允许离线使用（检查本地到期时间）
+    const expiryTime = localStorage.getItem(`keyExpiry_${t}`);
+    if (expiryTime && new Date(expiryTime) > new Date()) {
+      console.log('✅ 网络错误但密钥未过期，允许离线使用');
+      _0xSetAuth(e);
+      b = true;
+      D(new Date(expiryTime).getTime() / 1000);
+      g.classList.add("hidden");
+      g.style.display = "none";
+      
+      // 尝试启动心跳（可能因网络问题失败，但不影响使用）
+      console.log('🌐 尝试启动心跳（网络恢复后会自动工作）');
+      if (typeof startOnlineHeartbeat === 'function') {
+        startOnlineHeartbeat(e);
+      }
+    } else {
+      console.log('❌ 网络错误且密钥已过期或无效，清除缓存');
+      localStorage.removeItem(`validKey_${t}`);
+      localStorage.removeItem(`keyExpiry_${t}`);
+      b = false;
+      g.classList.remove("hidden");
+      g.style.display = "flex";
+    }
+    return;
+  }
+}else{b=!1,g.classList.remove("hidden"),g.style.display="flex"}}catch(t){console.error("页面加载时密钥检查出错:",t),b=!1,g.classList.remove("hidden"),g.style.display="flex"}
 }),document.getElementById("calcBtn").addEventListener("click",F),document.getElementById("numbersInput").addEventListener("keydown",t=>{"Enter"!==t.key||t.shiftKey||(t.preventDefault(),F())});
 
 
@@ -12209,6 +12970,108 @@ function generateIntersectionCombinations(modules, targetStarLevel) {
     // 去重并排序
     return [...new Set(finalCombinations)].sort();
 }
+
+// ========== 简化的在线状态心跳系统 ==========
+// 全局变量
+window.heartbeatTimer = null;
+window.currentOnlineKey = null;
+window.heartbeatActive = false;
+
+// 发送心跳 - 智能路由（HTTPS用代理，HTTP直连）
+async function sendOnlineHeartbeat(key) {
+    if (!key) return;
+    
+    try {
+        // 🔥 智能选择心跳路径
+        let apiUrl, method;
+        
+        if (window.location.protocol === 'https:') {
+            // HTTPS环境（Vercel）：使用代理避免混合内容错误
+            apiUrl = '/api/keys/heartbeat';
+            method = 'Vercel代理';
+        } else {
+            // HTTP环境（阿里云或本地）：直接连接阿里云服务器
+            apiUrl = 'http://47.242.214.89/api/keys/heartbeat';
+            method = '直连阿里云';
+        }
+        
+        console.log(`💓 发送心跳[${method}]:`, new Date().toLocaleTimeString());
+        
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: key })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            console.log(`✅ 心跳成功[${method}]`);
+        } else {
+            console.warn(`⚠️ 心跳失败[${method}]:`, result.error || '未知错误');
+        }
+        
+    } catch (error) {
+        console.error('❌ 心跳错误:', error.message);
+    }
+}
+
+// 启动心跳 - 超级简单版本
+function startOnlineHeartbeat(key) {
+    if (!key) {
+        console.log('⚠️ 密钥为空，无法启动心跳');
+        return;
+    }
+    
+    // 如果已经有心跳在运行，先停止
+    if (window.heartbeatTimer) {
+        clearInterval(window.heartbeatTimer);
+        window.heartbeatTimer = null;
+    }
+    
+    window.currentOnlineKey = key;
+    window.heartbeatActive = true;
+    
+    console.log('🚀 启动在线心跳系统 - Key:', key.substring(0, 8) + '...');
+    
+    // 立即发送第一次心跳
+    sendOnlineHeartbeat(key);
+    
+    // 每30秒发送一次心跳
+    window.heartbeatTimer = setInterval(() => {
+        if (window.heartbeatActive && window.currentOnlineKey) {
+            sendOnlineHeartbeat(window.currentOnlineKey);
+        }
+    }, 30000); // 30秒
+    
+    console.log('✅ 心跳系统已启动，每30秒发送一次');
+}
+
+// 停止心跳
+function stopOnlineHeartbeat() {
+    console.log('⏹️ 停止心跳系统');
+    window.heartbeatActive = false;
+    if (window.heartbeatTimer) {
+        clearInterval(window.heartbeatTimer);
+        window.heartbeatTimer = null;
+    }
+    window.currentOnlineKey = null;
+}
+
+// 页面关闭/隐藏时停止心跳
+window.addEventListener('beforeunload', stopOnlineHeartbeat);
+window.addEventListener('pagehide', stopOnlineHeartbeat);
+
+// 页面可见性变化
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        console.log('📱 页面隐藏，停止心跳');
+        stopOnlineHeartbeat();
+    } else if (window.currentOnlineKey) {
+        console.log('📱 页面显示，恢复心跳');
+        startOnlineHeartbeat(window.currentOnlineKey);
+    }
+});
 
 
 
