@@ -1,4 +1,13 @@
 {
+  "builds": [
+    { "src": "api/**/*.js", "use": "@vercel/node" },
+    { "src": "index.html", "use": "@vercel/static" },
+    { "src": "TWPK.html", "use": "@vercel/static" },
+    { "src": "device-fingerprint.js", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/", "dest": "/index.html" }
+  ],
   "functions": {
     "api/**/*.js": {
       "runtime": "nodejs18.x",
