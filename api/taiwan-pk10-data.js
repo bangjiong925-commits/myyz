@@ -24,11 +24,12 @@ module.exports = async (req, res) => {
         });
     }
 
-    // 阿里云API地址
+    // 阿里云API地址 - 先获取最新300条数据，然后在服务端过滤
     const aliyunHost = '47.242.214.89';
-    const aliyunPath = `/api/latest?date=${date}&limit=200`;
+    const aliyunPath = `/api/latest?limit=300`;
 
     console.log(`代理请求: http://${aliyunHost}${aliyunPath}`);
+    console.log(`请求日期: ${date}`);
 
     // 代理请求到阿里云
     const options = {
@@ -54,16 +55,42 @@ module.exports = async (req, res) => {
             proxyRes.on('end', () => {
                 try {
                     // 解析阿里云返回的数据
-                    const aliyunData = JSON.parse(data);
+                    const aliyunResponse = JSON.parse(data);
                     
-                    console.log(`阿里云返回数据条数: ${Array.isArray(aliyunData) ? aliyunData.length : '非数组'}`);
+                    console.log(`阿里云API返回:`, aliyunResponse);
 
-                    // 返回数据给前端
+                    if (!aliyunResponse.success) {
+                        return res.status(500).json({ 
+                            success: false, 
+                            error: aliyunResponse.message || '阿里云API返回失败'
+                        });
+                    }
+
+                    // 转换阿里云数据格式到前端期望的格式，并过滤指定日期
+                    const aliyunData = aliyunResponse.data || [];
+                    
+                    // 过滤指定日期的数据
+                    const filteredData = aliyunData.filter(item => {
+                        // opentime格式: "2025-10-17 23:56:28"
+                        const itemDate = item.opentime ? item.opentime.split(' ')[0] : '';
+                        return itemDate === date;
+                    });
+
+                    const transformedData = filteredData.map(item => ({
+                        period: item.expect,           // expect -> period
+                        numbers: item.opencode,        // opencode -> numbers
+                        timestamp: item.opentime,      // opentime -> timestamp
+                        time: item.opentime           // 兼容字段
+                    }));
+
+                    console.log(`阿里云返回: ${aliyunData.length} 条，过滤日期 ${date} 后: ${transformedData.length} 条`);
+
+                    // 返回转换后的数据给前端
                     res.status(200).json({
                         success: true,
-                        data: aliyunData,
+                        data: transformedData,
                         date: date,
-                        count: Array.isArray(aliyunData) ? aliyunData.length : 0
+                        count: transformedData.length
                     });
                     resolve();
                 } catch (error) {
