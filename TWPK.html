@@ -8721,6 +8721,8 @@ try{
   
   const serverResult = await parseServerJson(serverResponse, '密钥验证服务');
   console.log('密钥输入时服务器验证结果:', serverResult);
+  console.log('响应状态:', serverResponse.status, serverResponse.statusText);
+  console.log('完整响应:', JSON.stringify(serverResult));
   
   if(serverResult.success && serverResult.valid){
     // 服务器验证通过
@@ -8740,7 +8742,9 @@ try{
       startOnlineHeartbeat(t);
     }
   }else{
-    alert("密钥验证失败: "+serverResult.reason);
+    const errorMsg = serverResult.reason || serverResult.error || serverResult.message || 'unknown';
+    console.error('❌ 验证失败详情:', serverResult);
+    alert("密钥验证失败: "+ errorMsg);
   }
 }catch(t){console.error("密钥验证过程出错:",t);alert("验证过程中发生错误: "+t.message)}finally{// 重置验证状态（添加延迟防抖）
 if(loadingInterval){clearInterval(loadingInterval);}
