@@ -13,8 +13,8 @@
   <!-- 安全防护脚本 -->
   <script>
     // 🎯 版本信息
-    const APP_VERSION = 'v1.0.0.13';
-    const BUILD_TIME = '2025-10-18 03:45:00';
+    const APP_VERSION = 'v1.0.0.14';
+    const BUILD_TIME = '2025-10-18 04:00:00';
     console.log('%c🚀 台湾PK数据分析工具 ' + APP_VERSION, 'color: #3b82f6; font-size: 18px; font-weight: bold; padding: 10px;');
     console.log('%c📅 构建时间: ' + BUILD_TIME, 'color: #10b981; font-size: 14px;');
     console.log('%c🔧 如看到此版本号说明页面已更新', 'color: #f59e0b; font-size: 12px;');
@@ -2724,7 +2724,7 @@
   <!-- 页脚 -->
   <footer class="bg-white border-t border-gray-200 py-4">
     <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
-      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.13</span></p>
+      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.14</span></p>
     </div>
   </footer>
 
@@ -5971,20 +5971,30 @@ function executeAutoIntersection() {
     return;
   }
   
-  // 格式化显示到交集专用显示区域
+  // 格式化显示（只显示前几行，剩余省略）
   const resultText = allResults.map(item => item.numbers.join(',')).join('\n');
-  const intersectionDisplay = document.getElementById('intersectionDisplay');
-  const intersectionCount = document.getElementById('intersectionCount');
+  const numberDisplay = document.getElementById('numberDisplay');
+  const numberCount = document.getElementById('numberCount');
   
-  if (intersectionDisplay) {
-    intersectionDisplay.innerHTML = `<pre class="whitespace-pre-wrap font-mono text-sm">${resultText}</pre>`;
+  if (numberDisplay) {
+    // 只显示前20行
+    const lines = resultText.split('\n');
+    const displayLines = lines.slice(0, 20);
+    let displayText = displayLines.join('\n');
+    
+    // 如果超过20行，添加省略提示
+    if (lines.length > 20) {
+      displayText += '\n...（显示前20注，共' + lines.length + '注，点击复制可复制全部）';
+    }
+    
+    numberDisplay.innerHTML = `<pre class="whitespace-pre-wrap font-mono text-sm">${displayText}</pre>`;
   }
   
-  if (intersectionCount) {
-    intersectionCount.textContent = `共 ${allResults.length} 注 (${resultSummary.join(' | ')})`;
+  if (numberCount) {
+    numberCount.textContent = `共 ${allResults.length} 注 (${resultSummary.join(' | ')})`;
   }
   
-  // 保存结果到全局变量供复制使用
+  // 保存完整结果到全局变量供复制使用
   window.intersectionResults = resultText;
   
   console.log('✅ 交集完成:', resultSummary.join(', '));
