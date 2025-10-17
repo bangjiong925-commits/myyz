@@ -13,8 +13,8 @@
   <!-- 安全防护脚本 -->
   <script>
     // 🎯 版本信息
-    const APP_VERSION = 'v1.0.0.20';
-    const BUILD_TIME = '2025-10-18 05:00:00';
+    const APP_VERSION = 'v1.0.0.21';
+    const BUILD_TIME = '2025-10-18 05:10:00';
     console.log('%c🚀 台湾PK数据分析工具 ' + APP_VERSION, 'color: #3b82f6; font-size: 18px; font-weight: bold; padding: 10px;');
     console.log('%c📅 构建时间: ' + BUILD_TIME, 'color: #10b981; font-size: 14px;');
     console.log('%c🔧 如看到此版本号说明页面已更新', 'color: #f59e0b; font-size: 12px;');
@@ -2724,7 +2724,7 @@
   <!-- 页脚 -->
   <footer class="bg-white border-t border-gray-200 py-4">
     <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
-      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.20</span></p>
+      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.21</span></p>
     </div>
   </footer>
 
@@ -5805,7 +5805,7 @@ function initModeSwitcher() {
   }
 }
 
-// 扫描所有模块（参考号码交集页面逻辑，不区分星级）
+// 扫描所有模块（号码交集页面逻辑：保留完整的号码组合）
 function scanAllModules() {
   const modules = [];
   
@@ -5823,27 +5823,31 @@ function scanAllModules() {
       continue; // 跳过空模块
     }
     
-    console.log(`模块${i}数据:`, lines);
+    console.log(`模块${i}数据行数:`, lines.length);
     
-    // 收集所有单个号码（参考号码交集页面的逻辑）
-    const moduleNumbers = [];
+    // 收集所有号码组合（每行是一个组合）
+    const moduleCombinations = [];
     lines.forEach(line => {
-      // 解析每行的号码，支持逗号分隔
+      // 标准化每行：去除空格，统一用逗号分隔，补齐0
       const numbers = line.trim().split(/[,，\s]+/).filter(n => n).map(n => n.padStart(2, '0'));
-      moduleNumbers.push(...numbers);
+      if (numbers.length > 0) {
+        // 将号码组合转为字符串用于比较
+        const combination = numbers.join(',');
+        moduleCombinations.push(combination);
+      }
     });
     
-    if (moduleNumbers.length === 0) {
+    if (moduleCombinations.length === 0) {
       console.log(`模块${i}解析后为空`);
       continue;
     }
     
-    // 去重
-    const uniqueNumbers = [...new Set(moduleNumbers)];
+    // 去重（相同的号码组合只保留一个）
+    const uniqueCombinations = [...new Set(moduleCombinations)];
     
-    console.log(`模块${i}解析结果: ${uniqueNumbers.length}个不同号码，原始${moduleNumbers.length}个号码`);
+    console.log(`模块${i}解析结果: ${uniqueCombinations.length}个不同号码组合`);
     
-    modules.push(uniqueNumbers);
+    modules.push(uniqueCombinations);
   }
   
   console.log(`扫描到${modules.length}个有效模块`);
@@ -5851,7 +5855,7 @@ function scanAllModules() {
 }
 
 
-// 多模块交集（参考号码交集页面的逻辑）
+// 多模块交集（号码组合的交集）
 function performModuleIntersection(modules, tolerance) {
   if (modules.length === 0) return [];
   if (modules.length === 1) {
@@ -5862,41 +5866,35 @@ function performModuleIntersection(modules, tolerance) {
   let result = [];
   
   if (tolerance === 0) {
-    // 严格交集：必须在所有模块中都出现
+    // 严格交集：号码组合必须在所有模块中都出现
     result = modules[0];
     for (let i = 1; i < modules.length; i++) {
-      result = result.filter(num => modules[i].includes(num));
-      console.log(`与模块${i+1}严格交集: → ${result.length}个号码`);
+      result = result.filter(combination => modules[i].includes(combination));
+      console.log(`与模块${i+1}严格交集: → ${result.length}个号码组合`);
     }
   } else {
     // 容错交集：允许在指定数量的模块中缺失
-    const allNumbers = [...new Set(modules.flat())];
+    const allCombinations = [...new Set(modules.flat())];
     
-    allNumbers.forEach(num => {
+    allCombinations.forEach(combination => {
       let appearCount = 0;
       modules.forEach(module => {
-        if (module.includes(num)) {
+        if (module.includes(combination)) {
           appearCount++;
         }
       });
       
-      // 如果缺失的模块数量不超过容错值，则包含该号码
+      // 如果缺失的模块数量不超过容错值，则包含该号码组合
       const missingCount = modules.length - appearCount;
       if (missingCount <= tolerance) {
-        result.push(num);
+        result.push(combination);
       }
     });
     
-    console.log(`容错${tolerance}交集: ${result.length}个号码（共${modules.length}个模块）`);
+    console.log(`容错${tolerance}交集: ${result.length}个号码组合（共${modules.length}个模块）`);
   }
   
-  // 排序结果
-  result.sort((a, b) => {
-    const numA = parseInt(a);
-    const numB = parseInt(b);
-    return numA - numB;
-  });
-  
+  // 结果已经是字符串数组，不需要特殊排序
   return result;
 }
 
@@ -5931,7 +5929,7 @@ function executeAutoIntersection() {
   if (modules.length === 1) {
     // 只有一个模块时，直接显示该模块的数据
     console.log('只有1个模块，直接显示');
-    const resultText = modules[0].join(',');
+    const resultText = modules[0].join('\n');
     const numberDisplay = document.getElementById('numberDisplay');
     const numberCount = document.getElementById('numberCount');
     
@@ -5939,7 +5937,7 @@ function executeAutoIntersection() {
       numberDisplay.innerHTML = `<pre class="whitespace-pre-wrap font-mono text-sm">${resultText}</pre>`;
     }
     if (numberCount) {
-      numberCount.textContent = `共 ${modules[0].length} 个号码`;
+      numberCount.textContent = `共 ${modules[0].length} 注`;
     }
     window.intersectionResults = resultText;
     return;
@@ -5948,53 +5946,52 @@ function executeAutoIntersection() {
   console.log(`\n开始处理交集，共${modules.length}个模块`);
   
   // 对每个容错值执行交集
-  let allNumbers = [];
+  let allCombinations = [];
   tolerances.forEach(tolerance => {
     const intersectionResult = performModuleIntersection(modules, tolerance);
     if (intersectionResult.length > 0) {
-      allNumbers.push(...intersectionResult);
-      console.log(`  容错${tolerance}: ${intersectionResult.length}个号码`);
+      allCombinations.push(...intersectionResult);
+      console.log(`  容错${tolerance}: ${intersectionResult.length}注`);
     }
   });
   
   // 去重
-  const allResults = [...new Set(allNumbers)];
+  const allResults = [...new Set(allCombinations)];
   
   // 显示结果
   if (allResults.length === 0) {
-    alert('❌ 交集结果为空\n\n可能原因：\n1. 各模块号码差异过大\n2. 容错值设置过小\n\n建议：增加容错值再试');
+    alert('❌ 交集结果为空\n\n可能原因：\n1. 各模块号码组合完全不同\n2. 容错值设置过小\n\n建议：增加容错值再试');
     return;
   }
   
-  // 排序
-  allResults.sort((a, b) => parseInt(a) - parseInt(b));
+  // 不需要排序，保持原有顺序即可
   
-  // 格式化显示（参考号码交集页面的显示方式）
-  const resultText = allResults.join(',');
+  // 格式化显示（号码组合，每行一个）
+  const resultText = allResults.join('\n');
   const numberDisplay = document.getElementById('numberDisplay');
   const numberCount = document.getElementById('numberCount');
   
   if (numberDisplay) {
-    // 只显示前500个号码
-    const displayNumbers = allResults.slice(0, 500);
-    const displayText = displayNumbers.join(',');
+    // 只显示前500个号码组合
+    const displayCombinations = allResults.slice(0, 500);
+    const displayText = displayCombinations.join('\n');
     
-    // 如果超过500个号码，添加省略提示
+    // 如果超过500个号码组合，添加省略提示
     if (allResults.length > 500) {
-      numberDisplay.innerHTML = `<pre class="whitespace-pre-wrap font-mono text-sm">${displayText}...（显示前500个号码，共${allResults.length}个，点击复制可复制全部）</pre>`;
+      numberDisplay.innerHTML = `<pre class="whitespace-pre-wrap font-mono text-sm">${displayText}\n...（显示前500注，共${allResults.length}注，点击复制可复制全部）</pre>`;
     } else {
       numberDisplay.innerHTML = `<pre class="whitespace-pre-wrap font-mono text-sm">${displayText}</pre>`;
     }
   }
   
   if (numberCount) {
-    numberCount.textContent = `共 ${allResults.length} 个号码`;
+    numberCount.textContent = `共 ${allResults.length} 注`;
   }
   
   // 保存完整结果到全局变量供复制使用
   window.intersectionResults = resultText;
   
-  console.log(`✅ 交集完成: ${allResults.length}个号码`);
+  console.log(`✅ 交集完成: ${allResults.length}注`);
   // 不再弹窗，直接显示在方框中
 }
 
