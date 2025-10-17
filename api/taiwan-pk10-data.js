@@ -66,11 +66,17 @@ module.exports = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('代理请求失败:', error.message);
+        console.error('代理请求失败 - 完整错误:', error);
+        console.error('错误类型:', error.constructor.name);
+        console.error('错误消息:', error.message);
+        console.error('错误堆栈:', error.stack);
+        
         return res.status(500).json({ 
             success: false, 
             error: '连接阿里云服务器失败',
-            details: error.message 
+            details: error.message,
+            errorType: error.constructor.name,
+            suggestion: '请检查Vercel函数日志或尝试直接访问阿里云API'
         });
     }
 };
