@@ -13,8 +13,8 @@
   <!-- 安全防护脚本 -->
   <script>
     // 🎯 版本信息
-    const APP_VERSION = 'v1.0.0.11';
-    const BUILD_TIME = '2025-10-18 03:00:00';
+    const APP_VERSION = 'v1.0.0.12';
+    const BUILD_TIME = '2025-10-18 03:30:00';
     console.log('%c🚀 台湾PK数据分析工具 ' + APP_VERSION, 'color: #3b82f6; font-size: 18px; font-weight: bold; padding: 10px;');
     console.log('%c📅 构建时间: ' + BUILD_TIME, 'color: #10b981; font-size: 14px;');
     console.log('%c🔧 如看到此版本号说明页面已更新', 'color: #f59e0b; font-size: 12px;');
@@ -1506,75 +1506,50 @@
             </div>
           </div>
           
-          <!-- 拼接模式面板（默认显示） -->
-          <div id="concatPanel" class="mb-6 border border-gray-200 rounded-lg p-4 bg-gray-50">
-            <!-- 星级选择器 -->
+          <!-- 统一操作面板 -->
+          <div class="mb-6 border border-gray-200 rounded-lg p-4 bg-gray-50">
+            <!-- 自动检测信息（仅交集模式显示） -->
+            <div id="detectedModulesInfo" class="mb-3 p-3 bg-white rounded-lg border border-blue-200 shadow-sm hidden">
+              <div class="text-gray-500 text-sm text-center py-2">正在扫描模块...</div>
+            </div>
+            
+            <!-- 操作区域 -->
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center space-x-3">
-                <span class="text-sm font-semibold text-gray-800">拼接星级：</span>
-                <div class="flex space-x-2">
+                <!-- 拼接星级（拼接模式显示） -->
+                <span id="concatLabel" class="text-sm font-semibold text-gray-800">拼接星级：</span>
+                <div id="starSelector" class="flex space-x-2">
                   <button id="star3Btn" class="star-btn px-3 py-1 rounded border border-gray-200 text-gray-600 hover:bg-blue-100 transition-colors text-sm" data-star="3">3星</button>
                   <button id="star4Btn" class="star-btn px-3 py-1 rounded border border-gray-200 text-gray-600 hover:bg-blue-100 transition-colors text-sm" data-star="4">4星</button>
                   <button id="star5Btn" class="star-btn px-3 py-1 rounded border-2 border-green-500 bg-green-500 text-white active text-sm" data-star="5">5星</button>
                 </div>
+                
+                <!-- 容错设置（交集模式显示，默认隐藏） -->
+                <span id="toleranceLabel" class="text-sm font-semibold text-gray-800 hidden">容错设置：</span>
+                <div id="toleranceSelector" class="hidden flex-wrap gap-2">
+                  <button class="tolerance-btn px-3 py-1 rounded border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-blue-400" data-tolerance="0">0</button>
+                  <button class="tolerance-btn px-3 py-1 rounded border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-blue-400" data-tolerance="1">1</button>
+                  <button class="tolerance-btn px-3 py-1 rounded border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-blue-400" data-tolerance="2">2</button>
+                  <button class="tolerance-btn px-3 py-1 rounded border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-blue-400" data-tolerance="3">3</button>
+                  <button class="tolerance-btn px-3 py-1 rounded border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-blue-400" data-tolerance="4">4</button>
+                  <button class="tolerance-btn px-3 py-1 rounded border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-blue-400" data-tolerance="5">5</button>
+                  <button class="tolerance-btn px-3 py-1 rounded border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-blue-400" data-tolerance="6">6</button>
+                  <button class="tolerance-btn px-3 py-1 rounded border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-blue-400" data-tolerance="7">7</button>
+                  <button class="tolerance-btn px-3 py-1 rounded border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-blue-400" data-tolerance="8">8</button>
+                </div>
               </div>
+              
               <div class="flex space-x-2">
-                <button id="concatBtn" class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors">拼接</button>
-                <button id="copyAllBtn" class="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600 transition-colors">复制</button>
+                <button id="actionBtn" class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors">拼接</button>
+                <button id="copyBtn" class="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600 transition-colors">复制</button>
                 <button id="verifyBtn" class="px-3 py-1 bg-orange-500 text-white rounded text-sm hover:bg-orange-600 transition-colors">验证</button>
               </div>
             </div>
+            
             <div class="bg-white border rounded p-3 min-h-[120px] max-h-[200px] overflow-y-auto text-sm font-mono" id="numberDisplay">
               <div class="text-gray-500 text-center py-8">请先生成号码</div>
             </div>
             <div id="numberCount" class="text-xs text-gray-500 mt-2">共 0 注</div>
-          </div>
-          
-          <!-- 交集模式面板（默认隐藏） -->
-          <div id="intersectionPanel" class="mb-6 border border-purple-200 rounded-lg p-4 bg-gradient-to-br from-purple-50 to-blue-50 hidden">
-            <!-- 自动检测信息 -->
-            <div id="detectedModulesInfo" class="mb-3 p-3 bg-white rounded-lg border border-purple-200 shadow-sm">
-              <div class="text-gray-500 text-sm text-center py-2">正在扫描模块...</div>
-            </div>
-            
-            <!-- 容错设置和操作区域 -->
-            <div class="p-4 bg-white rounded-lg border border-purple-200 shadow-sm">
-              <div class="flex items-center justify-between mb-3">
-                <div class="flex-1">
-                  <label class="block text-sm font-semibold text-gray-700 mb-2">
-                    <span class="text-purple-600">⚙️</span> 容错设置
-                  </label>
-                  <div class="flex gap-2 flex-wrap">
-                    <button class="intersection-tolerance-btn px-3 py-1.5 rounded-md border-2 border-purple-500 bg-purple-500 text-white text-sm font-medium transition-all hover:shadow-md" data-tolerance="0">0</button>
-                    <button class="intersection-tolerance-btn px-3 py-1.5 rounded-md border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-purple-400" data-tolerance="1">1</button>
-                    <button class="intersection-tolerance-btn px-3 py-1.5 rounded-md border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-purple-400" data-tolerance="2">2</button>
-                    <button class="intersection-tolerance-btn px-3 py-1.5 rounded-md border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-purple-400" data-tolerance="3">3</button>
-                    <button class="intersection-tolerance-btn px-3 py-1.5 rounded-md border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-purple-400" data-tolerance="4">4</button>
-                    <button class="intersection-tolerance-btn px-3 py-1.5 rounded-md border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-purple-400" data-tolerance="5">5</button>
-                    <button class="intersection-tolerance-btn px-3 py-1.5 rounded-md border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-purple-400" data-tolerance="6">6</button>
-                    <button class="intersection-tolerance-btn px-3 py-1.5 rounded-md border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-purple-400" data-tolerance="7">7</button>
-                    <button class="intersection-tolerance-btn px-3 py-1.5 rounded-md border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-purple-400" data-tolerance="8">8</button>
-                  </div>
-                  <p class="text-xs text-gray-500 mt-2">💡 容错值越大，交集结果越多</p>
-                </div>
-                <div class="ml-4 flex flex-col gap-2">
-                  <button id="intersectionBtn" class="px-6 py-2 bg-purple-500 text-white rounded-lg text-sm font-semibold hover:bg-purple-600 transition-colors shadow-md hover:shadow-lg">
-                    ⚡ 做号
-                  </button>
-                  <button id="intersectionCopyBtn" class="px-6 py-2 bg-green-500 text-white rounded-lg text-sm font-semibold hover:bg-green-600 transition-colors shadow-md hover:shadow-lg">
-                    📋 复制
-                  </button>
-                </div>
-              </div>
-            </div>
-            
-            <!-- 交集结果显示 -->
-            <div class="mt-3 p-3 bg-white rounded-lg border border-purple-200 shadow-sm">
-              <div class="bg-gray-50 border rounded p-3 min-h-[120px] max-h-[200px] overflow-y-auto text-sm font-mono" id="intersectionDisplay">
-                <div class="text-gray-500 text-center py-8">请设置容错并点击"做号"</div>
-              </div>
-              <div id="intersectionCount" class="text-xs text-gray-500 mt-2">共 0 注</div>
-            </div>
           </div>
            <!-- 下方添加区域 - 所有模块统一容器 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="modules-container">
@@ -2754,7 +2729,7 @@
   <!-- 页脚 -->
   <footer class="bg-white border-t border-gray-200 py-4">
     <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
-      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.11</span></p>
+      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.12</span></p>
     </div>
   </footer>
 
@@ -5697,33 +5672,31 @@ function initNumberDisplayButtons() {
   // 全局号码存储
   window.allGeneratedNumbers = [];
   
-  // 拼接按钮功能
-  const concatBtn = document.getElementById('concatBtn');
-  if (concatBtn) {
-    concatBtn.addEventListener('click', function() {
-      // 拼接按钮只负责拼接功能
-      // 获取当前选择的星级
-      const activeStarBtn = document.querySelector('.star-btn.active');
-      const selectedStar = activeStarBtn ? parseInt(activeStarBtn.dataset.star) : 5;
-      
-      // 根据星级调用相应的拼接函数
-      generateStarConcatenation(selectedStar);
+  // 复制按钮功能（根据模式判断）
+  const copyBtn = document.getElementById('copyBtn');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', function() {
+      if (currentFiveStarMode === 'intersection') {
+        // 交集模式：复制交集结果
+        copyIntersectionNumbers();
+      } else {
+        // 拼接模式：复制拼接结果
+        copyAllNumbers();
+      }
     });
   }
   
-  // 复制按钮功能
-  const copyAllBtn = document.getElementById('copyAllBtn');
-  if (copyAllBtn) {
-    copyAllBtn.addEventListener('click', function() {
-      copyAllNumbers();
-    });
-  }
-  
-  // 验证按钮功能
+  // 验证按钮功能（根据模式判断）
   const verifyBtn = document.getElementById('verifyBtn');
   if (verifyBtn) {
     verifyBtn.addEventListener('click', function() {
-      verifyNumbers();
+      if (currentFiveStarMode === 'intersection') {
+        // 交集模式：验证交集结果
+        verifyIntersectionNumbers();
+      } else {
+        // 拼接模式：验证拼接结果
+        verifyNumbers();
+      }
     });
   }
 }
@@ -5737,8 +5710,12 @@ let currentFiveStarMode = 'concat';
 function initModeSwitcher() {
   const concatModeBtn = document.getElementById('concatModeBtn');
   const intersectionModeBtn = document.getElementById('intersectionModeBtn');
-  const concatPanel = document.getElementById('concatPanel');
-  const intersectionPanel = document.getElementById('intersectionPanel');
+  const concatLabel = document.getElementById('concatLabel');
+  const starSelector = document.getElementById('starSelector');
+  const toleranceLabel = document.getElementById('toleranceLabel');
+  const toleranceSelector = document.getElementById('toleranceSelector');
+  const actionBtn = document.getElementById('actionBtn');
+  const detectedModulesInfo = document.getElementById('detectedModulesInfo');
   
   if (!concatModeBtn || !intersectionModeBtn) return;
   
@@ -5746,61 +5723,82 @@ function initModeSwitcher() {
   concatModeBtn.addEventListener('click', function() {
     currentFiveStarMode = 'concat';
     
-    // 更新按钮样式
+    // 更新模式按钮样式
     concatModeBtn.classList.add('border-blue-500', 'bg-blue-500', 'text-white');
     concatModeBtn.classList.remove('border-gray-300', 'bg-white', 'text-gray-700');
     intersectionModeBtn.classList.remove('border-purple-500', 'bg-purple-500', 'text-white');
     intersectionModeBtn.classList.add('border-gray-300', 'bg-white', 'text-gray-700');
     
-    // 切换面板显示
-    if (concatPanel) concatPanel.classList.remove('hidden');
-    if (intersectionPanel) intersectionPanel.classList.add('hidden');
+    // 显示拼接相关元素
+    if (concatLabel) concatLabel.classList.remove('hidden');
+    if (starSelector) starSelector.classList.remove('hidden');
+    
+    // 隐藏交集相关元素
+    if (toleranceLabel) toleranceLabel.classList.add('hidden');
+    if (toleranceSelector) toleranceSelector.classList.add('hidden');
+    if (detectedModulesInfo) detectedModulesInfo.classList.add('hidden');
+    
+    // 修改按钮文字
+    if (actionBtn) actionBtn.textContent = '拼接';
   });
   
   // 交集模式按钮
   intersectionModeBtn.addEventListener('click', function() {
     currentFiveStarMode = 'intersection';
     
-    // 更新按钮样式
+    // 更新模式按钮样式
     intersectionModeBtn.classList.add('border-purple-500', 'bg-purple-500', 'text-white');
     intersectionModeBtn.classList.remove('border-gray-300', 'bg-white', 'text-gray-700');
     concatModeBtn.classList.remove('border-blue-500', 'bg-blue-500', 'text-white');
     concatModeBtn.classList.add('border-gray-300', 'bg-white', 'text-gray-700');
     
-    // 切换面板显示
-    if (concatPanel) concatPanel.classList.add('hidden');
-    if (intersectionPanel) intersectionPanel.classList.remove('hidden');
+    // 隐藏拼接相关元素
+    if (concatLabel) concatLabel.classList.add('hidden');
+    if (starSelector) starSelector.classList.add('hidden');
+    
+    // 显示交集相关元素
+    if (toleranceLabel) toleranceLabel.classList.remove('hidden');
+    if (toleranceSelector) {
+      toleranceSelector.classList.remove('hidden');
+      toleranceSelector.classList.add('flex'); // 确保flex布局
+    }
+    if (detectedModulesInfo) detectedModulesInfo.classList.remove('hidden');
+    
+    // 修改按钮文字
+    if (actionBtn) actionBtn.textContent = '交集';
     
     // 扫描并显示模块信息
     scanAndDisplayModules();
   });
   
-  // 容错按钮事件
-  const toleranceBtns = document.querySelectorAll('.intersection-tolerance-btn');
+  // 容错按钮事件（支持多选，点击切换选中状态）
+  const toleranceBtns = document.querySelectorAll('.tolerance-btn');
   toleranceBtns.forEach(btn => {
     btn.addEventListener('click', function() {
-      toleranceBtns.forEach(b => {
-        b.classList.remove('border-purple-500', 'bg-purple-500', 'text-white');
-        b.classList.add('border-gray-300', 'bg-white', 'text-gray-700');
-      });
-      this.classList.add('border-purple-500', 'bg-purple-500', 'text-white');
-      this.classList.remove('border-gray-300', 'bg-white', 'text-gray-700');
+      // 切换选中状态
+      if (this.classList.contains('border-blue-500')) {
+        // 取消选中
+        this.classList.remove('border-blue-500', 'bg-blue-500', 'text-white');
+        this.classList.add('border-gray-300', 'bg-white', 'text-gray-700');
+      } else {
+        // 选中
+        this.classList.add('border-blue-500', 'bg-blue-500', 'text-white');
+        this.classList.remove('border-gray-300', 'bg-white', 'text-gray-700');
+      }
     });
   });
   
-  // 交集做号按钮
-  const intersectionBtn = document.getElementById('intersectionBtn');
-  if (intersectionBtn) {
-    intersectionBtn.addEventListener('click', function() {
-      executeAutoIntersection();
-    });
-  }
-  
-  // 交集复制按钮
-  const intersectionCopyBtn = document.getElementById('intersectionCopyBtn');
-  if (intersectionCopyBtn) {
-    intersectionCopyBtn.addEventListener('click', function() {
-      copyIntersectionNumbers();
+  // 主操作按钮（拼接/交集）
+  if (actionBtn) {
+    actionBtn.addEventListener('click', function() {
+      if (currentFiveStarMode === 'intersection') {
+        executeAutoIntersection();
+      } else {
+        // 拼接模式
+        const activeStarBtn = document.querySelector('.star-btn.active');
+        const selectedStar = activeStarBtn ? parseInt(activeStarBtn.dataset.star) : 5;
+        generateStarConcatenation(selectedStar);
+      }
     });
   }
 }
@@ -5942,11 +5940,16 @@ function performMultiModuleIntersection(modules, tolerance) {
 
 // 执行自动交集
 function executeAutoIntersection() {
-  // 获取容错值
-  const activeToleranceBtn = document.querySelector('.intersection-tolerance-btn.bg-purple-500');
-  const tolerance = activeToleranceBtn ? parseInt(activeToleranceBtn.dataset.tolerance) : 0;
+  // 获取所有选中的容错值
+  const selectedToleranceBtns = document.querySelectorAll('.tolerance-btn.bg-blue-500');
+  const tolerances = Array.from(selectedToleranceBtns).map(btn => parseInt(btn.dataset.tolerance));
   
-  console.log(`开始执行自动交集，容错值: ${tolerance}`);
+  if (tolerances.length === 0) {
+    alert('❌ 请至少选择一个容错值\n\n点击容错按钮进行选择');
+    return;
+  }
+  
+  console.log(`开始执行自动交集，容错值: ${tolerances.join(', ')}`);
   
   // 扫描并分组
   const groups = scanModulesAndGroup();
@@ -5956,7 +5959,7 @@ function executeAutoIntersection() {
     return;
   }
   
-  // 对每个星级组执行交集
+  // 对每个星级组和每个容错值执行交集
   let allResults = [];
   let resultSummary = [];
   
@@ -5969,12 +5972,32 @@ function executeAutoIntersection() {
     }
     
     console.log(`\n开始处理${star}星交集，共${modules.length}个模块`);
-    const intersectionResult = performMultiModuleIntersection(modules, tolerance);
     
-    if (intersectionResult.length > 0) {
-      allResults.push(...intersectionResult.map(nums => ({ star, numbers: nums })));
-      resultSummary.push(`${star}星: ${intersectionResult.length}注`);
-      console.log(`✓ ${star}星交集完成: ${intersectionResult.length}注`);
+    // 对每个容错值执行交集
+    let starResults = [];
+    tolerances.forEach(tolerance => {
+      const intersectionResult = performMultiModuleIntersection(modules, tolerance);
+      if (intersectionResult.length > 0) {
+        starResults.push(...intersectionResult);
+        console.log(`  容错${tolerance}: ${intersectionResult.length}注`);
+      }
+    });
+    
+    // 去重
+    const uniqueStarResults = [];
+    const seen = new Set();
+    starResults.forEach(nums => {
+      const key = nums.join(',');
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueStarResults.push(nums);
+      }
+    });
+    
+    if (uniqueStarResults.length > 0) {
+      allResults.push(...uniqueStarResults.map(nums => ({ star, numbers: nums })));
+      resultSummary.push(`${star}星: ${uniqueStarResults.length}注`);
+      console.log(`✓ ${star}星交集完成: ${uniqueStarResults.length}注`);
     } else {
       console.log(`✗ ${star}星交集结果为空`);
     }
@@ -6009,7 +6032,7 @@ function executeAutoIntersection() {
 // 复制交集结果
 function copyIntersectionNumbers() {
   if (!window.intersectionResults || window.intersectionResults.trim() === '') {
-    alert('❌ 暂无交集结果\n\n请先点击"做号"按钮生成交集结果');
+    alert('❌ 暂无交集结果\n\n请先点击"交集"按钮生成交集结果');
     return;
   }
   
@@ -6033,6 +6056,35 @@ function copyIntersectionNumbers() {
   
   // 移除临时元素
   document.body.removeChild(textarea);
+}
+
+// 验证交集结果
+function verifyIntersectionNumbers() {
+  if (!window.intersectionResults || window.intersectionResults.trim() === '') {
+    alert('❌ 暂无交集结果\n\n请先点击"交集"按钮生成交集结果');
+    return;
+  }
+  
+  const lines = window.intersectionResults.trim().split('\n');
+  const totalCount = lines.length;
+  
+  // 按星级统计
+  const starCounts = {};
+  lines.forEach(line => {
+    const numbers = line.split(',').filter(n => n.trim());
+    const star = numbers.length;
+    starCounts[star] = (starCounts[star] || 0) + 1;
+  });
+  
+  // 生成统计信息
+  let message = '✅ 交集结果验证\n\n';
+  message += `总计: ${totalCount}注\n\n`;
+  message += '按星级统计：\n';
+  Object.keys(starCounts).sort((a, b) => b - a).forEach(star => {
+    message += `${star}星: ${starCounts[star]}注\n`;
+  });
+  
+  alert(message);
 }
 
 // 五星做号页面的拼接功能（使用交集拼接逻辑）
