@@ -6762,7 +6762,7 @@ function _0xStartTimer() {
                     })
                 });
                 
-                const serverResult = await serverResponse.json();
+                const serverResult = await parseServerJson(serverResponse, '定时密钥验证服务');
                 
                 // 如果服务器验证失败
                 if (!serverResult.success || !serverResult.valid) {
@@ -7588,7 +7588,7 @@ return {valid: false, reason: "密钥校验失败"};
                 body: JSON.stringify({ key: nonce })
             });
             
-            const serverResult = await serverResponse.json();
+            const serverResult = await parseServerJson(serverResponse, '短密钥检查服务');
             console.log('服务器验证结果:', serverResult);
             
             // 如果密钥已被使用，则拒绝
@@ -8544,6 +8544,31 @@ function Y(){try{const t=document.documentElement.outerHTML.substring(0,1e3)+win
 let isVerifying = false;
 let verifyTimeout = null;
 
+// 安全解析服务端返回的JSON，防止遇到HTML错误页导致的解析异常
+async function parseServerJson(response, context = '服务器响应') {
+    try {
+        const cloned = response.clone();
+        const contentType = (cloned.headers.get('content-type') || '').toLowerCase();
+        if (contentType.includes('application/json')) {
+            return await cloned.json();
+        }
+        const text = await cloned.text();
+        const error = new Error(`${context} 返回非JSON响应: ${text.slice(0, 120)}`);
+        error.rawResponse = text;
+        error.status = cloned.status;
+        throw error;
+    } catch (err) {
+        if (err.name === 'SyntaxError') {
+            const text = await response.clone().text();
+            const error = new Error(`${context} JSON解析失败: ${text.slice(0, 120)}`);
+            error.rawResponse = text;
+            error.status = response.status;
+            throw error;
+        }
+        throw err;
+    }
+}
+
 // 生成设备ID
 function generateDeviceId() {
     // 🔑 优先使用缓存的设备ID，确保同一浏览器始终使用相同的设备ID
@@ -8706,7 +8731,7 @@ try{
     })
   });
   
-  const serverResult = await serverResponse.json();
+  const serverResult = await parseServerJson(serverResponse, '密钥验证服务');
   console.log('密钥输入时服务器验证结果:', serverResult);
   
   if(serverResult.success && serverResult.valid){
@@ -8783,7 +8808,7 @@ window.addEventListener("load",async function(){try{
       })
     });
     
-    const serverResult = await serverResponse.json();
+    const serverResult = await parseServerJson(serverResponse, '密钥状态验证服务');
     console.log('页面加载时服务器验证结果:', serverResult);
     
     // 服务器验证通过
@@ -9209,7 +9234,7 @@ async function fetchApiData() {
                 throw new Error(`HTTP错误! 状态: ${response.status}`);
             }
             
-            data = await response.json();
+            data = await parseServerJson(response, '台湾PK10最新数据');
             console.log('步骤2: 台湾PK10 API返回数据:', data);
             
             // 处理台湾PK10数据格式
@@ -9330,7 +9355,7 @@ async function fetchApiData() {
                 throw new Error(`HTTP错误! 状态: ${response.status}`);
             }
             
-            data = await response.json();
+            data = await parseServerJson(response, currentLotteryType === 'jsft' ? '极速飞艇数据接口' : '幸运飞艇数据接口');
             console.log('步骤2: 幸运飞艇 API返回数据:', data);
             
             // 检查API返回的错误码
@@ -9501,7 +9526,7 @@ window.fetchHistoryData = async function fetchHistoryData() {
                 continue; // 跳过这个日期，继续下一个
             }
             
-            const data = await response.json();
+            const data = await parseServerJson(response, `${dateStr} 历史数据接口`);
             console.log(`步骤3.${dates.indexOf(dateStr) + 1}: ${dateStr} 历史数据API返回:`, data);
             
             let historyItems = [];
@@ -9712,7 +9737,7 @@ async function getNextDrawTime() {
             throw new Error(`HTTP错误! 状态: ${response.status}`);
         }
         
-        const data = await response.json();
+        const data = await parseServerJson(response, '下一期开奖时间接口');
         
         if (data.errorCode !== 0) {
             throw new Error(data.message || 'API返回错误');
@@ -13356,7 +13381,7 @@ async function sendOnlineHeartbeat(key) {
             body: JSON.stringify({ key: key })
         });
         
-        const result = await response.json();
+        const result = await parseServerJson(response, '心跳服务');
         
         if (result.success) {
             console.log(`✅ 心跳成功[${method}]`);
