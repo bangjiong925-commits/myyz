@@ -1,26 +1,8 @@
 {
-  "name": "taiwan-pk10-proxy",
+  "name": "myyz-api",
   "version": "1.0.0",
-  "description": "Taiwan PK10 data proxy and web interface",
-  "main": "index.html",
-  "scripts": {
-    "start": "node proxy-server.js",
-    "api": "node api_server_mongodb.js",
-    "keys": "node key_management_server.js",
-    "dev": "nodemon proxy-server.js",
-    "dev-api": "nodemon api_server_mongodb.js",
-    "dev-keys": "nodemon key_management_server.js"
-  },
+  "type": "module",
   "dependencies": {
-    "axios": "^1.6.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2",
-    "express-session": "^1.18.2",
-    "mongodb": "^6.0.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.1"
-  },
-  "license": "MIT"
+    "axios": "^1.6.0"
+  }
 }
