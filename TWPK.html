@@ -60,6 +60,13 @@
           return true;
         }
         
+        // 检查是否为localhost（本地开发服务器）
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          console.log('本地开发服务器模式 - 跳过密钥验证');
+          // 本地开发环境跳过密钥验证
+          return true;
+        }
+        
         // 检查Referer（防止直接访问）
         if (document.referrer === '' && window.location.search === '') {
           // 允许直接访问，但记录日志
@@ -755,6 +762,12 @@
         position: relative;
         display: inline-block;
       }
+
+      /* 额外筛选（杀跨度/杀和尾）下拉容器，定位与形态下拉一致 */
+      .kill-extra-dropdown {
+        position: relative;
+        display: inline-block;
+      }
       
       .kill-pattern-trigger {
         min-width: 120px;
@@ -767,6 +780,24 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
+      }
+      
+      /* 杀跨度和杀和尾专用样式 - 更小的下拉框 */
+      .kill-extra-dropdown .kill-pattern-trigger {
+        min-width: 60px;
+        max-width: 80px;
+        padding: 2px 6px;
+        font-size: 11px;
+      }
+      
+      .kill-extra-dropdown .kill-pattern-menu {
+        min-width: 60px;
+        max-width: 120px;
+      }
+
+      /* 确保触发器内的空格占位可见（未选位置显示空格） */
+      .kill-pattern-display {
+        white-space: pre; /* 保留连续空格 */
       }
       
       .kill-pattern-trigger:hover {
@@ -1503,67 +1534,97 @@
           </div>
           
           <!-- 模块总容错设置 -->
-          <div class="module-tolerance mb-4 p-3 bg-gray-50 rounded border">
-            <div class="flex items-center text-sm mb-3">
-              <span class="text-gray-700 font-medium mr-3">总容错：</span>
-              <select class="module-tolerance-min border border-gray-300 rounded px-2 py-1 text-xs" data-module="1">
-                <option value="0">0</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-              </select>
-              <span class="mx-1">-</span>
-              <select class="module-tolerance-max border border-gray-300 rounded px-2 py-1 text-xs" data-module="1">
-                <option value="0" selected>0</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-              </select>
-            </div>
-            
-            <!-- 杀形态设置 -->
-            <div class="kill-pattern-container">
-              <div class="flex items-center text-sm">
-                <span class="text-gray-700 font-medium mr-3">杀形态：</span>
-                <div class="flex items-center gap-2">
-                  <!-- 第1组：单双选择器 -->
-                  <div class="kill-pattern-dropdown" data-module="1" data-type="odd-even">
-                    <div class="kill-pattern-trigger">
-                      <span class="kill-pattern-display">单双</span>
-                      <span>▼</span>
-                    </div>
-                    <div class="kill-pattern-menu">
-                      <!-- 第1排：显示结果 -->
-                      <div class="kill-pattern-row kill-pattern-result-row"></div>
-                      <!-- 第2排：单 -->
-                      <div class="kill-pattern-row kill-pattern-odd-row"></div>
-                      <!-- 第3排：双 -->
-                      <div class="kill-pattern-row kill-pattern-even-row"></div>
-                    </div>
+          <div class="module-tolerance mb-2 p-2 bg-gray-50 rounded border">
+            <!-- 统一的筛选条件布局 -->
+            <div class="flex flex-wrap items-center gap-3 text-sm">
+              <!-- 总容错 -->
+              <div class="flex items-center gap-2">
+                <span class="text-gray-700 font-medium">总容错</span>
+                <select class="module-tolerance-min border border-gray-300 rounded px-2 py-1 text-xs" data-module="1">
+                  <option value="0">0</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                </select>
+                <span>-</span>
+                <select class="module-tolerance-max border border-gray-300 rounded px-2 py-1 text-xs" data-module="1">
+                  <option value="0" selected>0</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                </select>
+              </div>
+              
+              <!-- 杀形态 -->
+              <div class="flex items-center gap-2">
+                <span class="text-gray-700 font-medium">杀形态</span>
+                <!-- 第1组：单双选择器 -->
+                <div class="kill-pattern-dropdown" data-module="1" data-type="odd-even">
+                  <div class="kill-pattern-trigger">
+                    <span class="kill-pattern-display"></span>
+                    <span>▼</span>
                   </div>
-                  <button class="kill-pattern-clear-btn" data-module="1" data-type="odd-even">清</button>
-                  
-                  <!-- 第2组：大小选择器 -->
-                  <div class="kill-pattern-dropdown" data-module="1" data-type="big-small">
-                    <div class="kill-pattern-trigger">
-                      <span class="kill-pattern-display">大小</span>
-                      <span>▼</span>
-                    </div>
-                    <div class="kill-pattern-menu">
-                      <!-- 第1排：显示结果 -->
-                      <div class="kill-pattern-row kill-pattern-result-row"></div>
-                      <!-- 第2排：大 -->
-                      <div class="kill-pattern-row kill-pattern-big-row"></div>
-                      <!-- 第3排：小 -->
-                      <div class="kill-pattern-row kill-pattern-small-row"></div>
-                    </div>
+                  <div class="kill-pattern-menu">
+                    <!-- 第1排：显示结果 -->
+                    <div class="kill-pattern-row kill-pattern-result-row"></div>
+                    <!-- 第2排：单 -->
+                    <div class="kill-pattern-row kill-pattern-odd-row"></div>
+                    <!-- 第3排：双 -->
+                    <div class="kill-pattern-row kill-pattern-even-row"></div>
                   </div>
-                  <button class="kill-pattern-clear-btn" data-module="1" data-type="big-small">清</button>
                 </div>
+                <button class="kill-pattern-clear-btn" data-module="1" data-type="odd-even">清</button>
+                
+                <!-- 第2组：大小选择器 -->
+                <div class="kill-pattern-dropdown" data-module="1" data-type="big-small">
+                  <div class="kill-pattern-trigger">
+                    <span class="kill-pattern-display"></span>
+                    <span>▼</span>
+                  </div>
+                  <div class="kill-pattern-menu">
+                    <!-- 第1排：显示结果 -->
+                    <div class="kill-pattern-row kill-pattern-result-row"></div>
+                    <!-- 第2排：大 -->
+                    <div class="kill-pattern-row kill-pattern-big-row"></div>
+                    <!-- 第3排：小 -->
+                    <div class="kill-pattern-row kill-pattern-small-row"></div>
+                  </div>
+                </div>
+                <button class="kill-pattern-clear-btn" data-module="1" data-type="big-small">清</button>
+              </div>
+              
+              <!-- 杀跨度 -->
+              <div class="flex items-center gap-2">
+                <span class="text-gray-700 font-medium">杀跨度</span>
+                <div class="kill-extra-dropdown inline-block" data-module="1" data-type="span">
+                  <div class="kill-pattern-trigger">
+                    <span class="kill-extra-display"></span>
+                    <span>▼</span>
+                  </div>
+                  <div class="kill-pattern-menu">
+                    <div class="kill-extra-options"></div>
+                  </div>
+                </div>
+                <button class="kill-pattern-clear-btn kill-extra-clear-btn" data-module="1" data-type="span">清</button>
+              </div>
+
+              <!-- 杀和尾 -->
+              <div class="flex items-center gap-2">
+                <span class="text-gray-700 font-medium">杀和尾</span>
+                <div class="kill-extra-dropdown inline-block" data-module="1" data-type="sumtail">
+                  <div class="kill-pattern-trigger">
+                    <span class="kill-extra-display"></span>
+                    <span>▼</span>
+                  </div>
+                  <div class="kill-pattern-menu">
+                    <div class="kill-extra-options"></div>
+                  </div>
+                </div>
+                <button class="kill-pattern-clear-btn kill-extra-clear-btn" data-module="1" data-type="sumtail">清</button>
               </div>
             </div>
           </div>
@@ -1842,67 +1903,97 @@
           </div>
           
           <!-- 模块总容错设置 -->
-          <div class="module-tolerance mb-4 p-3 bg-gray-50 rounded border">
-            <div class="flex items-center text-sm mb-3">
-              <span class="text-gray-700 font-medium mr-3">总容错：</span>
-              <select class="module-tolerance-min border border-gray-300 rounded px-2 py-1 text-xs" data-module="2">
-                <option value="0">0</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-              </select>
-              <span class="mx-1">-</span>
-              <select class="module-tolerance-max border border-gray-300 rounded px-2 py-1 text-xs" data-module="2">
-                <option value="0" selected>0</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-              </select>
-            </div>
-            
-            <!-- 杀形态设置 -->
-            <div class="kill-pattern-container">
-              <div class="flex items-center text-sm">
-                <span class="text-gray-700 font-medium mr-3">杀形态：</span>
-                <div class="flex items-center gap-2">
-                  <!-- 第1组：单双选择器 -->
-                  <div class="kill-pattern-dropdown" data-module="2" data-type="odd-even">
-                    <div class="kill-pattern-trigger">
-                      <span class="kill-pattern-display">单双</span>
-                      <span>▼</span>
-                    </div>
-                    <div class="kill-pattern-menu">
-                      <!-- 第1排：显示结果 -->
-                      <div class="kill-pattern-row kill-pattern-result-row"></div>
-                      <!-- 第2排：单 -->
-                      <div class="kill-pattern-row kill-pattern-odd-row"></div>
-                      <!-- 第3排：双 -->
-                      <div class="kill-pattern-row kill-pattern-even-row"></div>
-                    </div>
+          <div class="module-tolerance mb-2 p-2 bg-gray-50 rounded border">
+            <!-- 统一的筛选条件布局 -->
+            <div class="flex flex-wrap items-center gap-3 text-sm">
+              <!-- 总容错 -->
+              <div class="flex items-center gap-2">
+                <span class="text-gray-700 font-medium">总容错</span>
+                <select class="module-tolerance-min border border-gray-300 rounded px-2 py-1 text-xs" data-module="2">
+                  <option value="0">0</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                </select>
+                <span>-</span>
+                <select class="module-tolerance-max border border-gray-300 rounded px-2 py-1 text-xs" data-module="2">
+                  <option value="0" selected>0</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                </select>
+              </div>
+              
+              <!-- 杀形态 -->
+              <div class="flex items-center gap-2">
+                <span class="text-gray-700 font-medium">杀形态</span>
+                <!-- 第1组：单双选择器 -->
+                <div class="kill-pattern-dropdown" data-module="2" data-type="odd-even">
+                  <div class="kill-pattern-trigger">
+                    <span class="kill-pattern-display"></span>
+                    <span>▼</span>
                   </div>
-                  <button class="kill-pattern-clear-btn" data-module="2" data-type="odd-even">清</button>
-                  
-                  <!-- 第2组：大小选择器 -->
-                  <div class="kill-pattern-dropdown" data-module="2" data-type="big-small">
-                    <div class="kill-pattern-trigger">
-                      <span class="kill-pattern-display">大小</span>
-                      <span>▼</span>
-                    </div>
-                    <div class="kill-pattern-menu">
-                      <!-- 第1排：显示结果 -->
-                      <div class="kill-pattern-row kill-pattern-result-row"></div>
-                      <!-- 第2排：大 -->
-                      <div class="kill-pattern-row kill-pattern-big-row"></div>
-                      <!-- 第3排：小 -->
-                      <div class="kill-pattern-row kill-pattern-small-row"></div>
-                    </div>
+                  <div class="kill-pattern-menu">
+                    <!-- 第1排：显示结果 -->
+                    <div class="kill-pattern-row kill-pattern-result-row"></div>
+                    <!-- 第2排：单 -->
+                    <div class="kill-pattern-row kill-pattern-odd-row"></div>
+                    <!-- 第3排：双 -->
+                    <div class="kill-pattern-row kill-pattern-even-row"></div>
                   </div>
-                  <button class="kill-pattern-clear-btn" data-module="2" data-type="big-small">清</button>
                 </div>
+                <button class="kill-pattern-clear-btn" data-module="2" data-type="odd-even">清</button>
+                
+                <!-- 第2组：大小选择器 -->
+                <div class="kill-pattern-dropdown" data-module="2" data-type="big-small">
+                  <div class="kill-pattern-trigger">
+                    <span class="kill-pattern-display"></span>
+                    <span>▼</span>
+                  </div>
+                  <div class="kill-pattern-menu">
+                    <!-- 第1排：显示结果 -->
+                    <div class="kill-pattern-row kill-pattern-result-row"></div>
+                    <!-- 第2排：大 -->
+                    <div class="kill-pattern-row kill-pattern-big-row"></div>
+                    <!-- 第3排：小 -->
+                    <div class="kill-pattern-row kill-pattern-small-row"></div>
+                  </div>
+                </div>
+                <button class="kill-pattern-clear-btn" data-module="2" data-type="big-small">清</button>
+              </div>
+              
+              <!-- 杀跨度 -->
+              <div class="flex items-center gap-2">
+                <span class="text-gray-700 font-medium">杀跨度</span>
+                <div class="kill-extra-dropdown inline-block" data-module="2" data-type="span">
+                  <div class="kill-pattern-trigger">
+                    <span class="kill-extra-display"></span>
+                    <span>▼</span>
+                  </div>
+                  <div class="kill-pattern-menu">
+                    <div class="kill-extra-options"></div>
+                  </div>
+                </div>
+                <button class="kill-pattern-clear-btn kill-extra-clear-btn" data-module="2" data-type="span">清</button>
+              </div>
+
+              <!-- 杀和尾 -->
+              <div class="flex items-center gap-2">
+                <span class="text-gray-700 font-medium">杀和尾</span>
+                <div class="kill-extra-dropdown inline-block" data-module="2" data-type="sumtail">
+                  <div class="kill-pattern-trigger">
+                    <span class="kill-extra-display"></span>
+                    <span>▼</span>
+                  </div>
+                  <div class="kill-pattern-menu">
+                    <div class="kill-extra-options"></div>
+                  </div>
+                </div>
+                <button class="kill-pattern-clear-btn kill-extra-clear-btn" data-module="2" data-type="sumtail">清</button>
               </div>
             </div>
           </div>
@@ -2789,7 +2880,10 @@ function initFiveStarModule(moduleId) {
     killPatterns: {
       oddEven: [],      // 单双杀形态，例如：['单', '', '双', '', ''] 表示1名杀单，3名杀双
       bigSmall: []      // 大小杀形态，例如：['大', '', '', '小', ''] 表示1名杀大，4名杀小
-    }
+    },
+    // 额外筛选：杀跨度、杀和尾
+    killSpanValues: [],     // 选择的跨度值（1-9）
+    killSumTailValues: []   // 选择的和尾值（0-9）
   };
 
   // 获取模块元素
@@ -2809,6 +2903,24 @@ function initFiveStarModule(moduleId) {
   const moduleToleranceMaxSelect = module.querySelector('.module-tolerance-max');
   const moduleStarButtons = module.querySelectorAll('.module-star-btn');
   const moduleStarDescription = module.querySelector(`#moduleStarDescription${moduleId}`);
+  const killSpanSelect = module.querySelector('.kill-span-select');
+  const killSumTailSelect = module.querySelector('.kill-sumtail-select');
+
+  // 绑定杀跨度、杀和尾多选变更事件
+  function getMultiSelectValues(selectEl) {
+    if (!selectEl) return [];
+    return Array.from(selectEl.selectedOptions).map(o => parseInt(o.value));
+  }
+  if (killSpanSelect) {
+    killSpanSelect.addEventListener('change', () => {
+      moduleState.killSpanValues = getMultiSelectValues(killSpanSelect);
+    });
+  }
+  if (killSumTailSelect) {
+    killSumTailSelect.addEventListener('change', () => {
+      moduleState.killSumTailValues = getMultiSelectValues(killSumTailSelect);
+    });
+  }
 
   // 做号星级按钮点击事件
   moduleStarButtons.forEach(button => {
@@ -2972,6 +3084,7 @@ function initFiveStarModule(moduleId) {
       const resultRow = menu.querySelector('.kill-pattern-result-row');
       const oddRow = menu.querySelector('.kill-pattern-odd-row');
       const evenRow = menu.querySelector('.kill-pattern-even-row');
+      const trigger = oddEvenDropdown.querySelector('.kill-pattern-trigger .kill-pattern-display');
       
       // 清空并重新生成
       resultRow.innerHTML = '';
@@ -2983,6 +3096,8 @@ function initFiveStarModule(moduleId) {
         const resultCell = document.createElement('div');
         resultCell.className = 'kill-pattern-cell';
         resultCell.dataset.position = i;
+        // 未选择位置显示 '-' 占位
+        resultCell.textContent = '-';
         resultRow.appendChild(resultCell);
         
         // 第2排：单
@@ -3003,6 +3118,13 @@ function initFiveStarModule(moduleId) {
         evenBtn.addEventListener('click', () => handleKillPatternClick(moduleId, 'oddEven', i, '双', evenBtn));
         evenRow.appendChild(evenBtn);
       }
+
+      // 初始化触发器显示（根据当前形态状态渲染为 逗号分隔，未选为 '-'）
+      updateKillPatternDisplay(moduleId, 'oddEven');
+      // 确保清除任何残留的选中样式
+      menu.querySelectorAll('.kill-pattern-btn.active').forEach(btn => btn.classList.remove('active'));
+      // 关闭已展开的菜单
+      menu.classList.remove('active');
     }
     
     // 初始化大小选择器
@@ -3012,6 +3134,7 @@ function initFiveStarModule(moduleId) {
       const resultRow = menu.querySelector('.kill-pattern-result-row');
       const bigRow = menu.querySelector('.kill-pattern-big-row');
       const smallRow = menu.querySelector('.kill-pattern-small-row');
+      const trigger = bigSmallDropdown.querySelector('.kill-pattern-trigger .kill-pattern-display');
       
       // 清空并重新生成
       resultRow.innerHTML = '';
@@ -3023,6 +3146,8 @@ function initFiveStarModule(moduleId) {
         const resultCell = document.createElement('div');
         resultCell.className = 'kill-pattern-cell';
         resultCell.dataset.position = i;
+        // 未选择位置显示 '-' 占位
+        resultCell.textContent = '-';
         resultRow.appendChild(resultCell);
         
         // 第2排：大
@@ -3043,6 +3168,13 @@ function initFiveStarModule(moduleId) {
         smallBtn.addEventListener('click', () => handleKillPatternClick(moduleId, 'bigSmall', i, '小', smallBtn));
         smallRow.appendChild(smallBtn);
       }
+
+      // 初始化触发器显示（根据当前形态状态渲染为 逗号分隔，未选为 '-'）
+      updateKillPatternDisplay(moduleId, 'bigSmall');
+      // 确保清除任何残留的选中样式
+      menu.querySelectorAll('.kill-pattern-btn.active').forEach(btn => btn.classList.remove('active'));
+      // 关闭已展开的菜单
+      menu.classList.remove('active');
     }
   }
   
@@ -3054,6 +3186,8 @@ function initFiveStarModule(moduleId) {
     const menu = dropdown.querySelector('.kill-pattern-menu');
     const resultRow = menu.querySelector('.kill-pattern-result-row');
     const resultCell = resultRow.children[position];
+    const trigger = dropdown.querySelector('.kill-pattern-trigger');
+    const display = trigger.querySelector('.kill-pattern-display');
     
     // 获取同一列的所有按钮
     const allButtons = menu.querySelectorAll(`button[data-position="${position}"]`);
@@ -3062,7 +3196,8 @@ function initFiveStarModule(moduleId) {
     if (button.classList.contains('active')) {
       button.classList.remove('active');
       moduleState.killPatterns[type][position] = '';
-      resultCell.textContent = '';
+      // 未选择位置显示 '-' 占位
+      resultCell.textContent = '-';
     } else {
       // 取消同一列其他按钮的选中状态
       allButtons.forEach(btn => btn.classList.remove('active'));
@@ -3073,7 +3208,27 @@ function initFiveStarModule(moduleId) {
       resultCell.textContent = value;
     }
     
+    // 更新下拉框显示文本
+    updateKillPatternDisplay(moduleId, type);
+    
     console.log(`杀形态设置 - ${type}:`, moduleState.killPatterns[type]);
+  }
+  
+  // 更新杀形态显示文本
+  function updateKillPatternDisplay(moduleId, type) {
+    const moduleState = window.moduleStates[moduleId];
+    const module = document.getElementById(`module${moduleId}`);
+    const dropdown = module.querySelector(`.kill-pattern-dropdown[data-type="${type === 'oddEven' ? 'odd-even' : 'big-small'}"]`);
+    const trigger = dropdown.querySelector('.kill-pattern-trigger');
+    const display = trigger.querySelector('.kill-pattern-display');
+    
+    const patterns = moduleState.killPatterns[type] || [];
+    const star = moduleState.starLevel || 5;
+    const normalized = [];
+    for (let i = 0; i < star; i++) {
+      normalized.push(patterns[i] && patterns[i].trim() ? patterns[i] : '-');
+    }
+    display.textContent = normalized.join(',');
   }
   
   // 下拉框显示/隐藏
@@ -3093,13 +3248,21 @@ function initFiveStarModule(moduleId) {
       // 切换当前下拉框
       menu.classList.toggle('active');
     });
+    
+    // 点击菜单内部不关闭下拉框
+    menu.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
   });
   
   // 点击页面其他地方关闭下拉框
-  document.addEventListener('click', () => {
-    module.querySelectorAll('.kill-pattern-menu.active').forEach(menu => {
-      menu.classList.remove('active');
-    });
+  document.addEventListener('click', (e) => {
+    // 检查点击的是否是杀形态相关元素
+    if (!e.target.closest('.kill-pattern-container')) {
+      module.querySelectorAll('.kill-pattern-menu.active').forEach(menu => {
+        menu.classList.remove('active');
+      });
+    }
   });
   
   // 清除按钮
@@ -3113,12 +3276,15 @@ function initFiveStarModule(moduleId) {
       // 清空状态
       moduleState.killPatterns[type] = new Array(moduleState.starLevel || 5).fill('');
       
-      // 清空UI
+      // 清空UI（显示 '-' 占位）
       const resultCells = menu.querySelectorAll('.kill-pattern-result-row .kill-pattern-cell');
-      resultCells.forEach(cell => cell.textContent = '');
+      resultCells.forEach(cell => cell.textContent = '-');
       
       const buttons = menu.querySelectorAll('.kill-pattern-btn.active');
       buttons.forEach(button => button.classList.remove('active'));
+      
+      // 更新显示文本
+      updateKillPatternDisplay(moduleId, type);
       
       console.log(`已清除${type}杀形态`);
     });
@@ -3127,18 +3293,149 @@ function initFiveStarModule(moduleId) {
   // 初始化杀形态
   initKillPatternDropdowns();
   
-  // 星级变化时重新初始化杀形态
-  const moduleStarButtons = module.querySelectorAll('.module-star-btn');
-  moduleStarButtons.forEach(btn => {
-    const originalClickHandler = btn.onclick;
+  // 星级变化时清空杀形态并重新初始化
+  const moduleStarButtonsForKillPattern = module.querySelectorAll('.module-star-btn');
+  moduleStarButtonsForKillPattern.forEach(btn => {
     btn.addEventListener('click', () => {
       setTimeout(() => {
+        // 清空状态
+        moduleState.killPatterns.oddEven = new Array(moduleState.starLevel || 5).fill('');
+        moduleState.killPatterns.bigSmall = new Array(moduleState.starLevel || 5).fill('');
+        moduleState.killSpanValues = [];
+        moduleState.killSumTailValues = [];
+        
+        // 重置显示文本
+        const oddEvenDropdown = module.querySelector('.kill-pattern-dropdown[data-type="odd-even"]');
+        if (oddEvenDropdown) {
+          const display = oddEvenDropdown.querySelector('.kill-pattern-trigger .kill-pattern-display');
+          if (display) display.textContent = '';
+        }
+        const bigSmallDropdown = module.querySelector('.kill-pattern-dropdown[data-type="big-small"]');
+        if (bigSmallDropdown) {
+          const display = bigSmallDropdown.querySelector('.kill-pattern-trigger .kill-pattern-display');
+          if (display) display.textContent = '';
+        }
+        // 重置 杀跨度/杀和尾 选择
+        const spanSelect = module.querySelector('.kill-span-select');
+        if (spanSelect) Array.from(spanSelect.options).forEach(o => (o.selected = false));
+        const sumTailSelect = module.querySelector('.kill-sumtail-select');
+        if (sumTailSelect) Array.from(sumTailSelect.options).forEach(o => (o.selected = false));
+        
+        // 重新初始化UI
         initKillPatternDropdowns();
+        // 同步重置自定义下拉（清除选中与显示）
+        const extraDDSpan = module.querySelector('.kill-extra-dropdown[data-type="span"]');
+        if (extraDDSpan) {
+          extraDDSpan.querySelectorAll('.kill-pattern-btn.active').forEach(b => b.classList.remove('active'));
+          const display = extraDDSpan.querySelector('.kill-extra-display');
+          if (display) display.textContent = '';
+        }
+        const extraDDSum = module.querySelector('.kill-extra-dropdown[data-type="sumtail"]');
+        if (extraDDSum) {
+          extraDDSum.querySelectorAll('.kill-pattern-btn.active').forEach(b => b.classList.remove('active'));
+          const display = extraDDSum.querySelector('.kill-extra-display');
+          if (display) display.textContent = '';
+        }
       }, 100);
     });
   });
   
   // ============ 杀形态功能初始化结束 ============
+
+  // ============ 杀跨度/杀和尾 下拉 ============
+  function updateKillExtraDisplay(moduleId, type) {
+    const module = document.getElementById(`module${moduleId}`);
+    const dropdown = module.querySelector(`.kill-extra-dropdown[data-type="${type}"]`);
+    if (!dropdown) return;
+    const display = dropdown.querySelector('.kill-extra-display');
+    const arr = type === 'span' ? (window.moduleStates[moduleId].killSpanValues || [])
+                                : (window.moduleStates[moduleId].killSumTailValues || []);
+    display.textContent = (arr && arr.length) ? arr.sort((a,b)=>a-b).join(',') : '';
+  }
+
+  function initKillExtraDropdowns() {
+    const module = document.getElementById(`module${moduleId}`);
+    const spanDropdown = module.querySelector('.kill-extra-dropdown[data-type="span"]');
+    const sumTailDropdown = module.querySelector('.kill-extra-dropdown[data-type="sumtail"]');
+
+    // 通用：渲染选项
+    function renderOptions(dropdown, values, stateArrayName) {
+      if (!dropdown) return;
+      const menu = dropdown.querySelector('.kill-pattern-menu');
+      const optionsRow = dropdown.querySelector('.kill-extra-options');
+      if (!optionsRow) return;
+      optionsRow.innerHTML = '';
+      values.forEach(v => {
+        const btn = document.createElement('button');
+        btn.className = 'kill-pattern-btn';
+        btn.textContent = String(v);
+        btn.dataset.value = String(v);
+        // 初始选中态
+        const arr = moduleState[stateArrayName] || [];
+        if (arr.includes(v)) btn.classList.add('active');
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const list = moduleState[stateArrayName];
+          const idx = list.indexOf(v);
+          if (idx >= 0) {
+            list.splice(idx, 1);
+            btn.classList.remove('active');
+          } else {
+            list.push(v);
+            btn.classList.add('active');
+          }
+          updateKillExtraDisplay(moduleId, stateArrayName === 'killSpanValues' ? 'span' : 'sumtail');
+        });
+        optionsRow.appendChild(btn);
+      });
+
+      // 触发器开合
+      const trigger = dropdown.querySelector('.kill-pattern-trigger');
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // 关闭其它已展开菜单（包含形态与额外筛选）
+        document.querySelectorAll('.kill-pattern-menu.active').forEach(m => {
+          if (m !== menu) m.classList.remove('active');
+        });
+        menu.classList.toggle('active');
+      });
+      // 内部点击不冒泡
+      menu.addEventListener('click', (e) => e.stopPropagation());
+      // 点击页面其它地方关闭
+      document.addEventListener('click', () => menu.classList.remove('active'));
+    }
+
+    // 渲染跨度(1-9)与和尾(0-9)
+    renderOptions(spanDropdown, [1,2,3,4,5,6,7,8,9], 'killSpanValues');
+    renderOptions(sumTailDropdown, [0,1,2,3,4,5,6,7,8,9], 'killSumTailValues');
+
+    // 清按钮
+    const extraClearBtns = module.querySelectorAll('.kill-extra-clear-btn');
+    extraClearBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const type = btn.dataset.type; // 'span' | 'sumtail'
+        if (type === 'span') moduleState.killSpanValues = [];
+        else moduleState.killSumTailValues = [];
+        // 清UI选中
+        const dd = module.querySelector(`.kill-extra-dropdown[data-type="${type}"]`);
+        if (dd) {
+          dd.querySelectorAll('.kill-pattern-btn.active').forEach(b => b.classList.remove('active'));
+          updateKillExtraDisplay(moduleId, type);
+          // 关闭面板
+          const menu = dd.querySelector('.kill-pattern-menu');
+          if (menu) menu.classList.remove('active');
+        }
+      });
+    });
+
+    // 初始化显示
+    updateKillExtraDisplay(moduleId, 'span');
+    updateKillExtraDisplay(moduleId, 'sumtail');
+  }
+
+  // 初始化额外筛选下拉
+  initKillExtraDropdowns();
+  // ============ 杀跨度/杀和尾 下拉结束 ============
 
   // 位置选择按钮事件处理
   const positionButtons = module.querySelectorAll('.position-btn');
@@ -3532,6 +3829,36 @@ function initFiveStarModule(moduleId) {
       });
     }
     // ============ 杀形态过滤结束 ============
+
+    // ============ 杀跨度/杀和尾过滤 ============
+    if ((moduleState.killSpanValues && moduleState.killSpanValues.length > 0) ||
+        (moduleState.killSumTailValues && moduleState.killSumTailValues.length > 0)) {
+      const beforeExtraKill = filteredResults.length;
+
+      filteredResults = filteredResults.filter(comb => {
+        // 杀跨度：最大值与最小值之差
+        if (moduleState.killSpanValues && moduleState.killSpanValues.length > 0) {
+          const max = Math.max(...comb);
+          const min = Math.min(...comb);
+          const span = max - min;
+          if (moduleState.killSpanValues.includes(span)) return false;
+        }
+        // 杀和尾：所有位数字之和的个位数
+        if (moduleState.killSumTailValues && moduleState.killSumTailValues.length > 0) {
+          const sum = comb.reduce((a, b) => a + b, 0);
+          const tail = sum % 10;
+          if (moduleState.killSumTailValues.includes(tail)) return false;
+        }
+        return true;
+      });
+
+      console.log(`跨度/和尾过滤: ${beforeExtraKill} → ${filteredResults.length} (杀掉${beforeExtraKill - filteredResults.length}注)`);
+      console.log('杀跨度/杀和尾设置:', {
+        span: moduleState.killSpanValues,
+        sumTail: moduleState.killSumTailValues
+      });
+    }
+    // ============ 杀跨度/杀和尾过滤结束 ============
     
     // 调试信息：输出筛选统计
     console.log(`模块总容错设置: ${moduleState.moduleToleranceMin}-${moduleState.moduleToleranceMax}`);
@@ -6435,7 +6762,7 @@ function _0xStartTimer() {
                     })
                 });
                 
-                const serverResult = await serverResponse.json();
+                const serverResult = await parseServerJson(serverResponse, '定时密钥验证服务');
                 
                 // 如果服务器验证失败
                 if (!serverResult.success || !serverResult.valid) {
@@ -7261,7 +7588,7 @@ return {valid: false, reason: "密钥校验失败"};
                 body: JSON.stringify({ key: nonce })
             });
             
-            const serverResult = await serverResponse.json();
+            const serverResult = await parseServerJson(serverResponse, '短密钥检查服务');
             console.log('服务器验证结果:', serverResult);
             
             // 如果密钥已被使用，则拒绝
@@ -8217,6 +8544,31 @@ function Y(){try{const t=document.documentElement.outerHTML.substring(0,1e3)+win
 let isVerifying = false;
 let verifyTimeout = null;
 
+// 安全解析服务端返回的JSON，防止遇到HTML错误页导致的解析异常
+async function parseServerJson(response, context = '服务器响应') {
+    try {
+        const cloned = response.clone();
+        const contentType = (cloned.headers.get('content-type') || '').toLowerCase();
+        if (contentType.includes('application/json')) {
+            return await cloned.json();
+        }
+        const text = await cloned.text();
+        const error = new Error(`${context} 返回非JSON响应: ${text.slice(0, 120)}`);
+        error.rawResponse = text;
+        error.status = cloned.status;
+        throw error;
+    } catch (err) {
+        if (err.name === 'SyntaxError') {
+            const text = await response.clone().text();
+            const error = new Error(`${context} JSON解析失败: ${text.slice(0, 120)}`);
+            error.rawResponse = text;
+            error.status = response.status;
+            throw error;
+        }
+        throw err;
+    }
+}
+
 // 生成设备ID
 function generateDeviceId() {
     // 🔑 优先使用缓存的设备ID，确保同一浏览器始终使用相同的设备ID
@@ -8379,7 +8731,7 @@ try{
     })
   });
   
-  const serverResult = await serverResponse.json();
+  const serverResult = await parseServerJson(serverResponse, '密钥验证服务');
   console.log('密钥输入时服务器验证结果:', serverResult);
   
   if(serverResult.success && serverResult.valid){
@@ -8406,9 +8758,35 @@ try{
 if(loadingInterval){clearInterval(loadingInterval);}
 verifyTimeout=setTimeout(()=>{isVerifying=false;this.disabled=false;this.textContent="验证密钥";this.style.opacity="1";this.style.cursor="pointer";},1000);}}else alert("请输入密钥")});
 
-window.addEventListener("load",async function(){try{const t=Y(),e=localStorage.getItem(`validKey_${t}`);if(e){
+window.addEventListener("load",async function(){try{
+  // 本地开发环境直接跳过密钥验证
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    console.log('🔓 本地开发环境：跳过密钥验证');
+    const keyModal = document.getElementById('keyModal');
+    if (keyModal) {
+      keyModal.classList.add('hidden');
+      keyModal.style.display = 'none';
+    }
+    b = true;
+    return;
+  }
+  
+  const t=Y(),e=localStorage.getItem(`validKey_${t}`);if(e){
   // 🔒 完全依赖服务器验证，移除所有本地验证逻辑
   console.log('🔒 页面加载：向服务器验证密钥状态');
+  
+  // 本地开发环境跳过密钥验证
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    console.log('🔓 本地开发环境：跳过密钥验证');
+    const keyModal = document.getElementById('keyModal');
+    if (keyModal) {
+      keyModal.classList.add('hidden');
+      keyModal.style.display = 'none';
+    }
+    b = true;
+    return;
+  }
+  
   try {
     // 根据环境选择API地址
     const serverCheckUrl = window.location.hostname.includes('vercel.app')
@@ -8430,7 +8808,7 @@ window.addEventListener("load",async function(){try{const t=Y(),e=localStorage.g
       })
     });
     
-    const serverResult = await serverResponse.json();
+    const serverResult = await parseServerJson(serverResponse, '密钥状态验证服务');
     console.log('页面加载时服务器验证结果:', serverResult);
     
     // 服务器验证通过
@@ -8856,7 +9234,7 @@ async function fetchApiData() {
                 throw new Error(`HTTP错误! 状态: ${response.status}`);
             }
             
-            data = await response.json();
+            data = await parseServerJson(response, '台湾PK10最新数据');
             console.log('步骤2: 台湾PK10 API返回数据:', data);
             
             // 处理台湾PK10数据格式
@@ -8977,7 +9355,7 @@ async function fetchApiData() {
                 throw new Error(`HTTP错误! 状态: ${response.status}`);
             }
             
-            data = await response.json();
+            data = await parseServerJson(response, currentLotteryType === 'jsft' ? '极速飞艇数据接口' : '幸运飞艇数据接口');
             console.log('步骤2: 幸运飞艇 API返回数据:', data);
             
             // 检查API返回的错误码
@@ -9148,7 +9526,7 @@ window.fetchHistoryData = async function fetchHistoryData() {
                 continue; // 跳过这个日期，继续下一个
             }
             
-            const data = await response.json();
+            const data = await parseServerJson(response, `${dateStr} 历史数据接口`);
             console.log(`步骤3.${dates.indexOf(dateStr) + 1}: ${dateStr} 历史数据API返回:`, data);
             
             let historyItems = [];
@@ -9359,7 +9737,7 @@ async function getNextDrawTime() {
             throw new Error(`HTTP错误! 状态: ${response.status}`);
         }
         
-        const data = await response.json();
+        const data = await parseServerJson(response, '下一期开奖时间接口');
         
         if (data.errorCode !== 0) {
             throw new Error(data.message || 'API返回错误');
@@ -13003,7 +13381,7 @@ async function sendOnlineHeartbeat(key) {
             body: JSON.stringify({ key: key })
         });
         
-        const result = await response.json();
+        const result = await parseServerJson(response, '心跳服务');
         
         if (result.success) {
             console.log(`✅ 心跳成功[${method}]`);
