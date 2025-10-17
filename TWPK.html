@@ -13,8 +13,8 @@
   <!-- 安全防护脚本 -->
   <script>
     // 🎯 版本信息
-    const APP_VERSION = 'v1.0.0.9';
-    const BUILD_TIME = '2025-10-18 01:40:00';
+    const APP_VERSION = 'v1.0.0.10';
+    const BUILD_TIME = '2025-10-18 02:30:00';
     console.log('%c🚀 台湾PK数据分析工具 ' + APP_VERSION, 'color: #3b82f6; font-size: 18px; font-weight: bold; padding: 10px;');
     console.log('%c📅 构建时间: ' + BUILD_TIME, 'color: #10b981; font-size: 14px;');
     console.log('%c🔧 如看到此版本号说明页面已更新', 'color: #f59e0b; font-size: 12px;');
@@ -1492,6 +1492,47 @@
     <div id="fiveStarPage" class="hidden">
       <div class="container mx-auto py-8">
         <div class="bg-white rounded-lg shadow-md p-6">
+          <!-- 模式切换区域 -->
+          <div class="mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+            <div class="flex gap-3 mb-3">
+              <button id="concatModeBtn" class="flex-1 px-4 py-3 rounded-lg border-2 border-blue-500 bg-blue-500 text-white font-semibold transition-all hover:shadow-lg flex items-center justify-center gap-2 mode-btn-active">
+                <span class="text-xl">🔗</span>
+                <span>拼接模式</span>
+              </button>
+              <button id="intersectionModeBtn" class="flex-1 px-4 py-3 rounded-lg border-2 border-gray-300 bg-white text-gray-700 font-semibold transition-all hover:border-purple-500 hover:text-purple-600 flex items-center justify-center gap-2">
+                <span class="text-xl">⚡</span>
+                <span>交集模式</span>
+              </button>
+            </div>
+            
+            <!-- 交集配置区域（默认隐藏） -->
+            <div id="intersectionConfig" class="hidden">
+              <!-- 自动检测信息 -->
+              <div id="detectedModulesInfo" class="mb-3 p-3 bg-white rounded-lg border border-blue-200">
+                <div class="text-gray-500 text-sm text-center py-2">正在扫描模块...</div>
+              </div>
+              
+              <!-- 容错设置 -->
+              <div class="p-3 bg-white rounded-lg border border-blue-200">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  <span class="text-purple-600">⚙️</span> 容错设置
+                </label>
+                <div class="flex gap-2 flex-wrap">
+                  <button class="intersection-tolerance-btn px-4 py-2 rounded-md border-2 border-blue-500 bg-blue-500 text-white font-medium transition-all hover:shadow-md" data-tolerance="0">0</button>
+                  <button class="intersection-tolerance-btn px-4 py-2 rounded-md border-2 border-gray-300 bg-white text-gray-700 font-medium transition-all hover:border-blue-400" data-tolerance="1">1</button>
+                  <button class="intersection-tolerance-btn px-4 py-2 rounded-md border-2 border-gray-300 bg-white text-gray-700 font-medium transition-all hover:border-blue-400" data-tolerance="2">2</button>
+                  <button class="intersection-tolerance-btn px-4 py-2 rounded-md border-2 border-gray-300 bg-white text-gray-700 font-medium transition-all hover:border-blue-400" data-tolerance="3">3</button>
+                  <button class="intersection-tolerance-btn px-4 py-2 rounded-md border-2 border-gray-300 bg-white text-gray-700 font-medium transition-all hover:border-blue-400" data-tolerance="4">4</button>
+                  <button class="intersection-tolerance-btn px-4 py-2 rounded-md border-2 border-gray-300 bg-white text-gray-700 font-medium transition-all hover:border-blue-400" data-tolerance="5">5</button>
+                  <button class="intersection-tolerance-btn px-4 py-2 rounded-md border-2 border-gray-300 bg-white text-gray-700 font-medium transition-all hover:border-blue-400" data-tolerance="6">6</button>
+                  <button class="intersection-tolerance-btn px-4 py-2 rounded-md border-2 border-gray-300 bg-white text-gray-700 font-medium transition-all hover:border-blue-400" data-tolerance="7">7</button>
+                  <button class="intersection-tolerance-btn px-4 py-2 rounded-md border-2 border-gray-300 bg-white text-gray-700 font-medium transition-all hover:border-blue-400" data-tolerance="8">8</button>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">💡 容错值越大，交集结果越多</p>
+              </div>
+            </div>
+          </div>
+          
           <!-- 号码显示区域 -->
           <div class="mb-6 border border-gray-200 rounded-lg p-4 bg-gray-50">
             <!-- 星级选择器在左上角 -->
@@ -2693,7 +2734,7 @@
   <!-- 页脚 -->
   <footer class="bg-white border-t border-gray-200 py-4">
     <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
-      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.9</span></p>
+      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.10</span></p>
     </div>
   </footer>
 
@@ -5594,6 +5635,9 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // 初始化星级选择器事件监听器
   initStarSelector();
+  
+  // 初始化模式切换器
+  initModeSwitcher();
 });
 
 // 星级选择器初始化函数
@@ -5637,12 +5681,19 @@ function initNumberDisplayButtons() {
   const concatBtn = document.getElementById('concatBtn');
   if (concatBtn) {
     concatBtn.addEventListener('click', function() {
-      // 获取当前选择的星级
-      const activeStarBtn = document.querySelector('.star-btn.active');
-      const selectedStar = activeStarBtn ? parseInt(activeStarBtn.dataset.star) : 5;
-      
-      // 根据星级调用相应的拼接函数
-      generateStarConcatenation(selectedStar);
+      // 根据当前模式执行不同的功能
+      if (currentFiveStarMode === 'intersection') {
+        // 交集模式
+        executeAutoIntersection();
+      } else {
+        // 拼接模式
+        // 获取当前选择的星级
+        const activeStarBtn = document.querySelector('.star-btn.active');
+        const selectedStar = activeStarBtn ? parseInt(activeStarBtn.dataset.star) : 5;
+        
+        // 根据星级调用相应的拼接函数
+        generateStarConcatenation(selectedStar);
+      }
     });
   }
   
@@ -5661,6 +5712,254 @@ function initNumberDisplayButtons() {
       verifyNumbers();
     });
   }
+}
+
+// ==================== 交集模式功能 ====================
+
+// 全局变量：当前模式 ('concat' | 'intersection')
+let currentFiveStarMode = 'concat';
+
+// 模式切换功能
+function initModeSwitcher() {
+  const concatModeBtn = document.getElementById('concatModeBtn');
+  const intersectionModeBtn = document.getElementById('intersectionModeBtn');
+  const intersectionConfig = document.getElementById('intersectionConfig');
+  
+  if (!concatModeBtn || !intersectionModeBtn) return;
+  
+  // 拼接模式按钮
+  concatModeBtn.addEventListener('click', function() {
+    currentFiveStarMode = 'concat';
+    concatModeBtn.classList.add('border-blue-500', 'bg-blue-500', 'text-white');
+    concatModeBtn.classList.remove('border-gray-300', 'bg-white', 'text-gray-700');
+    intersectionModeBtn.classList.remove('border-purple-500', 'bg-purple-500', 'text-white');
+    intersectionModeBtn.classList.add('border-gray-300', 'bg-white', 'text-gray-700');
+    if (intersectionConfig) intersectionConfig.classList.add('hidden');
+  });
+  
+  // 交集模式按钮
+  intersectionModeBtn.addEventListener('click', function() {
+    currentFiveStarMode = 'intersection';
+    intersectionModeBtn.classList.add('border-purple-500', 'bg-purple-500', 'text-white');
+    intersectionModeBtn.classList.remove('border-gray-300', 'bg-white', 'text-gray-700');
+    concatModeBtn.classList.remove('border-blue-500', 'bg-blue-500', 'text-white');
+    concatModeBtn.classList.add('border-gray-300', 'bg-white', 'text-gray-700');
+    if (intersectionConfig) intersectionConfig.classList.remove('hidden');
+    
+    // 扫描并显示模块信息
+    scanAndDisplayModules();
+  });
+  
+  // 容错按钮事件
+  const toleranceBtns = document.querySelectorAll('.intersection-tolerance-btn');
+  toleranceBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      toleranceBtns.forEach(b => {
+        b.classList.remove('border-blue-500', 'bg-blue-500', 'text-white');
+        b.classList.add('border-gray-300', 'bg-white', 'text-gray-700');
+      });
+      this.classList.add('border-blue-500', 'bg-blue-500', 'text-white');
+      this.classList.remove('border-gray-300', 'bg-white', 'text-gray-700');
+    });
+  });
+}
+
+// 扫描模块并按星级分组
+function scanModulesAndGroup() {
+  const groups = {}; // { '5': [模块数据], '3': [模块数据] }
+  
+  // 扫描8个输入模块
+  for (let i = 1; i <= 8; i++) {
+    const textarea = document.querySelector(`textarea[data-module="${i}"]`);
+    if (!textarea) continue;
+    
+    const lines = textarea.value.trim().split('\n').filter(line => line.trim());
+    if (lines.length === 0) continue; // 跳过空模块
+    
+    // 解析第一行确定星级
+    const firstLine = lines[0].trim();
+    const numbers = firstLine.split(/[,，\s]+/).filter(n => n);
+    const star = numbers.length;
+    
+    // 解析所有号码
+    const allNumbers = lines.map(line => {
+      return line.trim().split(/[,，\s]+/)
+        .filter(n => n)
+        .map(n => n.padStart(2, '0'));
+    }).filter(nums => nums.length === star); // 只保留星级一致的行
+    
+    if (allNumbers.length === 0) continue;
+    
+    // 按星级分组
+    if (!groups[star]) groups[star] = [];
+    groups[star].push({
+      moduleNum: i,
+      star: star,
+      count: allNumbers.length,
+      numbers: allNumbers
+    });
+  }
+  
+  return groups;
+}
+
+// 扫描并显示模块信息
+function scanAndDisplayModules() {
+  const groups = scanModulesAndGroup();
+  const infoDiv = document.getElementById('detectedModulesInfo');
+  
+  if (!infoDiv) return;
+  
+  let html = '<div class="space-y-2">';
+  html += '<h4 class="font-semibold text-gray-800 mb-2">📊 自动检测到的模块：</h4>';
+  
+  if (Object.keys(groups).length === 0) {
+    html += '<p class="text-gray-500 text-sm">暂无数据，请在下方输入模块中粘贴号码</p>';
+  } else {
+    Object.keys(groups).sort((a, b) => b - a).forEach(star => {
+      const modules = groups[star];
+      const totalCount = modules.reduce((sum, m) => sum + m.count, 0);
+      const moduleInfo = modules.map(m => 
+        `模块${m.moduleNum}(${m.count}注)`
+      ).join(', ');
+      
+      html += `<div class="p-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded border border-blue-200">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="font-bold text-blue-600 text-lg">${star}星:</span> 
+            <span class="text-gray-700 text-sm">${moduleInfo}</span>
+          </div>
+          <div class="text-right">
+            <span class="text-xs text-gray-500">共${totalCount}注</span>
+            ${modules.length >= 2 ? 
+              `<span class="ml-2 px-2 py-1 bg-green-100 text-green-700 text-xs rounded font-medium">✓ 可交集</span>` : 
+              `<span class="ml-2 px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded">需≥2个模块</span>`
+            }
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+  
+  html += '</div>';
+  infoDiv.innerHTML = html;
+}
+
+// 两组号码求交集（带容错）
+function intersectTwoGroups(groupA, groupB, tolerance, star) {
+  const result = [];
+  
+  groupA.forEach(numA => {
+    groupB.forEach(numB => {
+      // 计算相同数字个数
+      const sameCount = numA.filter(n => numB.includes(n)).length;
+      const diffCount = star - sameCount;
+      
+      // 如果差异在容错范围内
+      if (diffCount <= tolerance) {
+        // 合并两个号码，去重并排序
+        const combined = [...new Set([...numA, ...numB])].sort();
+        result.push(combined);
+      }
+    });
+  });
+  
+  return result;
+}
+
+// 多模块交集
+function performMultiModuleIntersection(modules, tolerance) {
+  if (modules.length === 0) return [];
+  if (modules.length === 1) {
+    console.log('只有1个模块，直接返回原数据');
+    return modules[0].numbers;
+  }
+  
+  // 从第一个模块开始，逐个与后续模块求交集
+  let result = modules[0].numbers;
+  console.log(`交集起始: 模块${modules[0].moduleNum} (${result.length}注)`);
+  
+  for (let i = 1; i < modules.length; i++) {
+    const prevCount = result.length;
+    result = intersectTwoGroups(result, modules[i].numbers, tolerance, modules[0].star);
+    console.log(`与模块${modules[i].moduleNum}交集: ${prevCount}注 → ${result.length}注`);
+  }
+  
+  // 去重
+  const uniqueResult = [];
+  const seen = new Set();
+  result.forEach(nums => {
+    const key = nums.join(',');
+    if (!seen.has(key)) {
+      seen.add(key);
+      uniqueResult.push(nums);
+    }
+  });
+  
+  return uniqueResult;
+}
+
+// 执行自动交集
+function executeAutoIntersection() {
+  // 获取容错值
+  const activeToleranceBtn = document.querySelector('.intersection-tolerance-btn.bg-blue-500');
+  const tolerance = activeToleranceBtn ? parseInt(activeToleranceBtn.dataset.tolerance) : 0;
+  
+  console.log(`开始执行自动交集，容错值: ${tolerance}`);
+  
+  // 扫描并分组
+  const groups = scanModulesAndGroup();
+  
+  if (Object.keys(groups).length === 0) {
+    alert('❌ 没有检测到任何模块数据\n\n请在下方输入模块中粘贴号码后再试');
+    return;
+  }
+  
+  // 对每个星级组执行交集
+  let allResults = [];
+  let resultSummary = [];
+  
+  Object.keys(groups).sort((a, b) => b - a).forEach(star => {
+    const modules = groups[star];
+    
+    if (modules.length < 2) {
+      console.log(`${star}星只有${modules.length}个模块，跳过交集`);
+      return;
+    }
+    
+    console.log(`\n开始处理${star}星交集，共${modules.length}个模块`);
+    const intersectionResult = performMultiModuleIntersection(modules, tolerance);
+    
+    if (intersectionResult.length > 0) {
+      allResults.push(...intersectionResult.map(nums => ({ star, numbers: nums })));
+      resultSummary.push(`${star}星: ${intersectionResult.length}注`);
+      console.log(`✓ ${star}星交集完成: ${intersectionResult.length}注`);
+    } else {
+      console.log(`✗ ${star}星交集结果为空`);
+    }
+  });
+  
+  // 显示结果
+  if (allResults.length === 0) {
+    alert('❌ 交集结果为空\n\n可能原因：\n1. 各模块号码差异过大\n2. 容错值设置过小\n\n建议：增加容错值再试');
+    return;
+  }
+  
+  // 格式化显示
+  const resultText = allResults.map(item => item.numbers.join(',')).join('\n');
+  const numberDisplay = document.getElementById('numberDisplay');
+  const numberCount = document.getElementById('numberCount');
+  
+  if (numberDisplay) {
+    numberDisplay.innerHTML = `<pre class="whitespace-pre-wrap font-mono text-sm">${resultText}</pre>`;
+  }
+  
+  if (numberCount) {
+    numberCount.textContent = `共 ${allResults.length} 注 (${resultSummary.join(' | ')})`;
+  }
+  
+  console.log('✅ 交集完成:', resultSummary.join(', '));
+  alert(`✅ 交集完成！\n\n${resultSummary.join('\n')}\n─────────\n总计: ${allResults.length}注`);
 }
 
 // 五星做号页面的拼接功能（使用交集拼接逻辑）
