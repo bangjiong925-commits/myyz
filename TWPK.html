@@ -6743,9 +6743,7 @@ function _0xStartTimer() {
         if (_0xCurrentKey) {
             try {
                 // 根据环境选择API地址
-                const serverCheckUrl = window.location.hostname.includes('vercel.app') 
-                    ? '/api/keys/validate-key'
-                    : 'http://47.242.214.89/api/keys/validate-key';
+                const serverCheckUrl = 'http://47.242.214.89/api/keys/validate-key';
                 
                 // 生成设备ID
                 const deviceId = generateDeviceId();
@@ -7576,9 +7574,7 @@ return {valid: false, reason: "密钥校验失败"};
             // 根据环境选择API地址
             const serverCheckUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
                 ? 'http://localhost:3002/api/keys/check-usage'
-                : window.location.hostname.includes('vercel.app')
-                    ? '/api/keys/check-usage'
-                    : 'http://47.242.214.89/api/keys/check-usage';
+                : 'http://47.242.214.89/api/keys/check-usage';
             
             const serverResponse = await fetch(serverCheckUrl, {
                 method: 'POST',
@@ -7621,9 +7617,7 @@ return {valid: false, reason: "密钥校验失败"};
             // 根据环境选择API地址
             const registerUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
                 ? 'http://localhost:3002/api/keys/validate-and-register'
-                : window.location.hostname.includes('vercel.app')
-                    ? '/api/keys/validate-and-register'
-                    : 'http://47.242.214.89/api/keys/validate-and-register';
+                : 'http://47.242.214.89/api/keys/validate-and-register';
             
             await fetch(registerUrl, {
                 method: 'POST',
@@ -8712,9 +8706,7 @@ try{
   // 🔒 完全依赖服务器验证，移除本地验证逻辑
   console.log('🔒 密钥输入：向服务器验证密钥');
   // 根据环境选择API地址
-  const serverValidateUrl = window.location.hostname.includes('vercel.app')
-      ? '/api/keys/validate-key'
-      : 'http://47.242.214.89/api/keys/validate-key';
+  const serverValidateUrl = 'http://47.242.214.89/api/keys/validate-key';
   
   // 生成设备ID
   const deviceId = generateDeviceId();
@@ -8789,9 +8781,7 @@ window.addEventListener("load",async function(){try{
   
   try {
     // 根据环境选择API地址
-    const serverCheckUrl = window.location.hostname.includes('vercel.app')
-        ? '/api/keys/validate-key'
-        : 'http://47.242.214.89/api/keys/validate-key';
+    const serverCheckUrl = 'http://47.242.214.89/api/keys/validate-key';
     
     // 生成设备ID
     const deviceId = generateDeviceId();
