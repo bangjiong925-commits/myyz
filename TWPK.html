@@ -13,8 +13,8 @@
   <!-- 安全防护脚本 -->
   <script>
     // 🎯 版本信息
-    const APP_VERSION = 'v1.0.0.2';
-    const BUILD_TIME = '2025-10-17 23:58:00';
+    const APP_VERSION = 'v1.0.0.3';
+    const BUILD_TIME = '2025-10-18 00:02:00';
     console.log('%c🚀 台湾PK数据分析工具 ' + APP_VERSION, 'color: #3b82f6; font-size: 18px; font-weight: bold; padding: 10px;');
     console.log('%c📅 构建时间: ' + BUILD_TIME, 'color: #10b981; font-size: 14px;');
     console.log('%c🔧 如看到此版本号说明页面已更新', 'color: #f59e0b; font-size: 12px;');
@@ -2693,7 +2693,7 @@
   <!-- 页脚 -->
   <footer class="bg-white border-t border-gray-200 py-4">
     <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
-      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.2</span></p>
+      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.3</span></p>
     </div>
   </footer>
 
@@ -9473,14 +9473,23 @@ window.fetchHistoryData = async function fetchHistoryData() {
             const isVercel = window.location.hostname.includes('vercel.app') || window.location.hostname.includes('myyz.vercel.app');
             let historyApiUrl;
             
-            // 所有环境都直接调用阿里云API
-            if (lotteryType === 'jsft') {
-                historyApiUrl = `https://jvt.168skfbm.com/api/pks/getPksHistoryList.do?lotCode=10037&date=${dateStr}`;
+            if (isVercel) {
+                // Vercel环境下使用代理API
+                if (lotteryType === 'jsft') {
+                    historyApiUrl = `/api/jsft-data?date=${dateStr}`;
+                } else {
+                    historyApiUrl = `/api/taiwan-pk10-data?date=${dateStr}`;
+                }
+                console.log(`步骤2.${dates.indexOf(dateStr) + 1}: Vercel环境，使用代理API:`, historyApiUrl);
             } else {
-                // 台湾PK10直接从阿里云获取
-                historyApiUrl = `http://47.242.214.89/api/latest?date=${dateStr}&limit=200`;
+                // 本地环境直接调用外部API
+                if (lotteryType === 'jsft') {
+                    historyApiUrl = `https://jvt.168skfbm.com/api/pks/getPksHistoryList.do?lotCode=10037&date=${dateStr}`;
+                } else {
+                    historyApiUrl = `http://47.242.214.89/api/latest?date=${dateStr}&limit=200`;
+                }
+                console.log(`步骤2.${dates.indexOf(dateStr) + 1}: 本地环境，直接调用API:`, historyApiUrl);
             }
-            console.log(`步骤2.${dates.indexOf(dateStr) + 1}: 直接调用API:`, historyApiUrl);
         
             let response;
             try {
@@ -9519,34 +9528,52 @@ window.fetchHistoryData = async function fetchHistoryData() {
             
             let historyItems = [];
             
-            if (lotteryType === 'twpk10') {
-                // 台湾PK10 - 阿里云API返回格式
-                if (Array.isArray(data)) {
-                    // 直接是数组格式，转换为标准格式
-                    historyItems = data.map(item => ({
+            if (isVercel) {
+                // Vercel API返回格式处理
+                if (data.success && data.data && Array.isArray(data.data)) {
+                    // 转换Vercel API格式到原始格式
+                    historyItems = data.data.map(item => ({
                         preDrawIssue: item.period,
                         preDrawCode: item.numbers,
                         preDrawTime: item.timestamp || item.time || dateStr
                     }));
-                    console.log(`步骤4.${dates.indexOf(dateStr) + 1}: 阿里云API ${dateStr} 获取到 ${historyItems.length} 条历史数据`);
+                    console.log(`步骤4.${dates.indexOf(dateStr) + 1}: Vercel API ${dateStr} 获取到 ${historyItems.length} 条历史数据`);
+                } else if (!data.success) {
+                    console.warn(`Vercel API返回错误 (${dateStr}):`, data.error || '未知错误');
+                    continue; // 跳过这个日期，继续下一个
                 } else {
-                    console.warn(`${dateStr} 阿里云API返回格式不正确，应为数组`);
+                    console.warn(`${dateStr} Vercel API返回格式不正确`);
                     continue;
                 }
             } else {
-                // 急速飞艇 - 原始API返回格式处理
-                if (data.errorCode !== 0) {
-                    console.warn(`API返回错误 (${dateStr}):`, data.message || '未知错误');
-                    continue; // 跳过这个日期，继续下一个
-                }
-                
-                // 解析历史数据
-                if (data && data.result && data.result.data && Array.isArray(data.result.data)) {
-                    historyItems = data.result.data;
-                    console.log(`步骤4.${dates.indexOf(dateStr) + 1}: 原始API ${dateStr} 获取到 ${historyItems.length} 条历史数据`);
+                // 本地环境 - 原始API返回格式处理
+                if (lotteryType === 'twpk10') {
+                    // 台湾PK10本地环境 - 直接数组格式
+                    if (Array.isArray(data)) {
+                        historyItems = data.map(item => ({
+                            preDrawIssue: item.period,
+                            preDrawCode: item.numbers,
+                            preDrawTime: item.timestamp || item.time || dateStr
+                        }));
+                        console.log(`步骤4.${dates.indexOf(dateStr) + 1}: 本地API ${dateStr} 获取到 ${historyItems.length} 条历史数据`);
+                    } else {
+                        console.warn(`${dateStr} 本地API返回格式不正确`);
+                        continue;
+                    }
                 } else {
-                    console.warn(`${dateStr} 原始API返回格式不正确`);
-                    continue;
+                    // 急速飞艇本地环境
+                    if (data.errorCode !== 0) {
+                        console.warn(`API返回错误 (${dateStr}):`, data.message || '未知错误');
+                        continue;
+                    }
+                    
+                    if (data && data.result && data.result.data && Array.isArray(data.result.data)) {
+                        historyItems = data.result.data;
+                        console.log(`步骤4.${dates.indexOf(dateStr) + 1}: 原始API ${dateStr} 获取到 ${historyItems.length} 条历史数据`);
+                    } else {
+                        console.warn(`${dateStr} 原始API返回格式不正确`);
+                        continue;
+                    }
                 }
             }
             
