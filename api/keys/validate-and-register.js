@@ -1,7 +1,7 @@
 // Vercel API代理 - 使用axios转发到阿里云
-import axios from 'axios';
+const axios = require('axios');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -12,6 +12,8 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('[Vercel代理] 转发validate-and-register请求');
+    
     const response = await axios.post(
       'http://47.242.214.89/api/keys/validate-and-register',
       req.body,
@@ -20,6 +22,8 @@ export default async function handler(req, res) {
     
     return res.status(response.status).json(response.data);
   } catch (error) {
+    console.error('[Vercel代理] validate-and-register错误:', error.message);
+    
     if (error.response) {
       return res.status(error.response.status).json(error.response.data);
     }
@@ -29,4 +33,4 @@ export default async function handler(req, res) {
       message: error.message 
     });
   }
-}
+};
