@@ -14,22 +14,17 @@ module.exports = async (req, res) => {
         });
     }
 
-    // 获取日期参数
+    // 获取日期参数（可选，因为阿里云API是200期循环，不支持日期过滤）
     const { date } = req.query;
-    
-    if (!date) {
-        return res.status(400).json({ 
-            success: false, 
-            error: '缺少date参数' 
-        });
-    }
 
-    // 阿里云API地址 - 先获取最新300条数据，然后在服务端过滤
+    // 阿里云API地址 - 获取最新200条数据（循环数据）
     const aliyunHost = '47.242.214.89';
-    const aliyunPath = `/api/latest?limit=300`;
+    const aliyunPath = `/api/latest?limit=200`;
 
     console.log(`代理请求: http://${aliyunHost}${aliyunPath}`);
-    console.log(`请求日期: ${date}`);
+    if (date) {
+        console.log(`前端请求日期: ${date} (阿里云API不支持日期过滤，返回最新200期)`);
+    }
 
     // 代理请求到阿里云
     const options = {
@@ -66,31 +61,24 @@ module.exports = async (req, res) => {
                         });
                     }
 
-                    // 转换阿里云数据格式到前端期望的格式，并过滤指定日期
+                    // 转换阿里云数据格式到前端期望的格式
                     const aliyunData = aliyunResponse.data || [];
                     
-                    // 过滤指定日期的数据
-                    const filteredData = aliyunData.filter(item => {
-                        // opentime格式: "2025-10-17 23:56:28"
-                        const itemDate = item.opentime ? item.opentime.split(' ')[0] : '';
-                        return itemDate === date;
-                    });
-
-                    const transformedData = filteredData.map(item => ({
+                    const transformedData = aliyunData.map(item => ({
                         period: item.expect,           // expect -> period
                         numbers: item.opencode,        // opencode -> numbers
                         timestamp: item.opentime,      // opentime -> timestamp
                         time: item.opentime           // 兼容字段
                     }));
 
-                    console.log(`阿里云返回: ${aliyunData.length} 条，过滤日期 ${date} 后: ${transformedData.length} 条`);
+                    console.log(`阿里云返回并转换: ${transformedData.length} 条数据`);
 
                     // 返回转换后的数据给前端
                     res.status(200).json({
                         success: true,
                         data: transformedData,
-                        date: date,
-                        count: transformedData.length
+                        count: transformedData.length,
+                        message: '成功获取最新200期数据（循环）'
                     });
                     resolve();
                 } catch (error) {
