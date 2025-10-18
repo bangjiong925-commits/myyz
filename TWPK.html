@@ -13,8 +13,8 @@
   <!-- 安全防护脚本 -->
   <script>
     // 🎯 版本信息
-    const APP_VERSION = 'v1.0.0.22';
-    const BUILD_TIME = '2025-10-18 05:20:00';
+    const APP_VERSION = 'v1.0.0.23';
+    const BUILD_TIME = '2025-10-18 05:30:00';
     console.log('%c🚀 台湾PK数据分析工具 ' + APP_VERSION, 'color: #3b82f6; font-size: 18px; font-weight: bold; padding: 10px;');
     console.log('%c📅 构建时间: ' + BUILD_TIME, 'color: #10b981; font-size: 14px;');
     console.log('%c🔧 如看到此版本号说明页面已更新', 'color: #f59e0b; font-size: 12px;');
@@ -2724,7 +2724,7 @@
   <!-- 页脚 -->
   <footer class="bg-white border-t border-gray-200 py-4">
     <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
-      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.22</span></p>
+      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.23</span></p>
     </div>
   </footer>
 
@@ -9672,10 +9672,22 @@ async function fetchApiData() {
                 
                 // 只有在有新数据时才刷新表格显示
                 if (newDataCount > 0) {
-                    console.log('步骤6: 检测到', newDataCount, '条新数据，刷新表格显示');
+                    console.log('✨ 步骤6: 检测到', newDataCount, '条新数据，刷新表格显示');
+                    console.log('✨ 最新期号:', newDataItems[0]?.period, '开奖时间:', newDataItems[0]?.开奖时间);
                     L(); // 刷新表格显示新数据
+                    
+                    // 同步到验证计划和单期验证
+                    if (typeof window.syncDataToVerifyPlan === 'function') {
+                        window.syncDataToVerifyPlan();
+                    }
+                    if (typeof window.updateSinglePeriodTable === 'function') {
+                        window.updateSinglePeriodTable();
+                    }
                 } else {
-                    console.log('步骤6: 没有新数据，跳过表格刷新');
+                    // 添加调试信息：显示当前最新期号和API返回的最新期号
+                    const currentLatestPeriod = r.length > 0 ? r[0].period : '无';
+                    const apiLatestPeriod = data.data.length > 0 ? data.data[0].expect : '无';
+                    console.log('⏸️ 步骤6: 没有新数据，跳过表格刷新 | 当前最新期号:', currentLatestPeriod, '| API返回最新期号:', apiLatestPeriod);
                 }
                 
                 // 保存数据到缓存
