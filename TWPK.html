@@ -13,8 +13,8 @@
   <!-- 安全防护脚本 -->
   <script>
     // 🎯 版本信息
-    const APP_VERSION = 'v1.0.0.24';
-    const BUILD_TIME = '2025-10-18 05:40:00';
+    const APP_VERSION = 'v1.0.0.25';
+    const BUILD_TIME = '2025-10-19 22:20:00';
     console.log('%c🚀 台湾PK数据分析工具 ' + APP_VERSION, 'color: #3b82f6; font-size: 18px; font-weight: bold; padding: 10px;');
     console.log('%c📅 构建时间: ' + BUILD_TIME, 'color: #10b981; font-size: 14px;');
     console.log('%c🔧 如看到此版本号说明页面已更新', 'color: #f59e0b; font-size: 12px;');
@@ -1315,8 +1315,8 @@
           <div class="flex items-center gap-4">
             <label for="lotteryType" class="text-sm font-medium text-gray-700">彩种选择:</label>
             <select id="lotteryType" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200 bg-white">
-              <option value="xyft">幸运飞艇</option>
-              <option value="jsft">急速飞艇</option>
+              <option value="bscbh3fpk10">币安3分PK10</option>
+              <option value="bscbh5fpk10">币安5分PK10</option>
               <option value="twpk10" selected>台湾PK10</option>
             </select>
             <span id="currentLotteryStatus" class="text-sm text-gray-500">当前: 台湾PK10</span>
@@ -1531,7 +1531,7 @@
                   <button class="tolerance-btn px-3 py-1 rounded border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-blue-400" data-tolerance="6">6</button>
                   <button class="tolerance-btn px-3 py-1 rounded border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-blue-400" data-tolerance="7">7</button>
                   <button class="tolerance-btn px-3 py-1 rounded border-2 border-gray-300 bg-white text-gray-700 text-sm font-medium transition-all hover:border-blue-400" data-tolerance="8">8</button>
-                </div>
+              </div>
               </div>
               
               <div class="flex space-x-2">
@@ -2724,7 +2724,7 @@
   <!-- 页脚 -->
   <footer class="bg-white border-t border-gray-200 py-4">
     <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
-      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.24</span></p>
+      <p>台湾PK数据分析工具 © 2025，联系✈️@suibian925 | <span style="color: #3b82f6; font-weight: bold;">v1.0.0.30</span></p>
     </div>
   </footer>
 
@@ -5797,9 +5797,9 @@ function initModeSwitcher() {
         executeAutoIntersection();
       } else {
         // 拼接模式
-        const activeStarBtn = document.querySelector('.star-btn.active');
-        const selectedStar = activeStarBtn ? parseInt(activeStarBtn.dataset.star) : 5;
-        generateStarConcatenation(selectedStar);
+      const activeStarBtn = document.querySelector('.star-btn.active');
+      const selectedStar = activeStarBtn ? parseInt(activeStarBtn.dataset.star) : 5;
+      generateStarConcatenation(selectedStar);
       }
     });
   }
@@ -6531,6 +6531,14 @@ let currentLotteryType = 'twpk10'; // 默认为台湾PK10
 
 // 为不同彩票类型创建独立的数据存储
 const lotteryDataStorage = {
+    bscbh3fpk10: {
+        data: [],
+        periodSet: new Set()
+    },
+    bscbh5fpk10: {
+        data: [],
+        periodSet: new Set()
+    },
     xyft: {
         data: [],
         periodSet: new Set()
@@ -6554,9 +6562,9 @@ function getCurrentLotteryData() {
     return lotteryDataStorage[currentLotteryType];
 }
 
-// 设置当前彩票类型的数据
-function setCurrentLotteryData(data) {
-    const type = currentLotteryType || 'twpk10';
+// 设置彩票类型的数据（可以指定类型，如果不指定则使用当前类型）
+function setCurrentLotteryData(data, targetType = null) {
+    const type = targetType || currentLotteryType || 'twpk10';
     
     // 限制数据量，确保不超过200期
     const maxDataCount = 200;
@@ -6571,14 +6579,22 @@ function setCurrentLotteryData(data) {
     } else {
         lotteryDataStorage[type].data = data;
     }
-    // 同步到全局变量
-    r = data;
-    window.r = data;
+    
+    // 只有当设置的是当前显示彩种的数据时，才同步到全局变量
+    if (type === currentLotteryType) {
+        r = data;
+        window.r = data;
+        console.log(`✅ [${type}] 已同步到全局变量r，共${data.length}期`);
+    } else {
+        console.log(`⚠️ [${type}] 数据已存储但未同步到全局变量（当前彩种：${currentLotteryType}）`);
+    }
 }
 
-// 添加数据到当前彩票类型
-function addToCurrentLotteryData(newData) {
-    const storage = getCurrentLotteryData();
+// 添加数据到指定彩票类型（如果不指定则使用当前类型）
+function addToCurrentLotteryData(newData, targetType = null) {
+    const type = targetType || currentLotteryType || 'twpk10';
+    const storage = lotteryDataStorage[type] || getCurrentLotteryData();
+    
     if (Array.isArray(newData)) {
         storage.data.unshift(...newData);
     } else {
@@ -6592,14 +6608,19 @@ function addToCurrentLotteryData(newData) {
         console.log(`数据量超过${maxDataCount}期，已自动截取最新${maxDataCount}期数据`);
     }
     
-    // 同步到全局变量
-    r = storage.data;
-    window.r = storage.data;
+    // 只有当添加的是当前显示彩种的数据时，才同步到全局变量
+    if (type === currentLotteryType) {
+        r = storage.data;
+        window.r = storage.data;
+        console.log(`✅ [${type}] 已添加数据并同步到全局变量r，当前共${storage.data.length}期`);
+    } else {
+        console.log(`⚠️ [${type}] 已添加数据但未同步到全局变量（当前彩种：${currentLotteryType}）`);
+    }
 }
 
-// 检查期号是否已存在
-function isPeriodExists(period) {
-    const type = currentLotteryType || 'xyft';
+// 检查期号是否已存在（可以指定彩种类型）
+function isPeriodExists(period, targetType = null) {
+    const type = targetType || currentLotteryType || 'xyft';
     if (!lotteryDataStorage[type]) {
         console.warn('彩票类型不存在，使用默认值xyft');
         return lotteryDataStorage['xyft'].periodSet.has(period);
@@ -6607,9 +6628,9 @@ function isPeriodExists(period) {
     return lotteryDataStorage[type].periodSet.has(period);
 }
 
-// 添加期号到集合
-function addPeriodToSet(period) {
-    const type = currentLotteryType || 'xyft';
+// 添加期号到集合（可以指定彩种类型）
+function addPeriodToSet(period, targetType = null) {
+    const type = targetType || currentLotteryType || 'xyft';
     if (!lotteryDataStorage[type]) {
         console.warn('彩票类型不存在，使用默认值xyft');
         lotteryDataStorage['xyft'].periodSet.add(period);
@@ -7290,6 +7311,49 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }, 1000);
                 
+            } else if (currentLotteryType.startsWith('bscbh')) {
+                const lotteryName = currentLotteryType === 'bscbh3fpk10' ? '币安3分PK10' : '币安5分PK10';
+                console.log(`🔄 页面初始化：自动获取${lotteryName}历史数据...`);
+                if (typeof fetchHistoryData === 'function') {
+                    fetchHistoryData().then(result => {
+                        if (result && result.totalCount > 0) {
+                            console.log(`✅ 页面初始化：成功加载${lotteryName}历史数据，共`, result.totalCount, '条记录');
+                        } else {
+                            console.log(`⚠️ 页面初始化：未获取到${lotteryName}历史数据`);
+                            L(); // 调用表格渲染函数显示空表格
+                        }
+                        
+                        // 启动自动获取功能
+                        setTimeout(() => {
+                            if (typeof startAutoScrape === 'function') {
+                                startAutoScrape(false); // 不显示启动提示
+                                console.log(`🚀 页面初始化：已启动${lotteryName}自动获取功能`);
+                            }
+                        }, 1000);
+                    }).catch(error => {
+                        console.error(`❌ 获取${lotteryName}历史数据失败:`, error);
+                        L(); // 调用表格渲染函数显示空表格
+                        
+                        // 即使历史数据获取失败，也启动自动获取功能
+                        setTimeout(() => {
+                            if (typeof startAutoScrape === 'function') {
+                                startAutoScrape(false); // 不显示启动提示
+                                console.log(`🚀 页面初始化：已启动${lotteryName}自动获取功能（历史数据获取失败）`);
+                            }
+                        }, 1000);
+                    });
+                } else {
+                    console.error('❌ fetchHistoryData 函数未定义');
+                    L(); // 调用表格渲染函数显示空表格
+                    
+                    // 即使函数未定义，也尝试启动自动获取功能
+                    setTimeout(() => {
+                        if (typeof startAutoScrape === 'function') {
+                            startAutoScrape(false); // 不显示启动提示
+                            console.log(`🚀 页面初始化：已启动${lotteryName}自动获取功能（fetchHistoryData未定义）`);
+                        }
+                    }, 1000);
+                }
             } else if (currentLotteryType === 'xyft') {
                 console.log('🔄 页面初始化：自动获取幸运飞艇历史数据...');
                 if (typeof fetchHistoryData === 'function') {
@@ -7335,7 +7399,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // 彩种切换事件监听器
         lotteryTypeSelect.addEventListener('change', function() {
             currentLotteryType = this.value;
-            const lotteryName = this.value === 'xyft' ? '幸运飞艇' : (this.value === 'jsft' ? '急速飞艇' : '台湾PK10');
+            const lotteryName = this.value === 'bscbh3fpk10' ? '币安3分PK10' : 
+                               (this.value === 'bscbh5fpk10' ? '币安5分PK10' :
+                               (this.value === 'xyft' ? '幸运飞艇' : 
+                               (this.value === 'jsft' ? '急速飞艇' : '台湾PK10')));
             currentLotteryStatus.textContent = `当前: ${lotteryName}`;
             console.log(`彩种切换为: ${lotteryName} (${this.value})`);
             
@@ -7347,14 +7414,48 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 彩种切换通知已移除
             
-            // 切换彩种时加载对应彩种的数据
-            const currentData = getCurrentLotteryData();
-            r = currentData.data;
-            window.r = currentData.data;
-            d = currentData.periodSet;
-            document.getElementById("periodCount").textContent = currentData.data.length;
+            // 🔒 立即清空表格DOM，避免显示旧数据
+            console.log('🧹 清空旧彩种表格数据...');
+            const tbody = document.querySelector("#resultTable tbody");
+            const thead = document.querySelector("#resultTable thead");
+            const summary = document.getElementById("summary");
             
-            console.log(`已切换到${lotteryName}数据，当前数据量: ${currentData.data.length}期`);
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="100" class="text-center py-4 text-gray-500">正在切换彩种...</td></tr>';
+            }
+            if (thead) {
+                thead.innerHTML = '';
+            }
+            if (summary) {
+                summary.innerHTML = '';
+            }
+            
+            // 使用 requestAnimationFrame 确保 DOM 更新后再加载新数据
+            requestAnimationFrame(() => {
+                // 切换到新彩种的数据存储
+                console.log('🔄 切换彩种，加载新彩种数据...');
+                const currentData = getCurrentLotteryData();
+                r = currentData.data;
+                window.r = currentData.data;
+                d = currentData.periodSet;
+                document.getElementById("periodCount").textContent = currentData.data.length;
+                
+                console.log(`✅ 已切换到${lotteryName}数据，当前数据量: ${currentData.data.length}期`);
+                
+                // 再次使用 requestAnimationFrame 确保数据切换完成后再渲染
+                requestAnimationFrame(() => {
+                    if (currentData.data.length > 0) {
+                        console.log('🔄 渲染当前彩种的数据到表格');
+                        L(); // 渲染表格
+                    } else {
+                        console.log('📋 当前彩种暂无数据，显示空表格');
+                        const tbodyFinal = document.querySelector("#resultTable tbody");
+                        if (tbodyFinal) {
+                            tbodyFinal.innerHTML = '<tr><td colspan="100" class="text-center py-4 text-gray-500">暂无数据</td></tr>';
+                        }
+                    }
+                });
+            });
             
             // 更新数据源显示
             const dataSourceElement = document.querySelector('.data-source');
@@ -7432,6 +7533,50 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (typeof startAutoScrape === 'function') {
                             startAutoScrape(false); // 不显示启动提示
                             // console.log('🚀 已自动启动台湾PK10数据获取功能（fetchApiData未定义）');
+                        }
+                    }, 1000);
+                }
+            } else if (this.value.startsWith('bscbh')) {
+                const lotteryName = this.value === 'bscbh3fpk10' ? '币安3分PK10' : '币安5分PK10';
+                console.log(`🔄 自动获取${lotteryName}历史数据...`);
+                // 对于币安系列，自动获取历史数据并启动自动获取功能
+                if (typeof fetchHistoryData === 'function') {
+                    fetchHistoryData().then(result => {
+                        if (result && result.totalCount > 0) {
+                            console.log(`✅ 成功加载${lotteryName}历史数据，共`, result.totalCount, '条记录');
+                        } else {
+                            console.log(`ℹ️ 未获取到${lotteryName}历史数据，显示空表格`);
+                            L(); // 调用表格渲染函数显示空表格
+                        }
+                        
+                        // 启动自动获取功能
+                        setTimeout(() => {
+                            if (typeof startAutoScrape === 'function') {
+                                startAutoScrape(false); // 不显示启动提示
+                                console.log(`🚀 已自动启动${lotteryName}数据获取功能`);
+                            }
+                        }, 1000); // 延迟1秒启动，确保历史数据加载完成
+                    }).catch(error => {
+                        console.error(`❌ 获取${lotteryName}历史数据失败:`, error);
+                        L(); // 调用表格渲染函数显示空表格
+                        
+                        // 即使历史数据获取失败，也启动自动获取功能
+                        setTimeout(() => {
+                            if (typeof startAutoScrape === 'function') {
+                                startAutoScrape(false); // 不显示启动提示
+                                console.log(`🚀 已自动启动${lotteryName}数据获取功能（历史数据获取失败）`);
+                            }
+                        }, 1000);
+                    });
+                } else {
+                    console.error('❌ fetchHistoryData 函数未定义');
+                    L(); // 调用表格渲染函数显示空表格
+                    
+                    // 即使函数未定义，也尝试启动自动获取功能
+                    setTimeout(() => {
+                        if (typeof startAutoScrape === 'function') {
+                            startAutoScrape(false); // 不显示启动提示
+                            console.log(`🚀 已自动启动${lotteryName}数据获取功能（fetchHistoryData未定义）`);
                         }
                     }, 1000);
                 }
@@ -9080,6 +9225,20 @@ let dots=0;
 const loadingInterval=setInterval(()=>{dots=(dots+1)%4;this.textContent="验证中"+".".repeat(dots);},500);
 
 try{
+  // 检查是否为本地文件访问模式
+  if (window.location.protocol === 'file:') {
+    console.log('🔓 本地文件模式：跳过密钥验证');
+    const n=Y();
+    localStorage.setItem(`validKey_${n}`,t);
+    // 设置一个默认的过期时间（30天后）
+    const expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    localStorage.setItem(`keyExpiry_${n}`, expiryDate.toISOString());
+    g.classList.add("hidden");
+    g.style.display="none";
+    b=!0;
+    return;
+  }
+  
   // 🔒 完全依赖服务器验证，移除本地验证逻辑
   console.log('🔒 密钥输入：向服务器验证密钥');
   // 根据环境选择API地址
@@ -9275,13 +9434,22 @@ function isInActiveTime() {
 
 // 云端数据库功能已禁用 - runPythonScraper函数已移除
 
-// 启动自动抓取功能 - 每2秒获取一次数据
+// 启动自动抓取功能 - 每2秒获取一次数据（仅针对币安系列和台湾PK10）
 function startAutoScrape(showNotificationFlag = true, customMessage = null, immediatelyFetch = true) {
     if (autoScrapeInterval) {
         clearInterval(autoScrapeInterval);
     }
     
-    // console.log('启动自动获取数据功能，每2秒获取一次');
+    // 检查当前彩种是否需要自动更新（币安系列和台湾PK10）
+    const needAutoUpdate = currentLotteryType.startsWith('bscbh') || currentLotteryType === 'twpk10';
+    if (!needAutoUpdate) {
+        console.log(`当前彩种 ${currentLotteryType} 不需要自动更新，跳过启动自动获取`);
+        return;
+    }
+    
+    const lotteryName = currentLotteryType === 'bscbh3fpk10' ? '币安3分PK10' : 
+                       currentLotteryType === 'bscbh5fpk10' ? '币安5分PK10' : '台湾PK10';
+    console.log(`启动 ${lotteryName} 自动获取数据功能，每2秒获取一次`);
     isInActiveTimeRange = true;
     
     // 根据参数决定是否立即获取数据
@@ -9572,13 +9740,138 @@ async function fetchApiData() {
         return null;
     }
     
+    // 🔒 重要：在函数开始时立即保存彩种类型，防止异步过程中被切换
+    const targetLotteryType = currentLotteryType;
+    
     try {
         console.log('步骤1: 开始从API获取数据...');
-        console.log('当前彩种:', currentLotteryType);
+        console.log('目标彩种:', targetLotteryType);
         
         let apiUrl, response, data;
         
-        if (currentLotteryType === 'twpk10') {
+        // 币安系列彩种（3分PK10、5分PK10等）统一处理
+        if (targetLotteryType.startsWith('bscbh')) {
+            // 币安系列 API - 直接调用原始API获取最新数据
+            const now = new Date();
+            const startTime = new Date(now.getTime() - 10 * 60 * 1000); // 往前10分钟
+            const startTimeStr = startTime.getFullYear() + '-' + 
+                               String(startTime.getMonth() + 1).padStart(2, '0') + '-' + 
+                               String(startTime.getDate()).padStart(2, '0') + ' ' +
+                               String(startTime.getHours()).padStart(2, '0') + ':' +
+                               String(startTime.getMinutes()).padStart(2, '0') + ':00';
+            const endTimeStr = now.getFullYear() + '-' + 
+                             String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                             String(now.getDate()).padStart(2, '0') + ' ' +
+                             String(now.getHours()).padStart(2, '0') + ':' +
+                             String(now.getMinutes()).padStart(2, '0') + ':59';
+            
+            const lotteryName = targetLotteryType === 'bscbh3fpk10' ? '币安3分PK10' : '币安5分PK10';
+            apiUrl = `https://wkcvip.qqtjw666.com/api/trial/draw-result-by-datetime?code=${targetLotteryType}&rows=10&start_time=${encodeURIComponent(startTimeStr)}&end_time=${encodeURIComponent(endTimeStr)}&page=1`;
+            console.log(`${lotteryName} API调用:`, apiUrl);
+            
+            response = await fetch(apiUrl, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP错误! 状态: ${response.status}`);
+            }
+            
+            const lotteryNameForLog = targetLotteryType === 'bscbh3fpk10' ? '币安3分PK10' : '币安5分PK10';
+            data = await parseServerJson(response, `${lotteryNameForLog}最新数据`);
+            console.log(`步骤2: ${lotteryNameForLog} API返回数据:`, data);
+            
+            // 处理币安系列数据格式
+            if (data && data.code === 0 && data.data && data.data.data && Array.isArray(data.data.data) && data.data.data.length > 0) {
+                console.log(`步骤3: 开始处理${lotteryNameForLog}数据，共`, data.data.data.length, '条');
+                
+                const currentStorage = getCurrentLotteryData();
+                let newDataCount = 0;
+                let newDataItems = [];
+                
+                for (const item of data.data.data) {
+                    try {
+                        const period = item.issue;
+                        const numbersStr = item.drawResult;
+                        const drawTime = item.drawTime;
+                        
+                        // 检查是否已存在该期数据（使用目标彩种类型）
+                        const dataExists = isPeriodExists(period, targetLotteryType);
+                        
+                        if (!dataExists) {
+                            // 解析号码
+                            const numbers = numbersStr.split(',').map(n => parseInt(n.trim(), 10));
+                            
+                            if (numbers.length >= 5 && !numbers.some(isNaN)) {
+                                // 添加到期号集合（使用目标彩种类型）
+                                addPeriodToSet(period, targetLotteryType);
+                                
+                                // 添加到临时数组
+                                newDataItems.push({
+                                    period: period,
+                                    data: numbers,
+                                    input: numbers.join(','),
+                                    期号: period,
+                                    开奖号码: numbers.map(num => num.toString().padStart(2, '0')),
+                                    开奖时间: drawTime
+                                });
+                                
+                                newDataCount++;
+                            }
+                        }
+                    } catch (error) {
+                        console.error('处理币安3分PK10数据项时出错:', error, item);
+                    }
+                }
+                
+                // 按期号排序新数据，确保最新期号在前
+                newDataItems.sort((a, b) => {
+                    const periodA = parseInt(a.period);
+                    const periodB = parseInt(b.period);
+                    return periodB - periodA;
+                });
+                
+                // 将新数据添加到目标彩票类型的数据存储（明确传递彩种类型参数）
+                addToCurrentLotteryData(newDataItems, targetLotteryType);
+                
+                console.log(`步骤4: ${lotteryNameForLog}数据处理完成，新增`, newDataCount, '条数据');
+                console.log('步骤5: 已将数据同步到window.r和全局r，总长度:', window.r.length);
+                
+                // 更新期数统计
+                document.getElementById('periodCount').textContent = r.length;
+                
+                // 只有在有新数据时才刷新表格显示
+                if (newDataCount > 0) {
+                    console.log('✨ 步骤6: 检测到', newDataCount, '条新数据，刷新表格显示');
+                    console.log('✨ 最新期号:', newDataItems[0]?.period, '开奖时间:', newDataItems[0]?.开奖时间);
+                    L(); // 刷新表格显示新数据
+                    
+                    // 同步到验证计划和单期验证
+                    if (typeof window.syncDataToVerifyPlan === 'function') {
+                        window.syncDataToVerifyPlan();
+                    }
+                    if (typeof window.updateSinglePeriodTable === 'function') {
+                        window.updateSinglePeriodTable();
+                    }
+                } else {
+                    const currentLatestPeriod = r.length > 0 ? r[0].period : '无';
+                    const apiLatestPeriod = data.data.data.length > 0 ? data.data.data[0].issue : '无';
+                    console.log('⏸️ 步骤6: 没有新数据，跳过表格刷新 | 当前最新期号:', currentLatestPeriod, '| API返回最新期号:', apiLatestPeriod);
+                }
+                
+                console.log(`步骤7: ${lotteryNameForLog}数据处理和显示更新完成`);
+                
+                return { newDataCount, totalCount: r.length };
+            } else {
+                console.log(`${lotteryNameForLog} API返回空数据或格式错误`);
+                return { newDataCount: 0, totalCount: r.length };
+            }
+            
+        } else if (targetLotteryType === 'twpk10') {
             // 台湾PK10 API - 根据环境选择API端点
             const isVercel = window.location.hostname.includes('vercel.app') || 
                            window.location.hostname.includes('netlify.app') || 
@@ -9628,13 +9921,13 @@ async function fetchApiData() {
                             // 使用calcResult函数转换为10位数字
                             const convertedNumbers = calcResult(numbers);
                             
-                            // 检查是否已存在该期数据
+                            // 检查是否已存在该期数据（使用目标彩种类型）
                             const period = item.expect;
-                            const dataExists = isPeriodExists(period);
+                            const dataExists = isPeriodExists(period, targetLotteryType);
                             
                             if (!dataExists) {
-                                // 添加到期号集合
-                                addPeriodToSet(period);
+                                // 添加到期号集合（使用目标彩种类型）
+                                addPeriodToSet(period, targetLotteryType);
                                 
                                 // 添加到临时数组，格式与幸运飞艇保持一致
                                 newDataItems.push({
@@ -9661,8 +9954,8 @@ async function fetchApiData() {
                     return periodB - periodA; // 降序排列，最新期号在前
                 });
                 
-                // 将新数据添加到当前彩票类型的数据存储
-                addToCurrentLotteryData(newDataItems);
+                // 将新数据添加到目标彩票类型的数据存储
+                addToCurrentLotteryData(newDataItems, targetLotteryType);
                 
                 console.log('步骤4: 台湾PK10数据处理完成，新增', newDataCount, '条数据');
                 console.log('步骤5: 已将数据同步到window.r和全局r，总长度:', window.r.length);
@@ -9707,10 +10000,10 @@ async function fetchApiData() {
                 throw new Error('台湾PK10 API返回数据格式错误');
             }
             
-        } else if (currentLotteryType === 'xyft') {
+        } else if (targetLotteryType === 'xyft') {
             // 幸运飞艇 API (原有逻辑)
             apiUrl = 'https://api.api68.com/pks/getLotteryPksInfo.do?lotCode=10057';
-        } else if (currentLotteryType === 'jsft') {
+        } else if (targetLotteryType === 'jsft') {
             // 急速飞艇 API
             apiUrl = 'https://jvt.168skfbm.com/api/pks/getLotteryPksInfo.do?lotCode=10037';
             
@@ -9739,7 +10032,7 @@ async function fetchApiData() {
                 throw new Error(`HTTP错误! 状态: ${response.status}`);
             }
             
-            data = await parseServerJson(response, currentLotteryType === 'jsft' ? '极速飞艇数据接口' : '幸运飞艇数据接口');
+            data = await parseServerJson(response, targetLotteryType === 'jsft' ? '极速飞艇数据接口' : '幸运飞艇数据接口');
             console.log('步骤2: 幸运飞艇 API返回数据:', data);
             
             // 检查API返回的错误码
@@ -9796,38 +10089,38 @@ async function fetchApiData() {
                 }
             }
             
-            // 添加新数据到数组
-            addPeriodToSet(period);
-            const newData = {
-                period: period,
-                data: numbers,
-                input: numbers.join(',') // 存储转换后的10个数字
-            };
-            addToCurrentLotteryData([newData]);
-            console.log('步骤5: 新数据已添加到数组，当前数组长度:', r.length);
-            
-            console.log('步骤6: 已将数据同步到window.r，长度:', window.r.length);
-            
-            // 触发计划自动验证
-            if (window.PlanDataUpdateListener && typeof window.PlanDataUpdateListener.onHistoryDataUpdate === 'function') {
-                console.log('步骤6.1: 触发计划自动验证');
-                const newDataItem = {
+                // 添加新数据到数组
+                addPeriodToSet(period);
+                const newData = {
                     period: period,
                     data: numbers,
-                    input: numbers.join(',')
+                input: numbers.join(',') // 存储转换后的10个数字
                 };
-                window.PlanDataUpdateListener.onHistoryDataUpdate([newDataItem]);
-            }
+                addToCurrentLotteryData([newData]);
+                console.log('步骤5: 新数据已添加到数组，当前数组长度:', r.length);
+                
+                console.log('步骤6: 已将数据同步到window.r，长度:', window.r.length);
+                
+                // 触发计划自动验证
+                if (window.PlanDataUpdateListener && typeof window.PlanDataUpdateListener.onHistoryDataUpdate === 'function') {
+                    console.log('步骤6.1: 触发计划自动验证');
+                    const newDataItem = {
+                        period: period,
+                        data: numbers,
+                    input: numbers.join(',')
+                    };
+                    window.PlanDataUpdateListener.onHistoryDataUpdate([newDataItem]);
+                }
+                
+                // 更新期数统计
+                document.getElementById('periodCount').textContent = r.length;
+                
+                // 刷新表格显示新数据
+                console.log('步骤7: 检测到新数据，刷新表格显示');
+                L(); // 刷新表格显示新数据
+                console.log('步骤8: 数据处理完成，表格已刷新');
             
-            // 更新期数统计
-            document.getElementById('periodCount').textContent = r.length;
-            
-            // 刷新表格显示新数据
-            console.log('步骤7: 检测到新数据，刷新表格显示');
-            L(); // 刷新表格显示新数据
-            console.log('步骤8: 数据处理完成，表格已刷新');
-        
-            console.log('步骤9: 数据处理完成，状态更新已触发');
+                console.log('步骤9: 数据处理完成，状态更新已触发');
             
             return { period, numbersStr, drawTime, dataExists };
         }
@@ -9866,14 +10159,18 @@ window.fetchHistoryData = async function fetchHistoryData() {
                             String(yesterday.getMonth() + 1).padStart(2, '0') + '-' + 
                             String(yesterday.getDate()).padStart(2, '0');
         
-        // 台湾PK10是200期循环数据，不需要按日期请求
+        // 台湾PK10和币安3分PK10是循环数据，不需要按日期请求
         let dates, allHistoryItems = [];
         
         if (lotteryType === 'twpk10') {
             console.log('步骤2: 台湾PK10使用200期循环数据，只请求一次');
             dates = [null]; // 只请求一次，不带日期参数
+        } else if (lotteryType.startsWith('bscbh')) {
+            const lotteryName = lotteryType === 'bscbh3fpk10' ? '币安3分PK10' : '币安5分PK10';
+            console.log(`步骤2: ${lotteryName}使用历史数据，请求今天和昨天`);
+            dates = [todayStr, yesterdayStr]; // 请求今天和昨天的数据
         } else {
-            console.log('步骤2: 准备获取两天数据:', { today: todayStr, yesterday: yesterdayStr });
+        console.log('步骤2: 准备获取两天数据:', { today: todayStr, yesterday: yesterdayStr });
             dates = [todayStr, yesterdayStr];
         }
         
@@ -9882,8 +10179,16 @@ window.fetchHistoryData = async function fetchHistoryData() {
             const isVercel = window.location.hostname.includes('vercel.app') || window.location.hostname.includes('myyz.vercel.app');
             let historyApiUrl;
             
-            if (isVercel) {
-                // Vercel环境下使用代理API
+            // 币安系列始终直接调用原始API，不使用Vercel代理
+            if (lotteryType.startsWith('bscbh')) {
+                // 币安系列的API - 直接调用
+                const startTime = `${dateStr} 00:00:00`;
+                const endTime = `${dateStr} 23:59:59`;
+                const lotteryName = lotteryType === 'bscbh3fpk10' ? '币安3分PK10' : '币安5分PK10';
+                historyApiUrl = `https://wkcvip.qqtjw666.com/api/trial/draw-result-by-datetime?code=${lotteryType}&rows=100&start_time=${encodeURIComponent(startTime)}&end_time=${encodeURIComponent(endTime)}&page=1`;
+                console.log(`步骤2.${dates.indexOf(dateStr) + 1}: ${lotteryName}直接调用API:`, historyApiUrl);
+            } else if (isVercel) {
+                // Vercel环境下使用代理API（其他彩种）
                 if (lotteryType === 'jsft') {
                     historyApiUrl = `/api/jsft-data?date=${dateStr}`;
                 } else {
@@ -9939,8 +10244,23 @@ window.fetchHistoryData = async function fetchHistoryData() {
             
             let historyItems = [];
             
-            if (isVercel) {
-                // Vercel API返回格式处理
+            // 币安系列的数据处理（始终使用原始API格式）
+            if (lotteryType.startsWith('bscbh')) {
+                // 币安系列 API格式: {code: 0, msg: "成功", data: {data: [...]}}
+                const lotteryName = lotteryType === 'bscbh3fpk10' ? '币安3分PK10' : '币安5分PK10';
+                if (data.code === 0 && data.data && data.data.data && Array.isArray(data.data.data)) {
+                    historyItems = data.data.data.map(item => ({
+                        preDrawIssue: item.issue,          // 币安字段：issue
+                        preDrawCode: item.drawResult,      // 币安字段：drawResult
+                        preDrawTime: item.drawTime         // 币安字段：drawTime
+                    }));
+                    console.log(`步骤4.${dates.indexOf(dateStr) + 1}: ${lotteryName} API ${dateStr} 获取到 ${historyItems.length} 条历史数据`);
+                } else {
+                    console.warn(`${lotteryName} API返回格式不正确 (${dateStr}):`, data);
+                    continue;
+                }
+            } else if (isVercel) {
+                // Vercel API返回格式处理（其他彩种）
                 if (data.success && data.data && Array.isArray(data.data)) {
                     // 转换Vercel API格式到原始格式
                     historyItems = data.data.map(item => ({
@@ -9973,17 +10293,17 @@ window.fetchHistoryData = async function fetchHistoryData() {
                     }
                 } else {
                     // 急速飞艇本地环境
-                    if (data.errorCode !== 0) {
-                        console.warn(`API返回错误 (${dateStr}):`, data.message || '未知错误');
+                if (data.errorCode !== 0) {
+                    console.warn(`API返回错误 (${dateStr}):`, data.message || '未知错误');
                         continue;
-                    }
-                    
-                    if (data && data.result && data.result.data && Array.isArray(data.result.data)) {
-                        historyItems = data.result.data;
-                        console.log(`步骤4.${dates.indexOf(dateStr) + 1}: 原始API ${dateStr} 获取到 ${historyItems.length} 条历史数据`);
-                    } else {
-                        console.warn(`${dateStr} 原始API返回格式不正确`);
-                        continue;
+                }
+                
+                if (data && data.result && data.result.data && Array.isArray(data.result.data)) {
+                    historyItems = data.result.data;
+                    console.log(`步骤4.${dates.indexOf(dateStr) + 1}: 原始API ${dateStr} 获取到 ${historyItems.length} 条历史数据`);
+                } else {
+                    console.warn(`${dateStr} 原始API返回格式不正确`);
+                    continue;
                     }
                 }
             }
@@ -10028,6 +10348,17 @@ window.fetchHistoryData = async function fetchHistoryData() {
                         console.warn(`期号 ${period}: 数据格式错误，应为20个数字，实际为 ${raw20Numbers.length} 个`);
                         continue;
                     }
+                } else if (lotteryType.startsWith('bscbh')) {
+                    // 币安系列：直接解析号码
+                    const lotteryName = lotteryType === 'bscbh3fpk10' ? '币安3分PK10' : '币安5分PK10';
+                    numbers = numbersStr.split(',').map(n => parseInt(n.trim(), 10));
+                    console.log(`期号 ${period}: ${lotteryName}数据 [${numbers.join(',')}]，共${numbers.length}个号码`);
+                    
+                    // 币安系列可能是5个或10个号码，都接受
+                    if (numbers.length < 5 || numbers.some(isNaN)) {
+                        console.warn(`期号 ${period}: 数据格式错误，号码数量: ${numbers.length}`);
+                        continue;
+                    }
                 } else {
                     // 其他彩种：直接解析10个数字
                     numbers = numbersStr.split(',').map(n => parseInt(n.trim(), 10));
@@ -10037,13 +10368,13 @@ window.fetchHistoryData = async function fetchHistoryData() {
                     }
                 }
                 
-                r.push({
-                    period: period,
-                    data: numbers,
+                    r.push({
+                        period: period,
+                        data: numbers,
                     input: numbers.join(',') // 存储转换后的10个数字
-                });
-                d.add(period);
-                addedCount++;
+                    });
+                    d.add(period);
+                    addedCount++;
             }
             
             // 按期数倒序排列，确保最新期数在最上方
