@@ -13,8 +13,8 @@
   <!-- 安全防护脚本 -->
   <script>
     // 🎯 版本信息
-    const APP_VERSION = 'v1.0.0.25';
-    const BUILD_TIME = '2025-10-19 22:20:00';
+    const APP_VERSION = 'v1.0.0.26';
+    const BUILD_TIME = '2025-10-19 22:30:00';
     console.log('%c🚀 台湾PK数据分析工具 ' + APP_VERSION, 'color: #3b82f6; font-size: 18px; font-weight: bold; padding: 10px;');
     console.log('%c📅 构建时间: ' + BUILD_TIME, 'color: #10b981; font-size: 14px;');
     console.log('%c🔧 如看到此版本号说明页面已更新', 'color: #f59e0b; font-size: 12px;');
@@ -1317,6 +1317,7 @@
             <select id="lotteryType" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200 bg-white">
               <option value="bscbh3fpk10">币安3分PK10</option>
               <option value="bscbh5fpk10">币安5分PK10</option>
+              <option value="tronbh3fpk10">波场3分PK10</option>
               <option value="twpk10" selected>台湾PK10</option>
             </select>
             <span id="currentLotteryStatus" class="text-sm text-gray-500">当前: 台湾PK10</span>
@@ -6539,6 +6540,10 @@ const lotteryDataStorage = {
         data: [],
         periodSet: new Set()
     },
+    tronbh3fpk10: {
+        data: [],
+        periodSet: new Set()
+    },
     xyft: {
         data: [],
         periodSet: new Set()
@@ -7311,8 +7316,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }, 1000);
                 
-            } else if (currentLotteryType.startsWith('bscbh')) {
-                const lotteryName = currentLotteryType === 'bscbh3fpk10' ? '币安3分PK10' : '币安5分PK10';
+            } else if (currentLotteryType.startsWith('bscbh') || currentLotteryType.startsWith('tronbh')) {
+                const lotteryName = currentLotteryType === 'bscbh3fpk10' ? '币安3分PK10' : 
+                                   (currentLotteryType === 'bscbh5fpk10' ? '币安5分PK10' : '波场3分PK10');
                 console.log(`🔄 页面初始化：自动获取${lotteryName}历史数据...`);
                 if (typeof fetchHistoryData === 'function') {
                     fetchHistoryData().then(result => {
@@ -7401,8 +7407,9 @@ document.addEventListener('DOMContentLoaded', function() {
             currentLotteryType = this.value;
             const lotteryName = this.value === 'bscbh3fpk10' ? '币安3分PK10' : 
                                (this.value === 'bscbh5fpk10' ? '币安5分PK10' :
+                               (this.value === 'tronbh3fpk10' ? '波场3分PK10' :
                                (this.value === 'xyft' ? '幸运飞艇' : 
-                               (this.value === 'jsft' ? '急速飞艇' : '台湾PK10')));
+                               (this.value === 'jsft' ? '急速飞艇' : '台湾PK10'))));
             currentLotteryStatus.textContent = `当前: ${lotteryName}`;
             console.log(`彩种切换为: ${lotteryName} (${this.value})`);
             
@@ -7536,8 +7543,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }, 1000);
                 }
-            } else if (this.value.startsWith('bscbh')) {
-                const lotteryName = this.value === 'bscbh3fpk10' ? '币安3分PK10' : '币安5分PK10';
+            } else if (this.value.startsWith('bscbh') || this.value.startsWith('tronbh')) {
+                const lotteryName = this.value === 'bscbh3fpk10' ? '币安3分PK10' : 
+                                   (this.value === 'bscbh5fpk10' ? '币安5分PK10' : '波场3分PK10');
                 console.log(`🔄 自动获取${lotteryName}历史数据...`);
                 // 对于币安系列，自动获取历史数据并启动自动获取功能
                 if (typeof fetchHistoryData === 'function') {
@@ -9441,14 +9449,17 @@ function startAutoScrape(showNotificationFlag = true, customMessage = null, imme
     }
     
     // 检查当前彩种是否需要自动更新（币安系列和台湾PK10）
-    const needAutoUpdate = currentLotteryType.startsWith('bscbh') || currentLotteryType === 'twpk10';
+    const needAutoUpdate = currentLotteryType.startsWith('bscbh') || 
+                          currentLotteryType.startsWith('tronbh') || 
+                          currentLotteryType === 'twpk10';
     if (!needAutoUpdate) {
         console.log(`当前彩种 ${currentLotteryType} 不需要自动更新，跳过启动自动获取`);
         return;
     }
     
     const lotteryName = currentLotteryType === 'bscbh3fpk10' ? '币安3分PK10' : 
-                       currentLotteryType === 'bscbh5fpk10' ? '币安5分PK10' : '台湾PK10';
+                       (currentLotteryType === 'bscbh5fpk10' ? '币安5分PK10' :
+                       (currentLotteryType === 'tronbh3fpk10' ? '波场3分PK10' : '台湾PK10'));
     console.log(`启动 ${lotteryName} 自动获取数据功能，每2秒获取一次`);
     isInActiveTimeRange = true;
     
@@ -9749,9 +9760,9 @@ async function fetchApiData() {
         
         let apiUrl, response, data;
         
-        // 币安系列彩种（3分PK10、5分PK10等）统一处理
-        if (targetLotteryType.startsWith('bscbh')) {
-            // 币安系列 API - 直接调用原始API获取最新数据
+        // 币安系列和波场系列彩种（3分PK10、5分PK10等）统一处理
+        if (targetLotteryType.startsWith('bscbh') || targetLotteryType.startsWith('tronbh')) {
+            // 币安/波场系列 API - 直接调用原始API获取最新数据
             const now = new Date();
             const startTime = new Date(now.getTime() - 10 * 60 * 1000); // 往前10分钟
             const startTimeStr = startTime.getFullYear() + '-' + 
@@ -9765,7 +9776,8 @@ async function fetchApiData() {
                              String(now.getHours()).padStart(2, '0') + ':' +
                              String(now.getMinutes()).padStart(2, '0') + ':59';
             
-            const lotteryName = targetLotteryType === 'bscbh3fpk10' ? '币安3分PK10' : '币安5分PK10';
+            const lotteryName = targetLotteryType === 'bscbh3fpk10' ? '币安3分PK10' : 
+                               (targetLotteryType === 'bscbh5fpk10' ? '币安5分PK10' : '波场3分PK10');
             apiUrl = `https://wkcvip.qqtjw666.com/api/trial/draw-result-by-datetime?code=${targetLotteryType}&rows=10&start_time=${encodeURIComponent(startTimeStr)}&end_time=${encodeURIComponent(endTimeStr)}&page=1`;
             console.log(`${lotteryName} API调用:`, apiUrl);
             
@@ -10165,8 +10177,9 @@ window.fetchHistoryData = async function fetchHistoryData() {
         if (lotteryType === 'twpk10') {
             console.log('步骤2: 台湾PK10使用200期循环数据，只请求一次');
             dates = [null]; // 只请求一次，不带日期参数
-        } else if (lotteryType.startsWith('bscbh')) {
-            const lotteryName = lotteryType === 'bscbh3fpk10' ? '币安3分PK10' : '币安5分PK10';
+        } else if (lotteryType.startsWith('bscbh') || lotteryType.startsWith('tronbh')) {
+            const lotteryName = lotteryType === 'bscbh3fpk10' ? '币安3分PK10' : 
+                               (lotteryType === 'bscbh5fpk10' ? '币安5分PK10' : '波场3分PK10');
             console.log(`步骤2: ${lotteryName}使用历史数据，请求今天和昨天`);
             dates = [todayStr, yesterdayStr]; // 请求今天和昨天的数据
         } else {
@@ -10179,12 +10192,13 @@ window.fetchHistoryData = async function fetchHistoryData() {
             const isVercel = window.location.hostname.includes('vercel.app') || window.location.hostname.includes('myyz.vercel.app');
             let historyApiUrl;
             
-            // 币安系列始终直接调用原始API，不使用Vercel代理
-            if (lotteryType.startsWith('bscbh')) {
-                // 币安系列的API - 直接调用
+            // 币安系列和波场系列始终直接调用原始API，不使用Vercel代理
+            if (lotteryType.startsWith('bscbh') || lotteryType.startsWith('tronbh')) {
+                // 币安/波场系列的API - 直接调用
                 const startTime = `${dateStr} 00:00:00`;
                 const endTime = `${dateStr} 23:59:59`;
-                const lotteryName = lotteryType === 'bscbh3fpk10' ? '币安3分PK10' : '币安5分PK10';
+                const lotteryName = lotteryType === 'bscbh3fpk10' ? '币安3分PK10' : 
+                                   (lotteryType === 'bscbh5fpk10' ? '币安5分PK10' : '波场3分PK10');
                 historyApiUrl = `https://wkcvip.qqtjw666.com/api/trial/draw-result-by-datetime?code=${lotteryType}&rows=100&start_time=${encodeURIComponent(startTime)}&end_time=${encodeURIComponent(endTime)}&page=1`;
                 console.log(`步骤2.${dates.indexOf(dateStr) + 1}: ${lotteryName}直接调用API:`, historyApiUrl);
             } else if (isVercel) {
@@ -10244,15 +10258,16 @@ window.fetchHistoryData = async function fetchHistoryData() {
             
             let historyItems = [];
             
-            // 币安系列的数据处理（始终使用原始API格式）
-            if (lotteryType.startsWith('bscbh')) {
-                // 币安系列 API格式: {code: 0, msg: "成功", data: {data: [...]}}
-                const lotteryName = lotteryType === 'bscbh3fpk10' ? '币安3分PK10' : '币安5分PK10';
+            // 币安系列和波场系列的数据处理（始终使用原始API格式）
+            if (lotteryType.startsWith('bscbh') || lotteryType.startsWith('tronbh')) {
+                // 币安/波场系列 API格式: {code: 0, msg: "成功", data: {data: [...]}}
+                const lotteryName = lotteryType === 'bscbh3fpk10' ? '币安3分PK10' : 
+                                   (lotteryType === 'bscbh5fpk10' ? '币安5分PK10' : '波场3分PK10');
                 if (data.code === 0 && data.data && data.data.data && Array.isArray(data.data.data)) {
                     historyItems = data.data.data.map(item => ({
-                        preDrawIssue: item.issue,          // 币安字段：issue
-                        preDrawCode: item.drawResult,      // 币安字段：drawResult
-                        preDrawTime: item.drawTime         // 币安字段：drawTime
+                        preDrawIssue: item.issue,          // 字段：issue
+                        preDrawCode: item.drawResult,      // 字段：drawResult
+                        preDrawTime: item.drawTime         // 字段：drawTime
                     }));
                     console.log(`步骤4.${dates.indexOf(dateStr) + 1}: ${lotteryName} API ${dateStr} 获取到 ${historyItems.length} 条历史数据`);
                 } else {
